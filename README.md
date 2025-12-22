@@ -4,6 +4,8 @@
 
 ## Project Setup
 
+Setup instructions after project cloning
+
 CMD:
 ```
 npm install
