@@ -100,7 +100,7 @@ const DashboardPage = () => {
                         </button>
                         {/* New Entry Button */}
                         <button
-                            onClick={() => navigate("/funds")}
+                            onClick={() => navigate("/disbursement/new")}
                             className="btn btn-primary gap-2"
                         >
                             <PlusCircle className="w-4 h-4" />
@@ -188,10 +188,10 @@ const DashboardPage = () => {
                                         <div className="progress-bar mb-2">
                                             <div
                                                 className={`progress-bar-fill ${isCritical
-                                                        ? "bg-error"
-                                                        : isLow
-                                                            ? "bg-warning"
-                                                            : "bg-slate-800"
+                                                    ? "bg-error"
+                                                    : isLow
+                                                        ? "bg-warning"
+                                                        : "bg-slate-800"
                                                     }`}
                                                 style={{ width: `${Math.min(percentage, 100)}%` }}
                                             />

@@ -92,7 +92,7 @@ const useDisbursementStore = create((set, get) => ({
                 "/disbursement/store",
                 disbursementData
             );
-            const newDisbursement = response.data.savedDisbursement;
+            const newDisbursement = response.data;
 
             set((state) => ({
                 disbursements: [newDisbursement, ...state.disbursements],
@@ -156,15 +156,15 @@ const useDisbursementStore = create((set, get) => ({
         }
     },
 
-    approveDisbursement: async (id) => {
+    approveDisbursement: async (id, remarks = "") => {
         set({ isLoading: true });
         try {
-            const response = await axiosInstance.put(`/disbursement/approve/${id}`);
-            const approvedDisbursement = response.data.approvedDisbursement;
+            const response = await axiosInstance.put(`/disbursement/approve/${id}`, { remarks });
+            const approvedDisbursement = response.data.data;
 
             set((state) => ({
                 disbursements: state.disbursements.map((d) =>
-                    d.id === id ? approvedDisbursement : d
+                    d.id === id ? { ...d, status: "approved", approvedAt: new Date().toISOString() } : d
                 ),
                 selectedDisbursement:
                     state.selectedDisbursement?.id === id
@@ -173,8 +173,8 @@ const useDisbursementStore = create((set, get) => ({
                 isLoading: false,
             }));
 
-            toast.success("Disbursement approved!");
-            return { success: true };
+            toast.success("Disbursement approved successfully!");
+            return { success: true, data: approvedDisbursement };
         } catch (error) {
             const message =
                 error.response?.data?.message || "Failed to approve disbursement";

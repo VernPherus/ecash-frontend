@@ -15,6 +15,7 @@ import {
     Sun,
     Moon,
     TrendingUp,
+    PlusCircle,
 } from "lucide-react";
 
 import useAuthStore from "../store/useAuthStore";
@@ -36,6 +37,7 @@ const Sidebar = () => {
             section: "Management",
             items: [
                 { path: "/", icon: LayoutDashboard, label: "Dashboard" },
+                { path: "/disbursement/new", icon: PlusCircle, label: "New Disbursement" },
                 { path: "/funds", icon: Wallet, label: "Fund Sources" },
                 { path: "/payees", icon: Users, label: "Payees" },
             ],

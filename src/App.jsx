@@ -15,6 +15,7 @@ import DashboardPage from "./pages/DashboardPage";
 import FundManagerPage from "./pages/FundManagerPage";
 import PayeeManagerPage from "./pages/PayeeManagerPage";
 import DisbursementViewPage from "./pages/DisbursementViewPage";
+import DisbursementFormPage from "./pages/DisbursementFormPage";
 import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
 
@@ -148,6 +149,8 @@ const App = () => {
           {/* Management */}
           <Route path="/funds" element={<FundManagerPage />} />
           <Route path="/payees" element={<PayeeManagerPage />} />
+          <Route path="/disbursement/new" element={<DisbursementFormPage />} />
+          <Route path="/disbursement/edit/:id" element={<DisbursementFormPage />} />
           <Route path="/disbursement/:id" element={<DisbursementViewPage />} />
 
           {/* User */}
