@@ -79,6 +79,7 @@ const useAuthStore = create(
                         isCheckingAuth: false,
                     });
                 } catch (error) {
+                    toast.error(error)
                     set({
                         user: null,
                         isAuthenticated: false,
