@@ -92,7 +92,8 @@ const useDisbursementStore = create((set, get) => ({
                 "/disbursement/store",
                 disbursementData
             );
-            const newDisbursement = response.data;
+            // Standardized response: { message, data }
+            const newDisbursement = response.data.data;
 
             set((state) => ({
                 disbursements: [newDisbursement, ...state.disbursements],
@@ -132,7 +133,8 @@ const useDisbursementStore = create((set, get) => ({
                 `/disbursement/editRec/${id}`,
                 updateData
             );
-            const updatedDisbursement = response.data.updatedDisbursement;
+            // Standardized response: { message, data }
+            const updatedDisbursement = response.data.data;
 
             set((state) => ({
                 disbursements: state.disbursements.map((d) =>

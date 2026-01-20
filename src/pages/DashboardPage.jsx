@@ -51,6 +51,9 @@ const DashboardPage = () => {
     const stats = getStats();
     const recentDisbursements = getRecentDisbursements();
 
+    // Calculate Total Disbursement Amount (Net)
+    const totalDisbursed = disbursements.reduce((sum, d) => sum + Number(d.netAmount || 0), 0);
+
     // Calculate fund liquidity for each fund
     const getFundLiquidity = (fund) => {
         const spent = disbursements
@@ -155,52 +158,44 @@ const DashboardPage = () => {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 stagger-children">
                             {funds.slice(0, 6).map((fund, idx) => {
-                                const { spent, remaining, percentage } = getFundLiquidity(fund);
-                                const isLow = percentage > 80;
-                                const isCritical = percentage > 95;
+                                const { spent, remaining } = getFundLiquidity(fund);
 
                                 return (
                                     <div
                                         key={fund.id}
-                                        className="card-elevated p-6 cursor-pointer group"
+                                        className="card-elevated p-6 cursor-pointer group hover:border-primary/30 transition-all duration-300"
                                         onClick={() => navigate(`/funds`)}
                                     >
-                                        <div className="flex justify-between items-start mb-4">
+                                        <div className="flex justify-between items-start mb-6">
                                             <div>
                                                 <span className={`fund-badge ${getFundColor(idx)}`}>
                                                     {fund.code}
                                                 </span>
-                                                <h3 className="font-bold text-base-content mt-2 group-hover:text-primary transition-colors">
-                                                    {fund.name}
-                                                </h3>
                                             </div>
-                                            <div className="text-right">
-                                                <p className="text-xs text-base-content/50 uppercase tracking-wide">
-                                                    Available
-                                                </p>
-                                                <p className={`text-lg font-bold ${isCritical ? "text-error" : isLow ? "text-warning" : "text-primary"}`}>
-                                                    {formatCurrency(remaining)}
-                                                </p>
+                                            <div className="w-10 h-10 rounded-full bg-base-200 flex items-center justify-center group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                                                <ArrowUpRight className="w-5 h-5 opacity-50 group-hover:opacity-100" />
                                             </div>
                                         </div>
 
-                                        {/* Progress Bar */}
-                                        <div className="progress-bar mb-2">
-                                            <div
-                                                className={`progress-bar-fill ${isCritical
-                                                    ? "bg-error"
-                                                    : isLow
-                                                        ? "bg-warning"
-                                                        : "bg-slate-800"
-                                                    }`}
-                                                style={{ width: `${Math.min(percentage, 100)}%` }}
-                                            />
-                                        </div>
-                                        <div className="flex justify-between text-xs text-base-content/50">
-                                            <span>Used: {formatCurrency(spent)}</span>
-                                            <span className={isCritical ? "text-error font-medium" : ""}>
-                                                {Math.round(percentage)}%
-                                            </span>
+                                        <div className="space-y-4">
+                                            <div>
+                                                <h3 className="text-base font-medium text-base-content/70 mb-1">
+                                                    {fund.name}
+                                                </h3>
+                                                <p className="text-2xl font-bold text-base-content tracking-tight group-hover:text-primary transition-colors">
+                                                    {formatCurrency(remaining)}
+                                                </p>
+                                                <p className="text-xs text-base-content/40 mt-1 uppercase tracking-wider font-semibold">
+                                                    Available Balance
+                                                </p>
+                                            </div>
+
+                                            <div className="pt-4 border-t border-base-200 flex items-center justify-between text-sm">
+                                                <span className="text-base-content/50">Total Used</span>
+                                                <span className="font-medium text-base-content/80">
+                                                    {formatCurrency(spent)}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 );
@@ -209,75 +204,35 @@ const DashboardPage = () => {
                     )}
                 </section>
 
-                {/* KPI Stats Section */}
-                <section className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-                    {/* Pending */}
-                    <div className="stat-card">
-                        <div>
-                            <p className="text-sm text-base-content/60 font-medium mb-1">
-                                Pending Approval
-                            </p>
-                            <h3 className="text-3xl font-bold text-base-content">
-                                {stats.pendingCount}
-                                <span className="text-lg font-normal text-base-content/50 ml-1">
-                                    Records
-                                </span>
-                            </h3>
-                            {stats.pendingCount > 0 && (
-                                <p className="text-xs text-warning mt-2 flex items-center gap-1">
-                                    <Clock className="w-3 h-3" />
-                                    Requires attention
-                                </p>
-                            )}
-                        </div>
-                        <div className="stat-icon bg-warning/10 border border-warning/20">
-                            <FileText className="w-6 h-6 text-warning" />
-                        </div>
-                    </div>
+                {/* Total Disbursement Section */}
+                <section className="animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+                    <div className="card-elevated bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 p-8 flex items-center justify-between relative overflow-hidden group">
+                        {/* Background Decoration */}
+                        <div className="absolute -right-10 -top-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-500" />
 
-                    {/* Approved */}
-                    <div className="stat-card">
-                        <div>
-                            <p className="text-sm text-base-content/60 font-medium mb-1">
-                                Total Approved
-                            </p>
-                            <h3 className="text-3xl font-bold text-base-content">
-                                {stats.approvedCount}
-                                <span className="text-lg font-normal text-base-content/50 ml-1">
-                                    Records
+                        <div className="relative z-10">
+                            <h2 className="text-lg font-medium text-base-content/60 flex items-center gap-2 mb-2">
+                                <TrendingUp className="w-5 h-5 text-primary" />
+                                Total Disbursements
+                            </h2>
+                            <div className="flex items-baseline gap-2">
+                                <h1 className="text-5xl font-bold text-base-content tracking-tight">
+                                    {formatCurrency(totalDisbursed)}
+                                </h1>
+                                <span className="text-sm font-medium text-success py-1 px-2.5 bg-success/10 rounded-full border border-success/20 flex items-center gap-1">
+                                    <ArrowUpRight className="w-3 h-3" />
+                                    All time
                                 </span>
-                            </h3>
-                            <p className="text-xs text-success mt-2 flex items-center gap-1">
-                                <CheckCircle2 className="w-3 h-3" />
-                                Processed this month
+                            </div>
+                            <p className="text-sm text-base-content/40 mt-2">
+                                Total net amount disbursed across all funds
                             </p>
                         </div>
-                        <div className="stat-icon bg-success/10 border border-success/20">
-                            <CheckCircle2 className="w-6 h-6 text-success" />
-                        </div>
-                    </div>
 
-                    {/* Overdue */}
-                    <div className="stat-card">
-                        <div>
-                            <p className="text-sm text-base-content/60 font-medium mb-1">
-                                Overdue Items
-                            </p>
-                            <h3 className="text-3xl font-bold text-base-content">
-                                {stats.overdueCount}
-                                <span className="text-lg font-normal text-base-content/50 ml-1">
-                                    Records
-                                </span>
-                            </h3>
-                            {stats.overdueCount > 0 && (
-                                <p className="text-xs text-error mt-2 flex items-center gap-1">
-                                    <AlertCircle className="w-3 h-3" />
-                                    Immediate action needed
-                                </p>
-                            )}
-                        </div>
-                        <div className="stat-icon bg-error/10 border border-error/20">
-                            <AlertCircle className="w-6 h-6 text-error" />
+                        <div className="relative z-10 hidden md:block">
+                            <div className="w-16 h-16 rounded-2xl bg-primary text-primary-content flex items-center justify-center shadow-lg shadow-primary/20 transform rotate-3 group-hover:rotate-6 transition-transform duration-300">
+                                <Wallet className="w-8 h-8" />
+                            </div>
                         </div>
                     </div>
                 </section>
