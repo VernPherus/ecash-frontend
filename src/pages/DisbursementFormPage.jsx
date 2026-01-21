@@ -311,7 +311,7 @@ const DisbursementFormPage = () => {
         const payload = {
             ...formData,
             payeeId: Number(formData.payeeId),
-            fundsourceId: Number(formData.fundSourceId), // Fixed: backend expects lowercase 's'
+            fundSourceId: Number(formData.fundSourceId),
             grossAmount,
             totalDeductions,
             netAmount,
