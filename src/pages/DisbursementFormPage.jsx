@@ -30,6 +30,7 @@ import useDisbursementStore from "../store/useDisbursementStore";
 import useFundStore from "../store/useFundStore";
 import usePayeeStore from "../store/usePayeeStore";
 import DisbursementPrintView from "../components/DisbursementPrintView";
+import Chack from "../components/disbursement_components/Check"
 
 // ============================================
 // CONSTANTS & HELPERS
@@ -311,7 +312,7 @@ const DisbursementFormPage = () => {
         const payload = {
             ...formData,
             payeeId: Number(formData.payeeId),
-            fundsourceId: Number(formData.fundSourceId), // Fixed: backend expects lowercase 's'
+            fundSourceId: Number(formData.fundSourceId),
             grossAmount,
             totalDeductions,
             netAmount,
@@ -462,6 +463,9 @@ const DisbursementFormPage = () => {
                 </div>
             </header>
 
+
+  
+
             {/* Progress Steps */}
             <div className="bg-base-100 border-b border-base-300 px-6 lg:px-8 py-4">
                 <div className="max-w-7xl mx-auto">
@@ -511,6 +515,10 @@ const DisbursementFormPage = () => {
                     </div>
                 </div>
             </div>
+
+
+
+
 
             {/* Main Content - Split Layout */}
             <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">

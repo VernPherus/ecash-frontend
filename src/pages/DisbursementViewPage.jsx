@@ -311,8 +311,7 @@ const DisbursementViewPage = () => {
 
         if (result.success) {
             setIsApprovalModalOpen(false);
-            // Refresh the data to show updated status
-            showDisbursement(id);
+            // Data is already updated in store by approveDisbursement
         }
     };
 
