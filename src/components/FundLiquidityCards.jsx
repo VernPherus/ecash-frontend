@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Wallet, ArrowRight, PieChart } from "lucide-react";
 import useFundStore from "../store/useFundStore";
-import { formatCurrency, formatPercentage } from "../lib/formatters";
+import { formatCurrency } from "../lib/formatters";
 
 const FundLiquidityCards = () => {
   const navigate = useNavigate();
@@ -29,9 +29,9 @@ const FundLiquidityCards = () => {
   }
 
   // Calculate Global Utilization for the Total Card
-  const globalUtilization = dashboard.totals
-    ? (dashboard.totals.totalSpent / dashboard.totals.totalBudget) * 100
-    : 0;
+//   const globalUtilization = dashboard.totals
+//     ? (dashboard.totals.totalSpent / dashboard.totals.totalBudget) * 100
+//     : 0;
 
   return (
     <section className="space-y-4">
@@ -53,7 +53,7 @@ const FundLiquidityCards = () => {
         {/* --- TOTAL SUMMARY CARD --- */}
         {dashboard.totals && (
           // CHANGED: Replaced 'bg-primary' with a deep gradient and added a subtle border
-          <div className="bg-gradient-to-br from-indigo-600 to-violet-600 text-white rounded-xl p-6 shadow-xl relative overflow-hidden flex flex-col justify-center border border-indigo-400/20">
+          <div className="bg-linear-to-br from-indigo-600 to-violet-600 text-white rounded-xl p-6 shadow-xl relative overflow-hidden flex flex-col justify-center border border-indigo-400/20">
             {/* Background decoration - Adjusted opacity for the new dark background */}
             <PieChart className="absolute -right-6 -bottom-6 w-32 h-32 text-white/10" />
 
