@@ -122,7 +122,6 @@ const DisbursementViewPage = () => {
   const status = getDisbursementStatus(disbursement);
 
   return (
-    // FIX: Changed from 'bg-base-50/30' to 'bg-base-200' to serve as a proper dark mode background
     <div className="min-h-screen bg-base-200 pb-20 font-sans">
       {/* Approval Modal */}
       <ApprovalModal
@@ -134,7 +133,6 @@ const DisbursementViewPage = () => {
       />
 
       {/* --- Top Navigation --- */}
-      {/* FIX: Changed 'bg-white/80' to 'bg-base-100/80' */}
       <nav className="bg-base-100/80 border-b border-base-300 sticky top-0 z-30 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -197,10 +195,9 @@ const DisbursementViewPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* --- LEFT COLUMN (Main Content) --- */}
           <div className="lg:col-span-2 space-y-6">
-            {/* 1. Financial Highlights (Clean Grid) */}
+            {/* Financial Highlights (Clean Grid) */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* Gross */}
-              {/* FIX: Changed 'bg-white' to 'bg-base-100' */}
               <div className="bg-base-100 p-5 rounded-xl border border-base-300 shadow-sm">
                 <div className="flex items-center gap-2 text-base-content/50 mb-2">
                   <Wallet className="w-4 h-4" />
@@ -214,7 +211,6 @@ const DisbursementViewPage = () => {
               </div>
 
               {/* Deductions */}
-              {/* FIX: Changed 'bg-white' to 'bg-base-100' */}
               <div className="bg-base-100 p-5 rounded-xl border border-base-300 shadow-sm">
                 <div className="flex items-center gap-2 text-error/70 mb-2">
                   <TrendingDown className="w-4 h-4" />
@@ -244,8 +240,7 @@ const DisbursementViewPage = () => {
               </div>
             </div>
 
-            {/* 2. Particulars */}
-            {/* FIX: Changed 'bg-white' to 'bg-base-100' */}
+            {/* Particulars */}
             <div className="bg-base-100 rounded-xl border border-base-300 shadow-sm overflow-hidden">
               {/* FIX: Changed 'bg-base-50/50' to 'bg-base-200/50' */}
               <div className="bg-base-200/50 px-6 py-3 border-b border-base-200">
@@ -261,8 +256,7 @@ const DisbursementViewPage = () => {
               </div>
             </div>
 
-            {/* 3. Line Items Table */}
-            {/* FIX: Changed 'bg-white' to 'bg-base-100' */}
+            {/*Line Items Table */}
             <div className="bg-base-100 rounded-xl border border-base-300 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-base-200 flex justify-between items-center bg-base-200/50">
                 <h3 className="text-xs font-bold text-base-content/50 uppercase tracking-wider">
@@ -325,9 +319,8 @@ const DisbursementViewPage = () => {
               </div>
             </div>
 
-            {/* 4. Deductions (Conditional) */}
+            {/*Deductions (Conditional) */}
             {disbursement.deductions?.length > 0 && (
-              // FIX: Changed 'bg-white' to 'bg-base-100'
               <div className="bg-base-100 rounded-xl border border-base-300 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-base-200 flex justify-between items-center bg-error/5">
                   <h3 className="text-xs font-bold text-error/70 uppercase tracking-wider flex items-center gap-2">
@@ -363,7 +356,7 @@ const DisbursementViewPage = () => {
             )}
           </div>
 
-          {/* --- RIGHT COLUMN (Sidebar) --- */}
+          {/* --- RIGHT COLUMN --- */}
           <div className="space-y-6">
             {/* A. Action Panel (Only if PENDING) */}
             {status.status === "PENDING" && (
@@ -389,7 +382,7 @@ const DisbursementViewPage = () => {
               </div>
             )}
 
-            {/* B. Approved Panel (Only if PAID) */}
+            {/* Approved Panel (Only if PAID) */}
             {status.status === "PAID" && (
               // This usually looks okay in dark mode, but let's tweak the text colors just in case
               <div className="bg-emerald-500/10 rounded-xl border border-emerald-500/20 p-5 flex items-start gap-4">
@@ -407,7 +400,7 @@ const DisbursementViewPage = () => {
               </div>
             )}
 
-            {/* C. Reference Codes */}
+            {/* Reference Codes */}
             <InfoCard icon={Hash} title="Reference Codes">
               {/* Internal References Loop */}
               {disbursement.references && disbursement.references.length > 0 ? (

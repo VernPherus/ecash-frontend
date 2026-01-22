@@ -1,6 +1,5 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
-import  { Toaster } from "react-hot-toast";
 
 // Store
 import useAuthStore from "./store/useAuthStore";
@@ -15,7 +14,6 @@ import DashboardPage from "./pages/DashboardPage";
 import FundManagerPage from "./pages/FundManagerPage";
 import PayeeManagerPage from "./pages/PayeeManagerPage";
 import DisbursementViewPage from "./pages/DisbursementViewPage";
-import DisbursementFormPage from "./pages/DisbursementFormPage";
 import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
 
@@ -23,6 +21,7 @@ import SettingsPage from "./pages/SettingsPage";
 import UserManagerPage from "./pages/admin/UserManagerPage";
 import LogsPage from "./pages/admin/LogsPage";
 import SignUpPage from "./pages/admin/SignUpPage";
+import DisbursementPage from "./pages/DisbursementPage";
 
 // Loading Spinner Component
 const LoadingScreen = () => (
@@ -124,8 +123,8 @@ const App = () => {
           {/* Management */}
           <Route path="/funds" element={<FundManagerPage />} />
           <Route path="/payees" element={<PayeeManagerPage />} />
-          <Route path="/disbursement/new" element={<DisbursementFormPage />} />
-          <Route path="/disbursement/edit/:id" element={<DisbursementFormPage />} />
+          <Route path="/disbursement/new" element={<DisbursementPage />} />
+          <Route path="/disbursement/edit/:id" element={<DisbursementPage />} />
           <Route path="/disbursement/:id" element={<DisbursementViewPage />} />
 
           {/* User */}
