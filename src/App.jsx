@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
-import toast, { Toaster } from "react-hot-toast";
+import  { Toaster } from "react-hot-toast";
 
 // Store
 import useAuthStore from "./store/useAuthStore";
@@ -32,7 +32,7 @@ const LoadingScreen = () => (
         <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
         <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
       </div>
-      <p className="text-base-content/60 font-medium">Loading FundWatch...</p>
+      <p className="text-base-content/60 font-medium">Loading eCash...</p>
     </div>
   </div>
 );

@@ -1,22 +1,8 @@
-import React from 'react';
 
 import { 
-   LayoutDashboard,
-  PlusCircle,
-  Wallet,
-  Users,
-  Settings,
+   PlusCircle,
   Search,
-  Bell,
-  Menu,
-  ArrowUpRight,
-  ArrowDownRight,
-  FileText,
-  AlertCircle,
-  CheckCircle2,
-  Clock,
-  CircleMinus
-} from "lucide-react";
+  Bell} from "lucide-react";
 
 const Check =()=> {
 return(

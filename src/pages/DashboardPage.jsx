@@ -12,7 +12,6 @@ import {
   Bell,
   Filter,
   Eye,
-  // NEW: Import Icons for pagination
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -32,7 +31,7 @@ const formatCurrency = (amount) => {
 
 const DashboardPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { authUser } = useAuthStore();
   const {
     funds,
     fetchFunds,
@@ -86,7 +85,7 @@ const DashboardPage = () => {
                 : new Date().getHours() < 18
                 ? "afternoon"
                 : "evening"}
-              , {user?.firstName || "User"}
+              , {authUser?.firstName || "User"}
             </h1>
             <p className="text-sm text-base-content/60 mt-1">
               {new Date().toLocaleDateString("en-PH", {
@@ -239,82 +238,8 @@ const DashboardPage = () => {
                   </div>
                 );
               })}
-            </div>
-          )}
-        </section>
-
-        {/* KPI Stats Section */}
-        <section
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-up"
-          style={{ animationDelay: "0.1s" }}
-        >
-          {/* ... (KPI Cards remain unchanged) ... */}
-          <div className="stat-card">
-            <div>
-              <p className="text-sm text-base-content/60 font-medium mb-1">
-                Pending Approval
-              </p>
-              <h3 className="text-3xl font-bold text-base-content">
-                {stats.pendingCount}
-                <span className="text-lg font-normal text-base-content/50 ml-1">
-                  Records
-                </span>
-              </h3>
-              {stats.pendingCount > 0 && (
-                <p className="text-xs text-warning mt-2 flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  Requires attention
-                </p>
-              )}
-            </div>
-            <div className="stat-icon bg-warning/10 border border-warning/20">
-              <FileText className="w-6 h-6 text-warning" />
-            </div>
-          </div>
-
-          <div className="stat-card">
-            <div>
-              <p className="text-sm text-base-content/60 font-medium mb-1">
-                Total Approved
-              </p>
-              <h3 className="text-3xl font-bold text-base-content">
-                {stats.approvedCount}
-                <span className="text-lg font-normal text-base-content/50 ml-1">
-                  Records
-                </span>
-              </h3>
-              <p className="text-xs text-success mt-2 flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" />
-                Processed this month
-              </p>
-            </div>
-            <div className="stat-icon bg-success/10 border border-success/20">
-              <CheckCircle2 className="w-6 h-6 text-success" />
-            </div>
-          </div>
-
-          <div className="stat-card">
-            <div>
-              <p className="text-sm text-base-content/60 font-medium mb-1">
-                Overdue Items
-              </p>
-              <h3 className="text-3xl font-bold text-base-content">
-                {stats.overdueCount}
-                <span className="text-lg font-normal text-base-content/50 ml-1">
-                  Records
-                </span>
-              </h3>
-              {stats.overdueCount > 0 && (
-                <p className="text-xs text-error mt-2 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  Immediate action needed
-                </p>
-              )}
-            </div>
-            <div className="stat-icon bg-error/10 border border-error/20">
-              <AlertCircle className="w-6 h-6 text-error" />
-            </div>
-          </div>
+            </div> 
+          )} 
         </section>
 
         {/* Transactions Table Section */}
@@ -369,7 +294,6 @@ const DashboardPage = () => {
                   <thead>
                     <tr>
                       <th>Date</th>
-                      <th>Reference</th>
                       <th>Payee</th>
                       <th>Fund</th>
                       <th className="text-right">Net Amount</th>
@@ -393,9 +317,6 @@ const DashboardPage = () => {
                                   year: "numeric",
                                 })
                               : "---"}
-                          </td>
-                          <td className="text-base-content/40 font-mono text-sm">
-                            {disbursement.dvNum || disbursement.orsNum || "---"}
                           </td>
                           <td className="font-medium text-base-content">
                             {disbursement.payee?.name || "---"}

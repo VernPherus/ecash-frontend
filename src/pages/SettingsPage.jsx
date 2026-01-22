@@ -1,9 +1,7 @@
-import React from "react";
 import {
     Settings as SettingsIcon,
     Sun,
     Moon,
-    Monitor,
     Bell,
     Eye,
     Globe,

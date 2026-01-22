@@ -1,17 +1,15 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Users,
     Plus,
     Search,
     Edit2,
     Eye,
-    MoreHorizontal,
     X,
     Building,
     Phone,
     Mail,
     CreditCard,
-    Filter,
 } from "lucide-react";
 
 import usePayeeStore from "../store/usePayeeStore";
