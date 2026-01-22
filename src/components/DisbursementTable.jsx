@@ -9,7 +9,7 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
-  MoreHorizontal,
+  Eye, // Added Eye icon for the View button
 } from "lucide-react";
 import useDisbursementStore from "../store/useDisbursementStore";
 import { formatCurrency, formatDate } from "../lib/formatters";
@@ -59,7 +59,6 @@ const DisbursementTable = () => {
   };
 
   return (
-    // CHANGE: Increased shadow to 'md' and border color to 'base-300' for better definition
     <section className="bg-white dark:bg-base-100 border border-base-300 rounded-xl shadow-md overflow-visible animate-fade-in-up">
       {/* --- HEADER --- */}
       <div className="px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-base-200">
@@ -91,7 +90,7 @@ const DisbursementTable = () => {
             {isFilterOpen && (
               <div className="absolute right-0 top-full mt-2 w-48 bg-base-100 rounded-lg shadow-xl border border-base-200 z-50 overflow-hidden">
                 <div className="p-1">
-                  {["ALL", "PAID", "PENDING", "CANCELLED"].map((status) => (
+                  {["ALL", "PAID", "PENDING"].map((status) => (
                     <button
                       key={status}
                       onClick={() => handleFilterSelect(status)}
@@ -138,21 +137,27 @@ const DisbursementTable = () => {
               No transactions found
             </h3>
             <p className="text-sm text-base-content/40 mt-1">
-              Try adjusting your filters or add a new one.
+              Try adjusting your filters.
             </p>
           </div>
         ) : (
           <>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
-                {/* CHANGE: Added background to header to visually separate it */}
                 <thead className="bg-base-200/50 text-base-content/70">
                   <tr className="border-b border-base-200 text-xs uppercase tracking-wider font-semibold">
-                    <th className="px-6 py-4 rounded-tl-lg">Payee & Date</th>
-                    <th className="px-6 py-4">Fund Source</th>
+                    {/* ALIGNMENT: Left */}
+                    <th className="px-6 py-4 rounded-tl-lg text-left">
+                      Payee & Date
+                    </th>
+                    {/* ALIGNMENT: Center for short codes */}
+                    <th className="px-6 py-4 text-center">Fund Source</th>
+                    {/* ALIGNMENT: Right for currency */}
                     <th className="px-6 py-4 text-right">Amount</th>
+                    {/* ALIGNMENT: Center for badges */}
                     <th className="px-6 py-4 text-center">Status</th>
-                    <th className="px-6 py-4 text-right rounded-tr-lg">
+                    {/* ALIGNMENT: Center for buttons */}
+                    <th className="px-6 py-4 text-center rounded-tr-lg">
                       Action
                     </th>
                   </tr>
@@ -165,11 +170,10 @@ const DisbursementTable = () => {
                     return (
                       <tr
                         key={item.id}
-                        // CHANGE: Added zebra striping (even:bg-base-100/40) and stronger hover
                         className="group border-b border-base-100 last:border-0 hover:bg-base-200/60 even:bg-base-100/40 transition-colors duration-150"
                       >
-                        {/* Payee & Date */}
-                        <td className="px-6 py-4">
+                        {/* Payee & Date (Left) */}
+                        <td className="px-6 py-4 text-left">
                           <div className="flex flex-col">
                             <span className="font-semibold text-base-content group-hover:text-primary transition-colors">
                               {item.payee?.name || "Unknown Payee"}
@@ -180,20 +184,19 @@ const DisbursementTable = () => {
                           </div>
                         </td>
 
-                        {/* Fund Source */}
-                        <td className="px-6 py-4">
-                          {/* CHANGE: Darker background for badge to pop */}
+                        {/* Fund Source (Center) */}
+                        <td className="px-6 py-4 text-center">
                           <div className="inline-flex items-center px-2.5 py-1 rounded-md bg-base-300/50 border border-base-300 text-xs font-medium text-base-content/80">
                             {item.fundSource?.code || "---"}
                           </div>
                         </td>
 
-                        {/* Amount */}
+                        {/* Amount (Right) */}
                         <td className="px-6 py-4 text-right font-mono font-medium text-base-content">
                           {formatCurrency(item.netAmount)}
                         </td>
 
-                        {/* Status */}
+                        {/* Status (Center) */}
                         <td className="px-6 py-4">
                           <div className="flex justify-center">
                             <span
@@ -211,13 +214,14 @@ const DisbursementTable = () => {
                           </div>
                         </td>
 
-                        {/* Action */}
-                        <td className="px-6 py-4 text-right">
+                        {/* Action (Center) - CHANGED to "View" Button */}
+                        <td className="px-6 py-4 text-center">
                           <button
                             onClick={() => navigate(`/disbursement/${item.id}`)}
-                            className="btn btn-ghost btn-xs btn-square text-base-content/50 hover:text-primary hover:bg-primary/10"
+                            className="btn btn-xs btn-outline border-base-300 hover:border-primary hover:bg-primary hover:text-white text-base-content/70 gap-1.5 font-normal transition-all"
                           >
-                            <MoreHorizontal className="w-4 h-4" />
+                            <Eye className="w-3 h-3" />
+                            View
                           </button>
                         </td>
                       </tr>
@@ -229,13 +233,11 @@ const DisbursementTable = () => {
 
             {/* --- PAGINATION --- */}
             {pagination && pagination.totalPages > 1 && (
-              // REMOVED: bg-base-50/50, rounded-b-xl (let the card handle rounding)
               <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-base-200">
                 <span className="text-xs text-base-content/50 font-medium">
                   Page {pagination.currentPage} of {pagination.totalPages}
                 </span>
 
-                {/* REMOVED: bg-white, shadow-sm, p-0.5 wrapper */}
                 <div className="join">
                   <button
                     className="join-item btn btn-sm btn-outline border-base-300 text-base-content/70 hover:bg-base-200 hover:border-base-300 hover:text-primary"
