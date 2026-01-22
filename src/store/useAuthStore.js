@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+
 import axiosInstance from "../lib/axios";
 import toast from "react-hot-toast";
 
@@ -79,6 +80,7 @@ const useAuthStore = create(
                         isCheckingAuth: false,
                     });
                 } catch (error) {
+                    toast.error(error)
                     set({
                         user: null,
                         isAuthenticated: false,

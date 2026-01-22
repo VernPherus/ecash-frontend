@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 
 // Store
 import useAuthStore from "./store/useAuthStore";
@@ -96,32 +96,7 @@ const App = () => {
   return (
     <BrowserRouter>
       {/* Toast Notifications */}
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: "var(--color-base-100)",
-            color: "var(--color-base-content)",
-            borderRadius: "12px",
-            boxShadow: "var(--shadow-medium)",
-            padding: "16px",
-            border: "1px solid var(--color-base-300)",
-          },
-          success: {
-            iconTheme: {
-              primary: "#10b981",
-              secondary: "#ffffff",
-            },
-          },
-          error: {
-            iconTheme: {
-              primary: "#ef4444",
-              secondary: "#ffffff",
-            },
-          },
-        }}
-      />
+    
 
       <Routes>
         {/* Auth Routes */}
