@@ -3,129 +3,125 @@ import axiosInstance from "../lib/axios";
 import toast from "react-hot-toast";
 
 const useDisbursementStore = create((set, get) => ({
+  // --- State ---
   pagination: {
     currentPage: 1,
     totalPages: 1,
     totalRecords: 0,
     limit: 10,
   },
-
-  // State
   disbursements: [],
   selectedDisbursement: null,
   isLoading: false,
   error: null,
 
-  // Stats computed from disbursements
-  getStats: () => {
-    const disbursements = get().disbursements || [];
-    if (!Array.isArray(disbursements))
-      return {
-        pendingCount: 0,
-        approvedCount: 0,
-        overdueCount: 0,
-        totalDisbursed: 0,
-      };
-    const pending = disbursements.filter((d) => d.status === "pending");
-    const approved = disbursements.filter((d) => d.status === "approved");
+  // --- UI Helpers ---
 
-    // Calculate overdue based on age (days since received > ageLimit)
-    const overdue = disbursements.filter((d) => {
-      if (d.status !== "pending") return false;
-      const daysSinceReceived = d.dateReceived
-        ? Math.floor(
-            (new Date() - new Date(d.dateReceived)) / (1000 * 60 * 60 * 24)
-          )
-        : 0;
-      return daysSinceReceived > (d.ageLimit || 5);
-    });
-
-    const totalDisbursed = approved.reduce(
-      (sum, d) => sum + Number(d.netAmount || 0),
-      0
-    );
-
-    return {
-      pendingCount: pending.length,
-      approvedCount: approved.length,
-      overdueCount: overdue.length,
-      totalDisbursed,
-    };
-  },
-
-  // Get disbursement status with age calculation
+  // Calculate status and age for UI badges
   getDisbursementStatus: (disbursement) => {
-    if (disbursement.status === "approved") {
+    // 1. Check if Paid/Approved
+    if (disbursement.status === "PAID" || disbursement.status === "APPROVED") {
       return {
         status: "approved",
-        label: "Approved",
-        className: "badge-approved",
+        label: "Paid",
+        className: "badge-success text-white border-success bg-success", // Tailwind/DaisyUI classes
       };
     }
 
+    // 2. Calculate Age (Days since received)
     const daysSinceReceived = disbursement.dateReceived
       ? Math.floor(
           (new Date() - new Date(disbursement.dateReceived)) /
-            (1000 * 60 * 60 * 24)
+            (1000 * 60 * 60 * 24),
         )
       : 0;
 
-    if (daysSinceReceived > (disbursement.ageLimit || 5)) {
+    // 3. Check Overdue (Default limit 5 days if not set)
+    const limit = disbursement.ageLimit || 5;
+
+    if (daysSinceReceived > limit) {
       return {
         status: "overdue",
-        label: `${daysSinceReceived} Days`,
-        className: "badge-overdue",
+        label: `${daysSinceReceived} Days (Overdue)`,
+        className: "badge-error text-white border-error bg-error",
         days: daysSinceReceived,
       };
     }
 
+    // 4. Pending / In Progress
     return {
       status: "pending",
       label: `${daysSinceReceived} Days`,
-      className: "badge-pending",
+      className: "badge-warning text-warning-content border-warning bg-warning",
       days: daysSinceReceived,
     };
   },
 
-  // Actions
-  fetchDisbursements: async (page = 1, limit = 10) => {
+  // --- API Actions ---
+
+  /**
+   * Fetch Records with Pagination & Filters
+   * GET /api/disbursement/display
+   */
+  fetchDisbursements: async (
+    page = 1,
+    limit = 10,
+    search = "",
+    status = "",
+    startDate = "",
+    endDate = "",
+  ) => {
     set({ isLoading: true, error: null });
     try {
-      // Pass page and limit as query params
+      // Build Query Parameters
+      const params = new URLSearchParams();
+      params.append("page", page);
+      params.append("limit", limit);
+
+      if (search) params.append("search", search);
+      // Backend controller checks `if (status && status !== "all")`
+      if (status && status !== "ALL") params.append("status", status);
+      if (startDate) params.append("startDate", startDate);
+      if (endDate) params.append("endDate", endDate);
+
       const response = await axiosInstance.get(
-        `/disbursement/display?page=${page}&limit=${limit}`
+        `/disbursement/display?${params.toString()}`,
       );
 
-      // The API returns { data: [...], pagination: {...} }
       const { data, pagination } = response.data;
 
       set({
         disbursements: Array.isArray(data) ? data : [],
         pagination: pagination || {
-          currentPage: 1,
+          currentPage: page,
           totalPages: 1,
           totalRecords: 0,
           limit,
-        }, // Fallback if API structure differs
+        },
         isLoading: false,
       });
     } catch (error) {
       const message =
         error.response?.data?.message || "Failed to fetch disbursements";
-      set({ error: message, isLoading: false });
+      set({ error: message, isLoading: false, disbursements: [] });
       toast.error(message);
     }
   },
 
+  /**
+   * Create Record
+   * POST /api/disbursement/store
+   */
   createDisbursement: async (disbursementData) => {
     set({ isLoading: true });
     try {
       const response = await axiosInstance.post(
         "/disbursement/store",
-        disbursementData
+        disbursementData,
       );
       const newDisbursement = response.data;
 
+      // Optimistic update: Add to top of list
       set((state) => ({
         disbursements: [newDisbursement, ...state.disbursements],
         isLoading: false,
@@ -142,6 +138,10 @@ const useDisbursementStore = create((set, get) => ({
     }
   },
 
+  /**
+   * Show Single Record
+   * GET /api/disbursement/show/:id
+   */
   showDisbursement: async (id) => {
     set({ isLoading: true });
     try {
@@ -157,21 +157,26 @@ const useDisbursementStore = create((set, get) => ({
     }
   },
 
+  /**
+   * Update Record
+   * PUT /api/disbursement/editRec/:id
+   */
   updateDisbursement: async (id, updateData) => {
     set({ isLoading: true });
     try {
       const response = await axiosInstance.put(
         `/disbursement/editRec/${id}`,
-        updateData
+        updateData,
       );
+      // Access specific data structure from backend response
       const updatedDisbursement = response.data.updatedDisbursement;
 
       set((state) => ({
         disbursements: state.disbursements.map((d) =>
-          d.id === id ? updatedDisbursement : d
+          d.id === Number(id) ? updatedDisbursement : d,
         ),
         selectedDisbursement:
-          state.selectedDisbursement?.id === id
+          state.selectedDisbursement?.id === Number(id)
             ? updatedDisbursement
             : state.selectedDisbursement,
         isLoading: false,
@@ -188,6 +193,10 @@ const useDisbursementStore = create((set, get) => ({
     }
   },
 
+  /**
+   * Approve Record
+   * PUT /api/disbursement/approve/:id
+   */
   approveDisbursement: async (id, remarks = "") => {
     set({ isLoading: true });
     try {
@@ -198,18 +207,16 @@ const useDisbursementStore = create((set, get) => ({
 
       set((state) => ({
         disbursements: state.disbursements.map((d) =>
-          d.id === id
-            ? { ...d, status: "approved", approvedAt: new Date().toISOString() }
-            : d
+          d.id === Number(id) ? approvedDisbursement : d,
         ),
         selectedDisbursement:
-          state.selectedDisbursement?.id === id
+          state.selectedDisbursement?.id === Number(id)
             ? approvedDisbursement
             : state.selectedDisbursement,
         isLoading: false,
       }));
 
-      toast.success("Disbursement approved successfully!");
+      toast.success("Disbursement approved!");
       return { success: true, data: approvedDisbursement };
     } catch (error) {
       const message =
@@ -220,26 +227,42 @@ const useDisbursementStore = create((set, get) => ({
     }
   },
 
+  /**
+   * Delete Record (Soft Delete)
+   * PUT /api/disbursement/delete/:id
+   */
+  deleteDisbursement: async (id) => {
+    set({ isLoading: true });
+    try {
+      await axiosInstance.put(`/disbursement/delete/${id}`);
+
+      set((state) => ({
+        disbursements: state.disbursements.filter((d) => d.id !== Number(id)),
+        selectedDisbursement:
+          state.selectedDisbursement?.id === Number(id)
+            ? null
+            : state.selectedDisbursement,
+        isLoading: false,
+      }));
+
+      toast.success("Disbursement removed successfully.");
+      return { success: true };
+    } catch (error) {
+      const message =
+        error.response?.data?.message || "Failed to delete disbursement";
+      set({ isLoading: false });
+      toast.error(message);
+      return { success: false, error: message };
+    }
+  },
+
+  // --- State Setters ---
   setSelectedDisbursement: (disbursement) => {
     set({ selectedDisbursement: disbursement });
   },
 
   clearSelectedDisbursement: () => {
     set({ selectedDisbursement: null });
-  },
-
-  // Get recent disbursements (last 10)
-  getRecentDisbursements: () => {
-    return get().disbursements.slice(0, 10);
-  },
-
-  // Format currency
-  formatCurrency: (amount) => {
-    return new Intl.NumberFormat("en-PH", {
-      style: "currency",
-      currency: "PHP",
-      minimumFractionDigits: 2,
-    }).format(amount);
   },
 }));
 
