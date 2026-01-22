@@ -1,3 +1,5 @@
+
+   {/* kim setup for nnew disbursment form for mode*/}
 import React, { useState, useEffect } from "react";
 import {
     Save,
@@ -12,6 +14,7 @@ import {
 import useDisbursementStore from "../store/useDisbursementStore";
 import useFundStore from "../store/useFundStore";
 import usePayeeStore from "../store/usePayeeStore";
+import Check from "./disbursement_components/Check.jsx"
 
 const DisbursementForm = ({ disbursement, onClose }) => {
     const { createDisbursement, updateDisbursement, isLoading } = useDisbursementStore();
@@ -192,6 +195,10 @@ const DisbursementForm = ({ disbursement, onClose }) => {
                 ))}
             </div>
 
+
+
+
+        
             {/* Step 1: Basic Info */}
             {step === 1 && (
                 <div className="space-y-4 animate-fade-in-up">
