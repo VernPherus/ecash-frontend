@@ -18,7 +18,6 @@ const LogsPage = () => {
         isLoading,
         pagination,
         setPage,
-        filters,
         setFilters,
         applyFilters,
         clearFilters,

@@ -121,6 +121,7 @@ const StatusTimeline = ({ status, dates }) => {
     );
 };
 
+// eslint-disable-next-line no-unused-vars
 const InfoCard = ({ icon: Icon, title, children, className = "" }) => (
     <div className={`card bg-base-100 shadow-sm border border-base-200 h-full ${className}`}>
         <div className="card-body p-6">

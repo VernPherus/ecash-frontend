@@ -132,10 +132,32 @@ const DisbursementFormPage = () => {
     }, [fetchFunds, fetchPayees]);
 
     useEffect(() => {
+        const loadExistingDisbursement = async (disbursementId) => {
+            const data = await showDisbursement(disbursementId);
+            if (data) {
+                setFormData({
+                    payeeId: data.payeeId || "",
+                    fundSourceId: data.fundSourceId || "",
+                    dateReceived: data.dateReceived?.split("T")[0] || "",
+                    dvNum: data.dvNum || "",
+                    orsNum: data.orsNum || "",
+                    lddapNum: data.lddapNum || "",
+                    acicNum: data.acicNum || "",
+                    uacsCode: data.uacsCode || "",
+                    respCode: data.respCode || "",
+                    particulars: data.particulars || "",
+                    method: data.method || "MANUAL",
+                    ageLimit: data.ageLimit || 5,
+                });
+                if (data.items?.length > 0) setItems(data.items);
+                if (data.deductions?.length > 0) setDeductions(data.deductions);
+            }
+        };
+
         if (isEditing && id) {
             loadExistingDisbursement(id);
         }
-    }, [id, isEditing]);
+    }, [id, isEditing, showDisbursement]);
 
     // Auto-save draft to localStorage
     useEffect(() => {
@@ -152,37 +174,16 @@ const DisbursementFormPage = () => {
             if (saved) {
                 try {
                     const draft = JSON.parse(saved);
+                    // eslint-disable-next-line react-hooks/set-state-in-effect
                     if (draft.formData) setFormData(draft.formData);
                     if (draft.items && draft.items.length > 0) setItems(draft.items);
                     if (draft.deductions) setDeductions(draft.deductions);
-                } catch (e) {
+                } catch {
                     // Invalid draft, ignore
                 }
             }
         }
     }, [isEditing]);
-
-    const loadExistingDisbursement = async (disbursementId) => {
-        const data = await showDisbursement(disbursementId);
-        if (data) {
-            setFormData({
-                payeeId: data.payeeId || "",
-                fundSourceId: data.fundSourceId || "",
-                dateReceived: data.dateReceived?.split("T")[0] || "",
-                dvNum: data.dvNum || "",
-                orsNum: data.orsNum || "",
-                lddapNum: data.lddapNum || "",
-                acicNum: data.acicNum || "",
-                uacsCode: data.uacsCode || "",
-                respCode: data.respCode || "",
-                particulars: data.particulars || "",
-                method: data.method || "MANUAL",
-                ageLimit: data.ageLimit || 5,
-            });
-            if (data.items?.length > 0) setItems(data.items);
-            if (data.deductions?.length > 0) setDeductions(data.deductions);
-        }
-    };
 
     // ============================================
     // HANDLERS

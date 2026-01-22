@@ -78,7 +78,7 @@ const useAuthStore = create(
                         isAuthenticated: true,
                         isCheckingAuth: false,
                     });
-                } catch (error) {
+                } catch (_error) {
                     set({
                         user: null,
                         isAuthenticated: false,
@@ -96,8 +96,10 @@ const useAuthStore = create(
         {
             name: "fundwatch-auth",
             partialize: (state) => ({
+                // Only persist user data for UI display purposes
+                // Authentication state is managed by HTTP-only cookies
+                // and verified on each app load via checkAuth()
                 user: state.user,
-                isAuthenticated: state.isAuthenticated,
             }),
         }
     )

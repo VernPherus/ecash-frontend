@@ -11,7 +11,6 @@ import {
     TrendingUp,
     PlusCircle,
     Search,
-    Bell,
     Filter,
     MoreHorizontal,
     Eye,
@@ -20,6 +19,7 @@ import {
 import useFundStore from "../store/useFundStore";
 import useDisbursementStore from "../store/useDisbursementStore";
 import useAuthStore from "../store/useAuthStore";
+import NotificationDropdown from "../components/NotificationDropdown";
 
 // Format currency
 const formatCurrency = (amount) => {
@@ -37,7 +37,6 @@ const DashboardPage = () => {
     const {
         disbursements,
         fetchDisbursements,
-        getStats,
         getDisbursementStatus,
         getRecentDisbursements,
         isLoading: disbursementsLoading,
@@ -48,7 +47,6 @@ const DashboardPage = () => {
         fetchDisbursements();
     }, [fetchFunds, fetchDisbursements]);
 
-    const stats = getStats();
     const recentDisbursements = getRecentDisbursements();
 
     // Calculate Total Disbursement Amount (Net)
@@ -95,12 +93,8 @@ const DashboardPage = () => {
                             />
                         </div>
                         {/* Notifications */}
-                        <button className="btn btn-ghost btn-circle relative">
-                            <Bell className="w-5 h-5" />
-                            {stats.overdueCount > 0 && (
-                                <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full animate-pulse" />
-                            )}
-                        </button>
+                        <NotificationDropdown align="right" />
+
                         {/* New Entry Button */}
                         <button
                             onClick={() => navigate("/disbursement/new")}
