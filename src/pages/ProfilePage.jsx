@@ -3,7 +3,6 @@ import {
     User,
     Mail,
     Shield,
-    Camera,
     Save,
     Key,
     Eye,
@@ -15,17 +14,17 @@ import toast from "react-hot-toast";
 import useAuthStore from "../store/useAuthStore";
 
 const ProfilePage = () => {
-    const { user } = useAuthStore();
+    const { authUser } = useAuthStore();
     const [isEditing, setIsEditing] = useState(false);
     const [showPasswordSection, setShowPasswordSection] = useState(false);
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
 
     const [formData, setFormData] = useState({
-        firstName: user?.firstName || "",
-        lastName: user?.lastName || "",
-        email: user?.email || "",
-        username: user?.username || "",
+        firstName: authUser?.firstName || "",
+        lastName: authUser?.lastName || "",
+        email: authUser?.email || "",
+        username: authUser?.username || "",
     });
 
     const [passwordData, setPasswordData] = useState({
@@ -99,16 +98,13 @@ const ProfilePage = () => {
                         {/* Avatar Section */}
                         <div className="flex flex-col items-center">
                             <div className="relative">
-                                <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-primary to-emerald-400 flex items-center justify-center text-white text-4xl font-bold shadow-lg">
-                                    {user?.firstName?.[0] || "U"}
-                                    {user?.lastName?.[0] || ""}
+                                <div className="w-32 h-32 rounded-2xl bg-linear-to-br from-primary to-emerald-400 flex items-center justify-center text-white text-4xl font-bold shadow-lg">
+                                    {authUser?.firstName?.[0] || "U"}
+                                    {authUser?.lastName?.[0] || ""}
                                 </div>
-                                <button className="absolute bottom-0 right-0 w-10 h-10 bg-base-100 rounded-full border border-base-300 shadow-md flex items-center justify-center text-base-content/60 hover:text-primary transition-colors">
-                                    <Camera className="w-5 h-5" />
-                                </button>
                             </div>
-                            <span className={`mt-4 inline-flex px-3 py-1 rounded-full text-sm font-medium border ${getRoleColor(user?.role)}`}>
-                                {user?.role || "USER"}
+                            <span className={`mt-4 inline-flex px-3 py-1 rounded-full text-sm font-medium border ${getRoleColor(authUser?.role)}`}>
+                                {authUser?.role || "USER"}
                             </span>
                         </div>
 
@@ -184,19 +180,19 @@ const ProfilePage = () => {
                                 <div className="space-y-6">
                                     <div>
                                         <h2 className="text-2xl font-bold text-base-content">
-                                            {user?.firstName} {user?.lastName}
+                                            {authUser?.firstName} {authUser?.lastName}
                                         </h2>
-                                        <p className="text-base-content/60">@{user?.username || "username"}</p>
+                                        <p className="text-base-content/60">@{authUser?.username || "username"}</p>
                                     </div>
 
                                     <div className="space-y-4">
                                         <div className="flex items-center gap-3 text-base-content/70">
                                             <Mail className="w-5 h-5 text-base-content/40" />
-                                            <span>{user?.email}</span>
+                                            <span>{authUser?.email}</span>
                                         </div>
                                         <div className="flex items-center gap-3 text-base-content/70">
                                             <Shield className="w-5 h-5 text-base-content/40" />
-                                            <span>Role: {user?.role || "User"}</span>
+                                            <span>Role: {authUser?.role || "User"}</span>
                                         </div>
                                     </div>
 

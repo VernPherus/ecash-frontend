@@ -18,7 +18,6 @@ const LogsPage = () => {
         isLoading,
         pagination,
         setPage,
-        filters,
         setFilters,
         applyFilters,
         clearFilters,
@@ -193,7 +192,7 @@ const LogsPage = () => {
                                                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                                                             <User className="w-4 h-4 text-primary" />
                                                         </div>
-                                                        <span className="font-medium">{log.userName}</span>
+                                                        <span className="font-medium">{log.userId}</span>
                                                     </div>
                                                 </td>
                                                 <td className="text-base-content/80">{log.log}</td>

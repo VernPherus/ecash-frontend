@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Shield,
     Search,
@@ -6,8 +6,6 @@ import {
     Edit2,
     Trash2,
     User,
-    Check,
-    X,
     UserPlus,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -30,7 +28,7 @@ const UserManagerPage = () => {
         try {
             const response = await axiosInstance.get("/auth/showUsers");
             setUsers(response.data.allUsers || []);
-        } catch (error) {
+        } catch (_error) {
             toast.error("Failed to fetch users");
         } finally {
             setIsLoading(false);
@@ -62,7 +60,7 @@ const UserManagerPage = () => {
             await axiosInstance.put("/auth/grantAdmin", { userId });
             toast.success("User role updated");
             fetchUsers();
-        } catch (error) {
+        } catch (_error) {
             toast.error("Failed to update user role");
         }
     };

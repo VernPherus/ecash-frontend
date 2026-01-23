@@ -1,6 +1,8 @@
-import React from "react";
-import { ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+
+import { 
+   PlusCircle,
+  Search,
+  Bell} from "lucide-react";
 
 const Check = () => {
   const navigate = useNavigate();
