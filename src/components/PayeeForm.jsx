@@ -1,356 +1,360 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
-    Save,
-    X,
-    User,
-    MapPin,
-    Mail,
-    Phone,
-    CreditCard,
-    Building,
-    FileText,
+  Save,
+  X,
+  User,
+  Mail,
+  Phone,
+  CreditCard,
+  Building,
+  Hash,
+  Briefcase,
 } from "lucide-react";
 import usePayeeStore from "../store/usePayeeStore";
 
 const PayeeForm = ({ payee, onClose }) => {
-    const { createPayee, updatePayee, isLoading } = usePayeeStore();
-    const isEditing = Boolean(payee);
+  const { createPayee, updatePayee, isLoading } = usePayeeStore();
+  const isEditing = Boolean(payee);
 
-    const [formData, setFormData] = useState({
-        name: payee?.name || "",
-        type: payee?.type || "supplier",
-        address: payee?.address || "",
-        email: payee?.email || "",
-        mobileNum: payee?.mobileNum || "",
-        contactPerson: payee?.contactPerson || "",
-        tinNum: payee?.tinNum || "",
-        bankName: payee?.bankName || "",
-        bankBranch: payee?.bankBranch || "",
-        accountName: payee?.accountName || "",
-        accountNumber: payee?.accountNumber || "",
-        remarks: payee?.remarks || "",
-    });
+  const [formData, setFormData] = useState({
+    name: payee?.name || "",
+    type: payee?.type || "supplier",
+    mobileNum: payee?.mobileNum || "", // Required by backend
+    address: payee?.address || "",
+    email: payee?.email || "",
+    contactPerson: payee?.contactPerson || "",
+    tinNum: payee?.tinNum || "",
+    bankName: payee?.bankName || "",
+    bankBranch: payee?.bankBranch || "",
+    accountName: payee?.accountName || "",
+    accountNumber: payee?.accountNumber || "",
+    remarks: payee?.remarks || "",
+  });
 
-    const [errors, setErrors] = useState({});
-    const [activeTab, setActiveTab] = useState("basic");
+  const [errors, setErrors] = useState({});
 
-    const validate = () => {
-        const newErrors = {};
-        if (!formData.name.trim()) newErrors.name = "Payee name is required";
-        if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            newErrors.email = "Invalid email format";
-        }
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
+  const validate = () => {
+    const newErrors = {};
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!validate()) return;
+    // Backend Requirements: Name, Type, Mobile Number
+    if (!formData.name.trim()) newErrors.name = "Payee name is required";
+    if (!formData.mobileNum.trim())
+      newErrors.mobileNum = "Mobile number is required";
+    if (!formData.type) newErrors.type = "Payee type is required";
 
-        let result;
-        if (isEditing) {
-            result = await updatePayee(payee.id, formData);
-        } else {
-            result = await createPayee(formData);
-        }
+    // Optional Validation
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Invalid email format";
+    }
 
-        if (result.success) {
-            onClose();
-        }
-    };
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
-        if (errors[name]) {
-            setErrors((prev) => ({ ...prev, [name]: undefined }));
-        }
-    };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
 
-    const tabs = [
-        { id: "basic", label: "Basic Info" },
-        { id: "contact", label: "Contact" },
-        { id: "banking", label: "Banking" },
-    ];
+    let result;
+    if (isEditing) {
+      result = await updatePayee(payee.id, formData);
+    } else {
+      result = await createPayee(formData);
+    }
 
-    return (
-        <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Tab Navigation */}
-            <div className="flex bg-base-200 rounded-lg p-1">
-                {tabs.map((tab) => (
-                    <button
-                        key={tab.id}
-                        type="button"
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${activeTab === tab.id
-                                ? "bg-base-100 text-base-content shadow-sm"
-                                : "text-base-content/60 hover:text-base-content"
-                            }`}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
+    if (result.success) {
+      onClose();
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
+  };
+
+  // Helper for Section Headers
+  const SectionHeader = ({ icon: Icon, title }) => (
+    <div className="flex items-center gap-2 pb-2 border-b border-base-200 mb-4 mt-2">
+      <Icon className="w-4 h-4 text-primary" />
+      <h4 className="text-sm font-bold text-base-content/70 uppercase tracking-wide">
+        {title}
+      </h4>
+    </div>
+  );
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col h-full">
+      {/* --- SCROLLABLE CONTENT AREA --- */}
+      <div className="flex-1 overflow-y-auto pr-2 space-y-6 custom-scrollbar max-h-[60vh] md:max-h-[65vh]">
+        {/* 1. Core Information */}
+        <div>
+          <SectionHeader icon={Briefcase} title="Core Information" />
+          <div className="space-y-4">
+            {/* Name (Required) */}
+            <div className="form-control">
+              <label className="label pt-0">
+                <span className="label-text font-medium">
+                  Payee Name <span className="text-error">*</span>
+                </span>
+              </label>
+              <input
+                type="text"
+                name="name"
+                placeholder="Enter company or individual name"
+                className={`input input-bordered w-full ${errors.name ? "input-error" : ""}`}
+                value={formData.name}
+                onChange={handleChange}
+              />
+              {errors.name && (
+                <span className="label-text-alt text-error mt-1">
+                  {errors.name}
+                </span>
+              )}
             </div>
 
-            {/* Basic Info Tab */}
-            {activeTab === "basic" && (
-                <div className="space-y-4 animate-fade-in-up">
-                    {/* Payee Name */}
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text font-medium flex items-center gap-2">
-                                <User className="w-4 h-4 text-primary" />
-                                Payee Name
-                                <span className="text-error">*</span>
-                            </span>
-                        </label>
-                        <input
-                            type="text"
-                            name="name"
-                            placeholder="Enter payee/company name"
-                            className={`input input-bordered ${errors.name ? "input-error" : ""}`}
-                            value={formData.name}
-                            onChange={handleChange}
-                        />
-                        {errors.name && (
-                            <label className="label">
-                                <span className="label-text-alt text-error">{errors.name}</span>
-                            </label>
-                        )}
-                    </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Type (Required) */}
+              <div className="form-control">
+                <label className="label pt-0">
+                  <span className="label-text font-medium">
+                    Type <span className="text-error">*</span>
+                  </span>
+                </label>
+                <select
+                  name="type"
+                  className="select select-bordered w-full"
+                  value={formData.type}
+                  onChange={handleChange}
+                >
+                  <option value="supplier">Supplier</option>
+                  <option value="contractor">Contractor</option>
+                  <option value="employee">Employee</option>
+                  <option value="utility">Utility</option>
+                  <option value="government">Government</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
 
-                    {/* Type */}
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text font-medium">Payee Type</span>
-                        </label>
-                        <select
-                            name="type"
-                            className="select select-bordered"
-                            value={formData.type}
-                            onChange={handleChange}
-                        >
-                            <option value="supplier">Supplier</option>
-                            <option value="contractor">Contractor</option>
-                            <option value="employee">Employee</option>
-                            <option value="utility">Utility</option>
-                            <option value="government">Government</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-
-                    {/* Address */}
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text font-medium flex items-center gap-2">
-                                <MapPin className="w-4 h-4 text-primary" />
-                                Address
-                            </span>
-                        </label>
-                        <textarea
-                            name="address"
-                            placeholder="Full address"
-                            className="textarea textarea-bordered resize-none h-20"
-                            value={formData.address}
-                            onChange={handleChange}
-                        />
-                    </div>
-
-                    {/* TIN Number */}
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text font-medium flex items-center gap-2">
-                                <CreditCard className="w-4 h-4 text-primary" />
-                                TIN Number
-                            </span>
-                        </label>
-                        <input
-                            type="text"
-                            name="tinNum"
-                            placeholder="000-000-000-000"
-                            className="input input-bordered font-mono"
-                            value={formData.tinNum}
-                            onChange={handleChange}
-                        />
-                    </div>
+              {/* Mobile Number (Required) */}
+              <div className="form-control">
+                <label className="label pt-0">
+                  <span className="label-text font-medium">
+                    Mobile Number <span className="text-error">*</span>
+                  </span>
+                </label>
+                <div className="relative">
+                  <Phone className="w-4 h-4 absolute left-3 top-3 text-base-content/40" />
+                  <input
+                    type="tel"
+                    name="mobileNum"
+                    placeholder="09XX XXX XXXX"
+                    className={`input input-bordered w-full pl-10 ${errors.mobileNum ? "input-error" : ""}`}
+                    value={formData.mobileNum}
+                    onChange={handleChange}
+                  />
                 </div>
-            )}
-
-            {/* Contact Tab */}
-            {activeTab === "contact" && (
-                <div className="space-y-4 animate-fade-in-up">
-                    {/* Contact Person */}
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text font-medium flex items-center gap-2">
-                                <User className="w-4 h-4 text-primary" />
-                                Contact Person
-                            </span>
-                        </label>
-                        <input
-                            type="text"
-                            name="contactPerson"
-                            placeholder="Primary contact name"
-                            className="input input-bordered"
-                            value={formData.contactPerson}
-                            onChange={handleChange}
-                        />
-                    </div>
-
-                    {/* Email */}
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text font-medium flex items-center gap-2">
-                                <Mail className="w-4 h-4 text-primary" />
-                                Email Address
-                            </span>
-                        </label>
-                        <input
-                            type="email"
-                            name="email"
-                            placeholder="email@example.com"
-                            className={`input input-bordered ${errors.email ? "input-error" : ""}`}
-                            value={formData.email}
-                            onChange={handleChange}
-                        />
-                        {errors.email && (
-                            <label className="label">
-                                <span className="label-text-alt text-error">{errors.email}</span>
-                            </label>
-                        )}
-                    </div>
-
-                    {/* Mobile Number */}
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text font-medium flex items-center gap-2">
-                                <Phone className="w-4 h-4 text-primary" />
-                                Mobile Number
-                            </span>
-                        </label>
-                        <input
-                            type="tel"
-                            name="mobileNum"
-                            placeholder="+63 XXX XXX XXXX"
-                            className="input input-bordered"
-                            value={formData.mobileNum}
-                            onChange={handleChange}
-                        />
-                    </div>
-                </div>
-            )}
-
-            {/* Banking Tab */}
-            {activeTab === "banking" && (
-                <div className="space-y-4 animate-fade-in-up">
-                    {/* Bank Name */}
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text font-medium flex items-center gap-2">
-                                <Building className="w-4 h-4 text-primary" />
-                                Bank Name
-                            </span>
-                        </label>
-                        <input
-                            type="text"
-                            name="bankName"
-                            placeholder="e.g., BDO, BPI, Metrobank"
-                            className="input input-bordered"
-                            value={formData.bankName}
-                            onChange={handleChange}
-                        />
-                    </div>
-
-                    {/* Bank Branch */}
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text font-medium">Bank Branch</span>
-                        </label>
-                        <input
-                            type="text"
-                            name="bankBranch"
-                            placeholder="Branch name/location"
-                            className="input input-bordered"
-                            value={formData.bankBranch}
-                            onChange={handleChange}
-                        />
-                    </div>
-
-                    {/* Account Name */}
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text font-medium">Account Name</span>
-                        </label>
-                        <input
-                            type="text"
-                            name="accountName"
-                            placeholder="Name on bank account"
-                            className="input input-bordered"
-                            value={formData.accountName}
-                            onChange={handleChange}
-                        />
-                    </div>
-
-                    {/* Account Number */}
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text font-medium flex items-center gap-2">
-                                <CreditCard className="w-4 h-4 text-primary" />
-                                Account Number
-                            </span>
-                        </label>
-                        <input
-                            type="text"
-                            name="accountNumber"
-                            placeholder="Bank account number"
-                            className="input input-bordered font-mono"
-                            value={formData.accountNumber}
-                            onChange={handleChange}
-                        />
-                    </div>
-
-                    {/* Remarks */}
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text font-medium flex items-center gap-2">
-                                <FileText className="w-4 h-4 text-primary" />
-                                Remarks
-                            </span>
-                        </label>
-                        <textarea
-                            name="remarks"
-                            placeholder="Additional notes..."
-                            className="textarea textarea-bordered resize-none h-20"
-                            value={formData.remarks}
-                            onChange={handleChange}
-                        />
-                    </div>
-                </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex gap-3 pt-4 border-t border-base-300">
-                <button type="button" onClick={onClose} className="btn btn-ghost flex-1">
-                    <X className="w-4 h-4" />
-                    Cancel
-                </button>
-                <button type="submit" disabled={isLoading} className="btn btn-primary flex-1">
-                    {isLoading ? (
-                        <>
-                            <span className="loading loading-spinner loading-sm" />
-                            Saving...
-                        </>
-                    ) : (
-                        <>
-                            <Save className="w-4 h-4" />
-                            {isEditing ? "Update" : "Create"} Payee
-                        </>
-                    )}
-                </button>
+                {errors.mobileNum && (
+                  <span className="label-text-alt text-error mt-1">
+                    {errors.mobileNum}
+                  </span>
+                )}
+              </div>
             </div>
-        </form>
-    );
+
+            {/* TIN Number */}
+            <div className="form-control">
+              <label className="label pt-0">
+                <span className="label-text font-medium">TIN Number</span>
+              </label>
+              <div className="relative">
+                <Hash className="w-4 h-4 absolute left-3 top-3 text-base-content/40" />
+                <input
+                  type="text"
+                  name="tinNum"
+                  placeholder="000-000-000"
+                  className="input input-bordered w-full pl-10 font-mono"
+                  value={formData.tinNum}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. Contact Details */}
+        <div>
+          <SectionHeader icon={User} title="Contact Details" />
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Contact Person */}
+              <div className="form-control">
+                <label className="label pt-0">
+                  <span className="label-text font-medium">Contact Person</span>
+                </label>
+                <input
+                  type="text"
+                  name="contactPerson"
+                  placeholder="Representative Name"
+                  className="input input-bordered w-full"
+                  value={formData.contactPerson}
+                  onChange={handleChange}
+                />
+              </div>
+
+              {/* Email */}
+              <div className="form-control">
+                <label className="label pt-0">
+                  <span className="label-text font-medium">Email Address</span>
+                </label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 absolute left-3 top-3 text-base-content/40" />
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="email@example.com"
+                    className={`input input-bordered w-full pl-10 ${errors.email ? "input-error" : ""}`}
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
+                </div>
+                {errors.email && (
+                  <span className="label-text-alt text-error mt-1">
+                    {errors.email}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Address */}
+            <div className="form-control">
+              <label className="label pt-0">
+                <span className="label-text font-medium">Address</span>
+              </label>
+              <textarea
+                name="address"
+                placeholder="Registered business address"
+                className="textarea textarea-bordered h-20 resize-none w-full"
+                value={formData.address}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 3. Banking & Remarks */}
+        <div>
+          <SectionHeader icon={Building} title="Banking & Other" />
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Bank Name */}
+              <div className="form-control">
+                <label className="label pt-0">
+                  <span className="label-text font-medium">Bank Name</span>
+                </label>
+                <input
+                  type="text"
+                  name="bankName"
+                  placeholder="e.g. BDO, BPI"
+                  className="input input-bordered w-full"
+                  value={formData.bankName}
+                  onChange={handleChange}
+                />
+              </div>
+
+              {/* Branch */}
+              <div className="form-control">
+                <label className="label pt-0">
+                  <span className="label-text font-medium">Branch</span>
+                </label>
+                <input
+                  type="text"
+                  name="bankBranch"
+                  placeholder="Branch Location"
+                  className="input input-bordered w-full"
+                  value={formData.bankBranch}
+                  onChange={handleChange}
+                />
+              </div>
+
+              {/* Account Name */}
+              <div className="form-control">
+                <label className="label pt-0">
+                  <span className="label-text font-medium">Account Name</span>
+                </label>
+                <input
+                  type="text"
+                  name="accountName"
+                  placeholder="Account Holder Name"
+                  className="input input-bordered w-full"
+                  value={formData.accountName}
+                  onChange={handleChange}
+                />
+              </div>
+
+              {/* Account Number */}
+              <div className="form-control">
+                <label className="label pt-0">
+                  <span className="label-text font-medium">Account Number</span>
+                </label>
+                <div className="relative">
+                  <CreditCard className="w-4 h-4 absolute left-3 top-3 text-base-content/40" />
+                  <input
+                    type="text"
+                    name="accountNumber"
+                    placeholder="0000 0000 00"
+                    className="input input-bordered w-full pl-10 font-mono"
+                    value={formData.accountNumber}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Remarks */}
+            <div className="form-control">
+              <label className="label pt-0">
+                <span className="label-text font-medium">Remarks</span>
+              </label>
+              <textarea
+                name="remarks"
+                placeholder="Additional notes..."
+                className="textarea textarea-bordered h-20 resize-none w-full"
+                value={formData.remarks}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* --- FIXED FOOTER ACTIONS --- */}
+      <div className="pt-4 mt-2 border-t border-base-200 flex gap-3">
+        <button
+          type="button"
+          onClick={onClose}
+          className="btn btn-ghost flex-1"
+        >
+          <X className="w-4 h-4" />
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="btn btn-primary flex-1 shadow-lg shadow-primary/20"
+        >
+          {isLoading ? (
+            <span className="loading loading-spinner loading-sm" />
+          ) : (
+            <Save className="w-4 h-4" />
+          )}
+          {isEditing ? "Save Changes" : "Create Payee"}
+        </button>
+      </div>
+    </form>
+  );
 };
 
 export default PayeeForm;
