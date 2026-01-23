@@ -150,23 +150,12 @@ const App = () => {
 
 
 
+  <Route path="/check" element={<Check />} />
+  <Route path="/lddap" element={<Lddap />} />
+  {/* your other routes */}
 
 
       </Routes>
-
-      
-<div className="flex h-screen bg-slate-50">
-  {/* Sidebar - THIS ALWAYS STAYS */}
-  <aside className="w-64 bg-slate-900">
-    {/* Your sidebar content */}
-  </aside>
-
-  {/* Main Content - ONLY THIS CHANGES */}
-  <Routes>
-    <Route path="/check" element={<Check />} />
-    <Route path="/lddap" element={<Lddap />} />
-  </Routes>
-</div>
     </BrowserRouter>
   );
 };
