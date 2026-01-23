@@ -24,6 +24,10 @@ import UserManagerPage from "./pages/admin/UserManagerPage";
 import LogsPage from "./pages/admin/LogsPage";
 import SignUpPage from "./pages/admin/SignUpPage";
 
+
+import Check from './components/disbursement_components/Check';
+import Lddap from './components/disbursement_components/LDDAP';
+
 // Loading Spinner Component
 const LoadingScreen = () => (
   <div className="min-h-screen flex items-center justify-center bg-base-200">
@@ -109,6 +113,9 @@ const App = () => {
           }
         />
 
+
+
+
         {/* Protected Routes with Layout */}
         <Route
           element={
@@ -140,7 +147,26 @@ const App = () => {
 
         {/* Catch-all redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
+
+
+
+
+
       </Routes>
+
+      
+<div className="flex h-screen bg-slate-50">
+  {/* Sidebar - THIS ALWAYS STAYS */}
+  <aside className="w-64 bg-slate-900">
+    {/* Your sidebar content */}
+  </aside>
+
+  {/* Main Content - ONLY THIS CHANGES */}
+  <Routes>
+    <Route path="/check" element={<Check />} />
+    <Route path="/lddap" element={<Lddap />} />
+  </Routes>
+</div>
     </BrowserRouter>
   );
 };
