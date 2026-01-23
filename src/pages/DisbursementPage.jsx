@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Search,
@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import useDisbursementStore from "../store/useDisbursementStore";
 import { formatCurrency, formatDate } from "../lib/formatters";
+// Import the Form Component
+import DisbursementForm from "../components/DisbursementForm";
 
 const DisbursementPage = () => {
   const navigate = useNavigate();
@@ -23,6 +25,9 @@ const DisbursementPage = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
+
+  // --- Modal State ---
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Access Store
   const {
@@ -34,7 +39,6 @@ const DisbursementPage = () => {
   } = useDisbursementStore();
 
   // --- Fetch Data on Filter Change ---
-  // Debounce search could be added here, but for now we fetch on effect
   useEffect(() => {
     fetchDisbursements(
       pagination.currentPage || 1,
@@ -89,8 +93,11 @@ const DisbursementPage = () => {
             </p>
           </div>
 
-          {/* Create Button (Non-functional as requested) */}
-          <button className="btn btn-primary gap-2 shadow-lg shadow-primary/20 transition-transform hover:scale-105">
+          {/* Create Button - NOW FUNCTIONAL */}
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="btn btn-primary gap-2 shadow-lg shadow-primary/20 transition-transform hover:scale-105"
+          >
             <Plus className="w-5 h-5" />
             <span className="hidden sm:inline">New Record</span>
           </button>
@@ -345,6 +352,38 @@ const DisbursementPage = () => {
           )}
         </div>
       </main>
+
+      {/* --- CREATE MODAL (CENTERED) --- */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+            onClick={() => setIsModalOpen(false)}
+          />
+
+          {/* Modal Container */}
+          <div className="relative w-full max-w-3xl bg-base-100 rounded-xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-scaleIn border border-base-200">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-base-200 bg-base-50/50 shrink-0">
+              <h3 className="text-lg font-bold text-base-content">
+                Create New Disbursement
+              </h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="btn btn-ghost btn-sm btn-square"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body (Form) */}
+            <div className="flex-1 overflow-hidden p-6">
+              <DisbursementForm onClose={() => setIsModalOpen(false)} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
