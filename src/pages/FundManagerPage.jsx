@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Wallet,
   Plus,
@@ -13,10 +13,12 @@ import {
   Loader2,
   CheckCircle2,
   Ban,
+  Trash2,
+  Power, // Added Power icon for deactivation
 } from "lucide-react";
 
 import useFundStore from "../store/useFundStore";
-import FundSourceForm from "../components/FundSourceForm"; // Assuming this exists
+import FundSourceForm from "../components/FundSourceForm";
 import { formatCurrency, formatDate } from "../lib/formatters";
 import toast from "react-hot-toast";
 
@@ -28,9 +30,11 @@ const FundManagerPage = () => {
     fetchFunds,
     fetchEntries,
     createEntry,
-    isLoading,
+    deleteEntry,
+    deactivateFund, // Added deactivate action
     setSelectedFund,
     selectedFund,
+    isLoading: isStoreLoading,
   } = useFundStore();
 
   // --- UI State ---
@@ -46,6 +50,7 @@ const FundManagerPage = () => {
     amount: "",
   });
   const [isSubmittingEntry, setIsSubmittingEntry] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // --- Initial Fetch ---
   useEffect(() => {
@@ -53,30 +58,28 @@ const FundManagerPage = () => {
     fetchEntries();
   }, [fetchFunds, fetchEntries]);
 
-  // --- Handlers ---
-
-  // Filter Logic
-  const getFilteredData = () => {
+  // --- Filter Logic ---
+  const filteredData = useMemo(() => {
     const lowerSearch = searchQuery.toLowerCase();
 
     if (activeTab === "FUNDS") {
       return funds.filter(
         (f) =>
-          f.name.toLowerCase().includes(lowerSearch) ||
-          f.code.toLowerCase().includes(lowerSearch),
+          f &&
+          ((f.name || "").toLowerCase().includes(lowerSearch) ||
+            (f.code || "").toLowerCase().includes(lowerSearch)),
       );
     } else {
       return entries.filter(
         (e) =>
-          e.name?.toLowerCase().includes(lowerSearch) ||
-          e.fundSource?.code?.toLowerCase().includes(lowerSearch),
+          e &&
+          ((e.name || "").toLowerCase().includes(lowerSearch) ||
+            (e.fundSource?.code || "").toLowerCase().includes(lowerSearch)),
       );
     }
-  };
+  }, [activeTab, funds, entries, searchQuery]);
 
-  const filteredData = getFilteredData();
-
-  // Modal Handlers
+  // --- Handlers ---
   const openFundModal = (fund = null) => {
     setSelectedFund(fund);
     setIsFundModalOpen(true);
@@ -105,15 +108,49 @@ const FundManagerPage = () => {
     if (result.success) {
       setIsEntryModalOpen(false);
       setEntryForm({ sourceId: "", name: "", amount: "" });
-      // Refresh funds to see updated balances
       fetchFunds();
     }
   };
 
-  const totalBudget = funds.reduce(
-    (sum, f) => sum + Number(f.initialBalance || 0),
-    0,
-  );
+  const handleDeleteEntry = async (id) => {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this ledger entry? This will revert the fund balance.",
+      )
+    ) {
+      return;
+    }
+    setIsDeleting(true);
+    const result = await deleteEntry(id);
+    setIsDeleting(false);
+
+    if (result.success) {
+      fetchFunds();
+    }
+  };
+
+  // --- NEW: Handle Deactivate Fund ---
+  const handleDeactivateFund = async (id, code) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to deactivate fund "${code}"? This will prevent new entries from being created under this fund.`,
+      )
+    ) {
+      return;
+    }
+
+    // We can reuse the isDeleting state or create a new one since both block UI interactions conceptually
+    setIsDeleting(true);
+    const result = await deactivateFund(id);
+    setIsDeleting(false);
+  };
+
+  const totalBudget = funds.reduce((sum, f) => {
+    if (!f) return sum;
+    // Only count active funds in the total budget if that's the desired business logic
+    // For now, we count all funds to show total historical allocation
+    return sum + Number(f.initialBalance || 0);
+  }, 0);
 
   return (
     <div className="min-h-screen bg-base-200/50 pb-20 font-sans">
@@ -130,7 +167,6 @@ const FundManagerPage = () => {
           </div>
 
           <div className="flex gap-3">
-            {/* Create Entry Button */}
             <button
               onClick={() => setIsEntryModalOpen(true)}
               className="btn btn-outline border-base-300 bg-base-100 hover:bg-base-200 hover:border-base-300 gap-2 shadow-sm"
@@ -139,7 +175,6 @@ const FundManagerPage = () => {
               <span className="hidden sm:inline">New Entry</span>
             </button>
 
-            {/* Create Fund Button */}
             <button
               onClick={() => openFundModal()}
               className="btn btn-primary gap-2 shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
@@ -174,23 +209,29 @@ const FundManagerPage = () => {
 
         {/* --- TABS & FILTERS --- */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          {/* Tabs */}
           <div className="bg-base-100 p-1 rounded-lg border border-base-300 flex gap-1">
             <button
               onClick={() => setActiveTab("FUNDS")}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${activeTab === "FUNDS" ? "bg-base-200 text-base-content shadow-sm" : "text-base-content/50 hover:text-base-content hover:bg-base-200/50"}`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${
+                activeTab === "FUNDS"
+                  ? "bg-base-200 text-base-content shadow-sm"
+                  : "text-base-content/50 hover:text-base-content hover:bg-base-200/50"
+              }`}
             >
               <Layers className="w-4 h-4" /> Fund Sources
             </button>
             <button
               onClick={() => setActiveTab("LEDGER")}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${activeTab === "LEDGER" ? "bg-base-200 text-base-content shadow-sm" : "text-base-content/50 hover:text-base-content hover:bg-base-200/50"}`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${
+                activeTab === "LEDGER"
+                  ? "bg-base-200 text-base-content shadow-sm"
+                  : "text-base-content/50 hover:text-base-content hover:bg-base-200/50"
+              }`}
             >
               <FileText className="w-4 h-4" /> Ledger Entries
             </button>
           </div>
 
-          {/* Search */}
           <div className="relative w-full md:w-80">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-base-content/40" />
             <input
@@ -207,7 +248,7 @@ const FundManagerPage = () => {
 
         {/* --- TABLE CONTENT --- */}
         <div className="bg-base-100 border border-base-300 rounded-xl shadow-sm overflow-hidden min-h-[400px]">
-          {isLoading ? (
+          {isStoreLoading && !isDeleting ? (
             <div className="p-8 space-y-4">
               {[1, 2, 3, 4].map((i) => (
                 <div
@@ -247,16 +288,16 @@ const FundManagerPage = () => {
                         <th className="px-6 py-4">Description</th>
                         <th className="px-6 py-4">Fund Source</th>
                         <th className="px-6 py-4 text-right">Amount</th>
+                        <th className="px-6 py-4 text-center">Action</th>
                       </>
                     )}
                   </tr>
                 </thead>
                 <tbody className="text-sm divide-y divide-base-100">
                   {activeTab === "FUNDS"
-                    ? // --- FUNDS ROWS ---
-                      filteredData.map((fund, idx) => (
+                    ? filteredData.map((fund, idx) => (
                         <tr
-                          key={fund.id}
+                          key={fund?.id || idx}
                           className="group hover:bg-base-200/40 transition-colors"
                         >
                           <td className="px-6 py-4">
@@ -284,19 +325,35 @@ const FundManagerPage = () => {
                             )}
                           </td>
                           <td className="px-6 py-4 text-center">
-                            <button
-                              onClick={() => openFundModal(fund)}
-                              className="btn btn-xs btn-ghost text-base-content/60 hover:text-primary"
-                            >
-                              <Edit2 className="w-3 h-3" />
-                            </button>
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => openFundModal(fund)}
+                                className="btn btn-xs btn-ghost text-base-content/60 hover:text-primary hover:bg-primary/10"
+                                title="Edit Fund"
+                              >
+                                <Edit2 className="w-3 h-3" />
+                              </button>
+
+                              {/* DEACTIVATE BUTTON (Only if active) */}
+                              {fund.isActive !== false && (
+                                <button
+                                  onClick={() =>
+                                    handleDeactivateFund(fund.id, fund.code)
+                                  }
+                                  className="btn btn-xs btn-ghost text-base-content/40 hover:text-error hover:bg-error/10"
+                                  title="Deactivate Fund"
+                                  disabled={isDeleting}
+                                >
+                                  <Power className="w-3 h-3" />
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))
-                    : // --- LEDGER ROWS ---
-                      filteredData.map((entry) => (
+                    : filteredData.map((entry, idx) => (
                         <tr
-                          key={entry.id}
+                          key={entry?.id || idx}
                           className="group hover:bg-base-200/40 transition-colors"
                         >
                           <td className="px-6 py-4 text-base-content/60 font-mono text-xs">
@@ -312,6 +369,16 @@ const FundManagerPage = () => {
                           </td>
                           <td className="px-6 py-4 text-right font-mono font-bold text-base-content">
                             {formatCurrency(entry.amount)}
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <button
+                              onClick={() => handleDeleteEntry(entry.id)}
+                              disabled={isDeleting}
+                              className="btn btn-xs btn-ghost text-base-content/40 hover:text-error hover:bg-error/10"
+                              title="Delete Entry"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -342,8 +409,6 @@ const FundManagerPage = () => {
               </button>
             </div>
             <div className="p-6">
-              {/* Assuming FundSourceForm handles its own layout/submit logic. 
-                        If not, wrapping styling might be needed. */}
               <FundSourceForm fund={selectedFund} onClose={closeFundModal} />
             </div>
           </div>
@@ -371,7 +436,6 @@ const FundManagerPage = () => {
             </div>
 
             <form onSubmit={handleEntrySubmit} className="p-6 space-y-4">
-              {/* Fund Source Select */}
               <div className="form-control">
                 <label className="label">
                   <span className="label-text font-medium text-base-content/70">
@@ -389,15 +453,16 @@ const FundManagerPage = () => {
                   <option value="" disabled>
                     Select a fund...
                   </option>
-                  {funds.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.code} - {f.name}
-                    </option>
-                  ))}
+                  {funds.map((f) =>
+                    f ? (
+                      <option key={f.id} value={f.id}>
+                        {f.code} - {f.name}
+                      </option>
+                    ) : null,
+                  )}
                 </select>
               </div>
 
-              {/* Particulars/Name */}
               <div className="form-control">
                 <label className="label">
                   <span className="label-text font-medium text-base-content/70">
@@ -416,7 +481,6 @@ const FundManagerPage = () => {
                 />
               </div>
 
-              {/* Amount */}
               <div className="form-control">
                 <label className="label">
                   <span className="label-text font-medium text-base-content/70">
@@ -441,7 +505,6 @@ const FundManagerPage = () => {
                 </div>
               </div>
 
-              {/* Actions */}
               <div className="pt-4 flex gap-3">
                 <button
                   type="button"
@@ -467,8 +530,6 @@ const FundManagerPage = () => {
           </div>
         </div>
       )}
-
-      {/* Animation Styles */}
       <style>{`
         @keyframes scaleIn {
             from { opacity: 0; transform: scale(0.95); }

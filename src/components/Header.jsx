@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { PlusCircle, Search, Bell } from "lucide-react";
 import useAuthStore from "../store/useAuthStore";
+import NotificationDropdown from "./NotificationDropdown";
 
 const Header = () => {
   const navigate = useNavigate();
