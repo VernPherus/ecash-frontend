@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { X } from "lucide-react"; // Make sure you have this imported if you plan to use it, though I don't see it used in your snippet below, I'll keep it just in case.
 import Lddap from "./disbursement_components/LDDAP";
 import Check from "./disbursement_components/Check";
 
@@ -28,7 +27,7 @@ const DisbursementForm = ({ onClose }) => {
               <span
                 className={`text-sm font-medium transition-colors ${mode === "LDDAP" ? "text-primary font-bold" : "text-base-content/70 group-hover:text-base-content"}`}
               >
-                LDDAP - ADA
+                LDDAP
               </span>
             </label>
 
@@ -43,7 +42,7 @@ const DisbursementForm = ({ onClose }) => {
               <span
                 className={`text-sm font-medium transition-colors ${mode === "CHECK" ? "text-primary font-bold" : "text-base-content/70 group-hover:text-base-content"}`}
               >
-                Commercial Check
+                Check
               </span>
             </label>
           </div>
@@ -51,15 +50,13 @@ const DisbursementForm = ({ onClose }) => {
       </div>
 
       {/* --- DYNAMIC FORM CONTENT --- */}
-      {/* 1. overflow-y-auto: Enables scrolling on this specific container.
-          2. flex-1: Takes up all remaining height.
-          3. min-h-0: Vital for nested flex containers to scroll correctly.
+      {/* We use 'overflow-hidden' here because the child components (Lddap/Check) 
+          are already set to 'h-full' with their own internal 'overflow-y-auto'.
+          This ensures the header stays sticky and only the form body scrolls.
       */}
-      <div className="flex-1 overflow-y-auto relative min-h-0 custom-scrollbar">
-        <div className="h-full">
-          {mode === "LDDAP" && <Lddap onClose={onClose} />}
-          {mode === "CHECK" && <Check onClose={onClose} />}
-        </div>
+      <div className="flex-1 overflow-hidden relative min-h-0">
+        {mode === "LDDAP" && <Lddap onClose={onClose} />}
+        {mode === "CHECK" && <Check onClose={onClose} />}
       </div>
     </div>
   );

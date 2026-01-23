@@ -17,6 +17,7 @@ import useDisbursementStore from "../store/useDisbursementStore";
 import { formatCurrency, formatDate } from "../lib/formatters";
 // Import the Form Component
 import DisbursementForm from "../components/DisbursementForm";
+import Header from "../components/Header";
 
 const DisbursementPage = () => {
   const navigate = useNavigate();
@@ -82,27 +83,7 @@ const DisbursementPage = () => {
   return (
     <div className="min-h-screen bg-base-200/50 pb-20 font-sans">
       {/* --- HEADER --- */}
-      <header className="bg-base-100 border-b border-base-300 sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-base-content tracking-tight">
-              Disbursements
-            </h1>
-            <p className="text-sm text-base-content/60 mt-0.5">
-              Manage and track all fund disbursements.
-            </p>
-          </div>
-
-          {/* Create Button - NOW FUNCTIONAL */}
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="btn btn-primary gap-2 shadow-lg shadow-primary/20 transition-transform hover:scale-105"
-          >
-            <Plus className="w-5 h-5" />
-            <span className="hidden sm:inline">New Record</span>
-          </button>
-        </div>
-      </header>
+      <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
         {/* --- TOOLBAR --- */}

@@ -19,12 +19,14 @@ const useDisbursementStore = create((set, get) => ({
 
   // Calculate status and age for UI badges
   getDisbursementStatus: (disbursement) => {
-    // 1. Check if Paid/Approved
-    if (disbursement.status === "PAID" || disbursement.status === "APPROVED") {
+    // 1. Check if Paid/Approved (Backend uses lowercase 'approved' in approveRec, check logic)
+    const status = disbursement.status?.toLowerCase();
+
+    if (status === "paid" || status === "approved") {
       return {
         status: "approved",
-        label: "Paid",
-        className: "badge-success text-white border-success bg-success", // Tailwind/DaisyUI classes
+        label: status === "paid" ? "Paid" : "Approved",
+        className: "badge-success text-white border-success bg-success",
       };
     }
 
@@ -70,6 +72,8 @@ const useDisbursementStore = create((set, get) => ({
     status = "",
     startDate = "",
     endDate = "",
+    method = "", // Added
+    fundId = "", // Added
   ) => {
     set({ isLoading: true, error: null });
     try {
@@ -79,10 +83,13 @@ const useDisbursementStore = create((set, get) => ({
       params.append("limit", limit);
 
       if (search) params.append("search", search);
-      // Backend controller checks `if (status && status !== "all")`
       if (status && status !== "ALL") params.append("status", status);
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
+
+      // New Filters based on backend displayRec
+      if (method && method !== "ALL") params.append("method", method);
+      if (fundId && fundId !== "ALL") params.append("fundId", fundId);
 
       const response = await axiosInstance.get(
         `/disbursement/display?${params.toString()}`,
@@ -115,10 +122,15 @@ const useDisbursementStore = create((set, get) => ({
   createDisbursement: async (disbursementData) => {
     set({ isLoading: true });
     try {
-      const response = await axiosInstance.post(
-        "/disbursement/store",
-        disbursementData,
-      );
+      // MAPPING FIX: The backend 'storeRec' expects 'fundsourceId' (lowercase 's')
+      // but 'editRec' expects 'fundSourceId'. We ensure payload matches storeRec here.
+      const payload = {
+        ...disbursementData,
+        fundsourceId:
+          disbursementData.fundSourceId || disbursementData.fundsourceId,
+      };
+
+      const response = await axiosInstance.post("/disbursement/store", payload);
       const newDisbursement = response.data;
 
       // Optimistic update: Add to top of list
@@ -168,8 +180,10 @@ const useDisbursementStore = create((set, get) => ({
         `/disbursement/editRec/${id}`,
         updateData,
       );
-      // Access specific data structure from backend response
-      const updatedDisbursement = response.data.updatedDisbursement;
+
+      // RESPONSE FIX: Backend returns the object directly: res.status(200).json(updatedRecord);
+      // Previously it was looking for response.data.updatedDisbursement
+      const updatedDisbursement = response.data;
 
       set((state) => ({
         disbursements: state.disbursements.map((d) =>
@@ -203,6 +217,7 @@ const useDisbursementStore = create((set, get) => ({
       const response = await axiosInstance.put(`/disbursement/approve/${id}`, {
         remarks,
       });
+      // Backend returns: { message: "...", data: result }
       const approvedDisbursement = response.data.data;
 
       set((state) => ({
@@ -234,6 +249,8 @@ const useDisbursementStore = create((set, get) => ({
   deleteDisbursement: async (id) => {
     set({ isLoading: true });
     try {
+      // Note: Backend endpoint is typically 'removeRec' but routed via /delete/:id or similar.
+      // Assuming route is /disbursement/delete/:id based on previous context
       await axiosInstance.put(`/disbursement/delete/${id}`);
 
       set((state) => ({

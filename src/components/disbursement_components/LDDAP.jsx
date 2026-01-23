@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Save, Calendar, User, Wallet, Wifi, FileEdit } from "lucide-react";
+import {
+  Save,
+  Calendar,
+  User,
+  Wallet,
+  Wifi,
+  FileEdit,
+  Plus,
+  Trash2,
+  Hash,
+  FileText,
+} from "lucide-react";
 import useDisbursementStore from "../../store/useDisbursementStore";
 import useFundStore from "../../store/useFundStore";
 import usePayeeStore from "../../store/usePayeeStore";
@@ -9,23 +20,26 @@ const Lddap = ({ onClose }) => {
   const { funds, fetchFunds } = useFundStore();
   const { payees, fetchPayees } = usePayeeStore();
 
-  // "ONLINE" or "MANUAL"
+  // Mode: "ONLINE" or "MANUAL"
   const [method, setMethod] = useState("ONLINE");
 
   const [formData, setFormData] = useState({
     payeeId: "",
     fundSourceId: "",
     dateReceived: new Date().toISOString().split("T")[0],
-    // Manual fields
+    lddapNum: "", // Specific to LDDAP
     dvNum: "",
     orsNum: "",
+    uacsCode: "",
     particulars: "",
   });
 
-  // For Manual: Line Items
+  // For Manual: Line Items & Deductions
   const [items, setItems] = useState([
     { description: "", accountCode: "", amount: "" },
   ]);
+  const [deductions, setDeductions] = useState([]);
+
   // For Online: Single Total Amount
   const [onlineAmount, setOnlineAmount] = useState("");
 
@@ -41,7 +55,28 @@ const Lddap = ({ onClose }) => {
     if (errors[e.target.name]) setErrors({ ...errors, [e.target.name]: null });
   };
 
-  // --- Validation & Submit ---
+  // --- Item & Deduction Handlers (Manual Mode) ---
+  const handleItemChange = (idx, field, val) => {
+    const newItems = [...items];
+    newItems[idx][field] = val;
+    setItems(newItems);
+  };
+  const addItem = () =>
+    setItems([...items, { description: "", accountCode: "", amount: "" }]);
+  const removeItem = (index) =>
+    items.length > 1 && setItems(items.filter((_, i) => i !== index));
+
+  const handleDeductionChange = (idx, field, val) => {
+    const newDed = [...deductions];
+    newDed[idx][field] = val;
+    setDeductions(newDed);
+  };
+  const addDeduction = () =>
+    setDeductions([...deductions, { deductionType: "", amount: "" }]);
+  const removeDeduction = (index) =>
+    setDeductions(deductions.filter((_, i) => i !== index));
+
+  // --- Validation ---
   const validate = () => {
     const newErrors = {};
     if (!formData.payeeId) newErrors.payeeId = "Required";
@@ -51,8 +86,9 @@ const Lddap = ({ onClose }) => {
       if (!onlineAmount || isNaN(onlineAmount))
         newErrors.onlineAmount = "Amount is required";
     } else {
-      const invalidItems = items.some((i) => !i.description || !i.amount);
-      if (invalidItems) newErrors.items = "Incomplete items";
+      if (items.some((i) => !i.description || !i.amount))
+        newErrors.items = "Incomplete items";
+      if (!formData.lddapNum) newErrors.lddapNum = "LDDAP No. Required";
     }
 
     setErrors(newErrors);
@@ -63,12 +99,13 @@ const Lddap = ({ onClose }) => {
     e.preventDefault();
     if (!validate()) return;
 
-    // Construct Payload based on Method
     let finalItems = [];
+    let finalDeductions = [];
     let grossAmount = 0;
+    let totalDeductions = 0;
 
     if (method === "ONLINE") {
-      // Online: Create a generic item automatically
+      // Online: Create a single generic item
       grossAmount = Number(onlineAmount);
       finalItems = [
         {
@@ -78,39 +115,40 @@ const Lddap = ({ onClose }) => {
         },
       ];
     } else {
-      // Manual: Use the list
+      // Manual: Use the form lists
       finalItems = items.map((i) => ({ ...i, amount: Number(i.amount) }));
+      finalDeductions = deductions.map((d) => ({
+        ...d,
+        amount: Number(d.amount),
+      }));
+
       grossAmount = finalItems.reduce((sum, i) => sum + i.amount, 0);
+      totalDeductions = finalDeductions.reduce((sum, d) => sum + d.amount, 0);
     }
 
     const payload = {
       ...formData,
       payeeId: Number(formData.payeeId),
       fundSourceId: Number(formData.fundSourceId),
-      method: method, // "ONLINE" or "MANUAL" (Mapped to LDDAP logic in backend)
+      method: "LDDAP", // Main Method
+      lddapMethod: method, // Sub Method (ONLINE/MANUAL)
       grossAmount,
-      netAmount: grossAmount, // Assuming no deductions for simple LDDAP for now
+      totalDeductions,
+      netAmount: grossAmount - totalDeductions,
       items: finalItems,
-      deductions: [], // Add deductions logic here if Manual LDDAP needs it
+      deductions: finalDeductions,
     };
 
     const result = await createDisbursement(payload);
     if (result.success) onClose();
   };
 
-  // --- Render Helpers ---
-  const handleItemChange = (idx, field, val) => {
-    const newItems = [...items];
-    newItems[idx][field] = val;
-    setItems(newItems);
-  };
-
   return (
     <form onSubmit={handleSubmit} className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto pr-2 p-6 custom-scrollbar">
-        {/* Method Switcher */}
-        <div className="flex justify-center mb-8">
-          <div className="bg-base-200 p-1 rounded-lg inline-flex">
+        {/* 1. Mode Switcher */}
+        <div className="flex justify-center mb-6">
+          <div className="bg-base-200 p-1 rounded-lg inline-flex shadow-inner">
             <button
               type="button"
               onClick={() => setMethod("ONLINE")}
@@ -129,7 +167,7 @@ const Lddap = ({ onClose }) => {
         </div>
 
         <div className="space-y-6 animate-fade-in">
-          {/* Common Fields */}
+          {/* 2. Common Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="form-control">
               <label className="label pt-0">
@@ -218,78 +256,225 @@ const Lddap = ({ onClose }) => {
           {/* --- MANUAL MODE SPECIFIC --- */}
           {method === "MANUAL" && (
             <div className="space-y-4">
-              {/* Date & Refs */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="form-control">
-                  <label className="label pt-0">
-                    <span className="label-text font-medium">Date</span>
-                  </label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-3 w-4 h-4 text-base-content/40" />
-                    <input
-                      type="date"
-                      name="dateReceived"
-                      className="input input-bordered w-full pl-10"
-                      value={formData.dateReceived}
-                      onChange={handleChange}
-                    />
-                  </div>
+              {/* Items & Deductions */}
+              <div className="space-y-4">
+                {/* Items */}
+                <div className="flex justify-between items-center border-b border-base-200 pb-2">
+                  <h4 className="text-sm font-bold uppercase text-base-content/70">
+                    Line Items
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={addItem}
+                    className="btn btn-xs btn-outline border-base-300 gap-1"
+                  >
+                    <Plus className="w-3 h-3" /> Add
+                  </button>
                 </div>
-                <div className="form-control">
-                  <label className="label pt-0">
-                    <span className="label-text font-medium">DV Number</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="dvNum"
-                    className="input input-bordered"
-                    placeholder="DV-XXXX"
-                    value={formData.dvNum}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-
-              {/* Items */}
-              <div className="border-t border-base-200 pt-4">
-                <h4 className="font-bold text-sm mb-2">Line Items</h4>
                 {items.map((item, idx) => (
-                  <div key={idx} className="flex gap-2 mb-2">
+                  <div
+                    key={idx}
+                    className="flex flex-col sm:flex-row gap-2 items-start bg-base-200/50 p-2 rounded-lg"
+                  >
                     <input
                       type="text"
                       placeholder="Description"
-                      className="input input-bordered input-sm flex-1"
+                      className="input input-bordered input-sm flex-1 w-full"
                       value={item.description}
                       onChange={(e) =>
                         handleItemChange(idx, "description", e.target.value)
                       }
                     />
                     <input
+                      type="text"
+                      placeholder="Code"
+                      className="input input-bordered input-sm w-24 font-mono text-xs"
+                      value={item.accountCode}
+                      onChange={(e) =>
+                        handleItemChange(idx, "accountCode", e.target.value)
+                      }
+                    />
+                    <input
                       type="number"
-                      placeholder="Amount"
-                      className="input input-bordered input-sm w-32"
+                      placeholder="0.00"
+                      className="input input-bordered input-sm w-32 font-mono"
                       value={item.amount}
                       onChange={(e) =>
                         handleItemChange(idx, "amount", e.target.value)
                       }
                     />
+                    <button
+                      type="button"
+                      onClick={() => removeItem(idx)}
+                      className="btn btn-xs btn-square btn-ghost text-error"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 ))}
-                <button
-                  type="button"
-                  onClick={() =>
-                    setItems([
-                      ...items,
-                      { description: "", accountCode: "", amount: "" },
-                    ])
-                  }
-                  className="btn btn-xs btn-ghost"
-                >
-                  + Add Item
-                </button>
                 {errors.items && (
                   <p className="text-error text-xs">{errors.items}</p>
                 )}
+
+                {/* Deductions */}
+                <div className="flex justify-between items-center border-b border-base-200 pb-2 pt-2">
+                  <h4 className="text-sm font-bold uppercase text-base-content/70">
+                    Deductions
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={addDeduction}
+                    className="btn btn-xs btn-ghost text-base-content/60 gap-1"
+                  >
+                    <Plus className="w-3 h-3" /> Add
+                  </button>
+                </div>
+                {deductions.map((d, idx) => (
+                  <div key={idx} className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      placeholder="Tax/Deduction"
+                      className="input input-bordered input-sm flex-1"
+                      value={d.deductionType}
+                      onChange={(e) =>
+                        handleDeductionChange(
+                          idx,
+                          "deductionType",
+                          e.target.value,
+                        )
+                      }
+                    />
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      className="input input-bordered input-sm w-32 text-error font-mono"
+                      value={d.amount}
+                      onChange={(e) =>
+                        handleDeductionChange(idx, "amount", e.target.value)
+                      }
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeDeduction(idx)}
+                      className="btn btn-xs btn-square btn-ghost text-error"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* References Grid */}
+              <div className="space-y-4 pt-2">
+                <h4 className="text-sm font-bold uppercase text-base-content/70 border-b border-base-200 pb-2">
+                  References
+                </h4>
+
+                {/* LDDAP No. & Date */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="form-control">
+                    <label className="label pt-0">
+                      <span className="label-text font-medium text-xs uppercase">
+                        LDDAP Number <span className="text-error">*</span>
+                      </span>
+                    </label>
+                    <div className="relative">
+                      <Hash className="absolute left-3 top-3 w-4 h-4 text-base-content/40" />
+                      <input
+                        type="text"
+                        name="lddapNum"
+                        placeholder="LDDAP #..."
+                        className={`input input-bordered w-full pl-10 ${errors.lddapNum ? "input-error" : ""}`}
+                        value={formData.lddapNum}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="form-control">
+                    <label className="label pt-0">
+                      <span className="label-text font-medium text-xs uppercase">
+                        Date
+                      </span>
+                    </label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-3 w-4 h-4 text-base-content/40" />
+                      <input
+                        type="date"
+                        name="dateReceived"
+                        className="input input-bordered w-full pl-10"
+                        value={formData.dateReceived}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* DV & ORS */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="form-control">
+                    <label className="label pt-0">
+                      <span className="label-text font-medium text-xs uppercase">
+                        DV Number
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      name="dvNum"
+                      className="input input-bordered w-full font-mono"
+                      placeholder="DV-XXXX"
+                      value={formData.dvNum}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="form-control">
+                    <label className="label pt-0">
+                      <span className="label-text font-medium text-xs uppercase">
+                        ORS Number
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      name="orsNum"
+                      className="input input-bordered w-full font-mono"
+                      placeholder="ORS-XXXX"
+                      value={formData.orsNum}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+
+                {/* UACS */}
+                <div className="form-control">
+                  <label className="label pt-0">
+                    <span className="label-text font-medium text-xs uppercase">
+                      UACS Code
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    name="uacsCode"
+                    className="input input-bordered w-full font-mono"
+                    value={formData.uacsCode}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* Particulars */}
+                <div className="form-control">
+                  <label className="label pt-0">
+                    <span className="label-text font-medium">Particulars</span>
+                  </label>
+                  <div className="relative">
+                    <FileText className="absolute left-3 top-3 w-4 h-4 text-base-content/40" />
+                    <textarea
+                      name="particulars"
+                      placeholder="Enter details..."
+                      className="textarea textarea-bordered w-full pl-10 h-20 resize-none"
+                      value={formData.particulars}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -297,7 +482,7 @@ const Lddap = ({ onClose }) => {
       </div>
 
       {/* Footer */}
-      <div className="p-6 border-t border-base-200 flex gap-3 bg-base-100">
+      <div className="p-6 border-t border-base-200 flex gap-3 bg-base-100 mt-auto">
         <button
           type="button"
           onClick={onClose}
