@@ -532,54 +532,7 @@ const DisbursementFormPage = () => {
   
 
             {/* Progress Steps */}
-            <div className="bg-base-100 border-b border-base-300 px-6 lg:px-8 py-4">
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex items-center justify-between">
-                        {STEPS.map((step, idx) => {
-                            const status = getStepStatus(step.id);
-                            const StepIcon = step.icon;
-                            return (
-                                <React.Fragment key={step.id}>
-                                    <button
-                                        onClick={() => {
-                                            if (status === "completed") setCurrentStep(step.id);
-                                        }}
-                                        disabled={status === "upcoming"}
-                                        className={`flex items-center gap-3 transition-all ${status === "completed" ? "cursor-pointer" : ""
-                                            } ${status === "upcoming" ? "opacity-40" : ""}`}
-                                    >
-                                        <div
-                                            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${status === "current"
-                                                ? "bg-primary text-white shadow-glow-primary"
-                                                : status === "completed"
-                                                    ? "bg-success text-white"
-                                                    : "bg-base-200 text-base-content/40"
-                                                }`}
-                                        >
-                                            {status === "completed" ? (
-                                                <Check className="w-5 h-5" />
-                                            ) : (
-                                                <StepIcon className="w-5 h-5" />
-                                            )}
-                                        </div>
-                                        <div className="hidden md:block text-left">
-                                            <p className={`text-sm font-semibold ${status === "current" ? "text-primary" : "text-base-content"
-                                                }`}>
-                                                {step.name}
-                                            </p>
-                                            <p className="text-xs text-base-content/50">{step.description}</p>
-                                        </div>
-                                    </button>
-                                    {idx < STEPS.length - 1 && (
-                                        <div className={`flex-1 h-0.5 mx-2 lg:mx-4 rounded transition-all ${status === "completed" ? "bg-success" : "bg-base-300"
-                                            }`} />
-                                    )}
-                                </React.Fragment>
-                            );
-                        })}
-                    </div>
-                </div>
-            </div>
+            
 
 
 
