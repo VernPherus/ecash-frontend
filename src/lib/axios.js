@@ -9,14 +9,11 @@ const axiosInstance = axios.create({
   },
 });
 
-// Request interceptor - Add auth token if available
+// Request interceptor
+// Note: Authentication is handled via HTTP-only cookies (withCredentials: true)
+// No manual token management needed - cookies are sent automatically
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Get token from localStorage if using token-based auth
-    const token = localStorage.getItem("auth_token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
     return config;
   },
   (error) => {
@@ -35,7 +32,7 @@ axiosInstance.interceptors.response.use(
       switch (response.status) {
         case 401:
           // Unauthorized - clear auth state and redirect to login
-          localStorage.removeItem("auth_token");
+          // HTTP-only cookie will be cleared by backend
           // Only redirect if not already on login page
           if (!window.location.pathname.includes("/login")) {
             window.location.href = "/login";
