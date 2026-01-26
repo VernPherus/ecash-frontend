@@ -38,9 +38,7 @@ const Header = () => {
           {/* Actions Section */}
           <div className="flex items-center gap-3">
             {/* Notifications */}
-            <button className="btn btn-ghost btn-circle btn-sm text-base-content/60 hover:text-primary">
-              <Bell className="w-5 h-5" />
-            </button>
+            <NotificationDropdown align="right" />
 
             {/* New Entry Button - Triggers Modal */}
             <button
@@ -63,37 +61,26 @@ const Header = () => {
             onClick={() => setIsModalOpen(false)}
           />
 
-          {/* --- MODAL OVERLAY --- */}
-          {isModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              {/* Backdrop */}
-              <div
-                className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity animate-fade-in"
+          {/* Modal Container */}
+          <div className="relative w-full max-w-3xl bg-base-100 rounded-xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-scaleIn border border-base-200">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-base-200 bg-base-50/50 shrink-0">
+              <h3 className="text-lg font-bold text-base-content">
+                Create New Disbursement
+              </h3>
+              <button
                 onClick={() => setIsModalOpen(false)}
-              />
-
-              {/* Modal Container */}
-              <div className="relative w-full max-w-3xl bg-base-100 rounded-xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-scaleIn border border-base-200">
-                {/* Modal Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-base-200 bg-base-50/50 shrink-0">
-                  <h3 className="text-lg font-bold text-base-content">
-                    Create New Disbursement
-                  </h3>
-                  <button
-                    onClick={() => setIsModalOpen(false)}
-                    className="btn btn-ghost btn-sm btn-square text-base-content/50 hover:bg-base-200"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {/* Modal Body (The Form) - UPDATED */}
-                <div className="flex-1 overflow-y-auto p-6 min-h-0">
-                  <DisbursementForm onClose={() => setIsModalOpen(false)} />
-                </div>
-              </div>
+                className="btn btn-ghost btn-sm btn-square text-base-content/50 hover:bg-base-200"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-          )}
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-6 min-h-0">
+              <DisbursementForm onClose={() => setIsModalOpen(false)} />
+            </div>
+          </div>
         </div>
       )}
     </>
