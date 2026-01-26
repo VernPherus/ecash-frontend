@@ -10,17 +10,22 @@ import {
 } from "lucide-react";
 import useFundStore from "../store/useFundStore";
 
+const defaultFormData = (fund) => ({
+  code: fund?.code ?? "",
+  name: fund?.name ?? "",
+  initialBalance:
+    fund?.initialBalance != null && String(fund.initialBalance).trim() !== ""
+      ? String(fund.initialBalance)
+      : "",
+  description: fund?.description ?? "",
+  reset: fund?.reset ?? "NONE",
+});
+
 const FundSourceForm = ({ fund, onClose }) => {
   const { createFund, updateFund, isLoading } = useFundStore();
-  const isEditing = Boolean(fund);
+  const isEditing = Boolean(fund?.id);
 
-  const [formData, setFormData] = useState({
-    code: fund?.code || "",
-    name: fund?.name || "",
-    initialBalance: fund?.initialBalance || "",
-    description: fund?.description || "",
-    reset: fund?.reset || "NONE",
-  });
+  const [formData, setFormData] = useState(() => defaultFormData(fund));
 
   const [errors, setErrors] = useState({});
 
@@ -50,14 +55,14 @@ const FundSourceForm = ({ fund, onClose }) => {
     };
 
     let result;
-    if (isEditing) {
+    if (isEditing && fund?.id) {
       result = await updateFund(fund.id, payload);
     } else {
       result = await createFund(payload);
     }
 
-    if (result.success) {
-      onClose();
+    if (result?.success) {
+      onClose?.();
     }
   };
 

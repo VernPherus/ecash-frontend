@@ -9,8 +9,8 @@ const useFundStore = create((set, get) => ({
     funds: [],
     totals: null,
   },
-  entries: [], 
-  selectedFund: null, 
+  entries: [],
+  selectedFund: null,
   pagination: {
     totalRecords: 0,
     currentPage: 1,
@@ -19,14 +19,6 @@ const useFundStore = create((set, get) => ({
   },
   isLoading: false,
   error: null,
-
-  // --- Computed Values ---
-  get totalBudget() {
-    return get().funds.reduce(
-      (sum, fund) => sum + Number(fund.initialBalance || 0),
-      0,
-    );
-  },
 
   // --- Actions ---
 
@@ -41,9 +33,15 @@ const useFundStore = create((set, get) => ({
         params: { page, limit, search },
       });
 
+      const data = response.data ?? {};
       set({
-        funds: response.data.data,
-        pagination: response.data.pagination,
+        funds: Array.isArray(data.data) ? data.data : [],
+        pagination: data.pagination ?? {
+          totalRecords: 0,
+          currentPage: 1,
+          totalPages: 1,
+          limit: 10,
+        },
         isLoading: false,
       });
     } catch (error) {
@@ -106,24 +104,29 @@ const useFundStore = create((set, get) => ({
   /**
    * Create New Fund
    * POST /api/fund/newfund
+   * Refetches funds after success so totals and list stay in sync.
    */
   createFund: async (fundData) => {
-    set({ isLoading: true });
+    set({ isLoading: true, error: null });
     try {
       const response = await axiosInstance.post("/fund/newfund", fundData);
-      const newFund = response.data.savedFund;
+      const data = response?.data ?? {};
+      const newFund = data.savedFund ?? data.data ?? data.fund;
 
-      set((state) => ({
-        funds: [newFund, ...state.funds],
-        isLoading: false,
-      }));
+      if (!newFund || typeof newFund !== "object") {
+        set({ isLoading: false });
+        toast.error("Invalid response from server");
+        return { success: false, error: "Invalid response" };
+      }
 
+      set({ isLoading: false });
       toast.success("Fund source created successfully!");
+      await get().fetchFunds();
       return { success: true, fund: newFund };
     } catch (error) {
       const message =
         error.response?.data?.message || "Failed to create fund source";
-      set({ isLoading: false });
+      set({ isLoading: false, error: message });
       toast.error(message);
       return { success: false, error: message };
     }
@@ -132,30 +135,43 @@ const useFundStore = create((set, get) => ({
   /**
    * Update Fund
    * PUT /api/fund/editfund/:id
+   * Backend returns { data: updatedFundSource }. Refetches funds after success.
    */
   updateFund: async (id, fundData) => {
-    set({ isLoading: true });
+    set({ isLoading: true, error: null });
     try {
-      // Route has :id param
       const response = await axiosInstance.put(
         `/fund/editfund/${id}`,
         fundData,
       );
-      const updatedFund = response.data.updatedFundSource;
+      const data = response?.data ?? {};
+      const updatedFund =
+        data.data ?? data.updatedFundSource ?? data.updatedFund;
+
+      if (!updatedFund || typeof updatedFund !== "object") {
+        set({ isLoading: false });
+        toast.error("Invalid response from server");
+        return { success: false, error: "Invalid response" };
+      }
 
       set((state) => ({
-        funds: state.funds.map((f) => (f.id === id ? updatedFund : f)),
+        funds: state.funds.map((f) =>
+          Number(f?.id) === Number(id) ? updatedFund : f,
+        ),
         selectedFund:
-          state.selectedFund?.id === id ? updatedFund : state.selectedFund,
+          Number(state.selectedFund?.id) === Number(id)
+            ? updatedFund
+            : state.selectedFund,
         isLoading: false,
       }));
 
       toast.success("Fund source updated successfully!");
+      await get().fetchFunds();
       return { success: true, fund: updatedFund };
     } catch (error) {
       const message =
         error.response?.data?.message || "Failed to update fund source";
-      set({ isLoading: false });
+      set({ isLoading: false, error: message });
       toast.error(message);
       return { success: false, error: message };
     }

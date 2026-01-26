@@ -20,6 +20,7 @@ import {
 import useFundStore from "../store/useFundStore";
 import FundSourceForm from "../components/FundSourceForm";
 import { formatCurrency, formatDate } from "../lib/formatters";
+import { totalAllocation } from "../lib/formulas";
 import toast from "react-hot-toast";
 
 const FundManagerPage = () => {
@@ -145,12 +146,7 @@ const FundManagerPage = () => {
     setIsDeleting(false);
   };
 
-  const totalBudget = funds.reduce((sum, f) => {
-    if (!f) return sum;
-    // Only count active funds in the total budget if that's the desired business logic
-    // For now, we count all funds to show total historical allocation
-    return sum + Number(f.initialBalance || 0);
-  }, 0);
+  const totalBudget = totalAllocation(funds);
 
   return (
     <div className="min-h-screen bg-base-200/50 pb-20 font-sans">
