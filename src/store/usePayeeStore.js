@@ -11,16 +11,28 @@ const usePayeeStore = create((set, get) => ({
     searchQuery: "",
     filterType: "all",
 
-    // Computed: Get filtered payees
+    // Computed: Get filtered payees (defensive: skip invalid entries, safe access)
     getFilteredPayees: () => {
         const { payees, searchQuery, filterType } = get();
+        if (!Array.isArray(payees)) return [];
+        const q = (searchQuery ?? "").toLowerCase();
         return payees.filter((payee) => {
+            // More defensive checks: ensure payee exists and is an object
+            if (!payee || typeof payee !== "object" || payee === null) return false;
+            
+            // Safely access properties with fallbacks
+            const name = payee?.name ? String(payee.name).toLowerCase() : "";
+            const email = payee?.email ? String(payee.email).toLowerCase() : "";
+            const tinNum = payee?.tinNum ? String(payee.tinNum) : "";
+            const type = payee?.type ? String(payee.type) : "";
+            
             const matchesSearch =
-                payee.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                payee.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                payee.tinNum?.includes(searchQuery);
+                name.includes(q) ||
+                email.includes(q) ||
+                tinNum.includes(searchQuery ?? "");
 
-            const matchesType = filterType === "all" || payee.type === filterType;
+            const matchesType =
+                filterType === "all" || type === filterType;
 
             return matchesSearch && matchesType;
         });
@@ -31,11 +43,25 @@ const usePayeeStore = create((set, get) => ({
         set({ isLoading: true, error: null });
         try {
             const response = await axiosInstance.get("/payee/listPayee");
-            set({ payees: response.data, isLoading: false });
+            const data = response?.data;
+            // Filter out any invalid entries and ensure all payees have required fields
+            const validPayees = Array.isArray(data)
+                ? data.filter(
+                      (p) =>
+                          p &&
+                          typeof p === "object" &&
+                          p !== null &&
+                          p.id !== undefined,
+                  )
+                : [];
+            set({
+                payees: validPayees,
+                isLoading: false,
+            });
         } catch (error) {
             const message =
                 error.response?.data?.message || "Failed to fetch payees";
-            set({ error: message, isLoading: false });
+            set({ error: message, isLoading: false, payees: [] });
             toast.error(message);
         }
     },
@@ -65,10 +91,7 @@ const usePayeeStore = create((set, get) => ({
     updatePayee: async (id, payeeData) => {
         set({ isLoading: true });
         try {
-            const response = await axiosInstance.put(`/payee/editPayee`, {
-                id,
-                ...payeeData,
-            });
+            const response = await axiosInstance.put(`/payee/editPayee/${id}`, payeeData);
             const updatedPayee = response.data.updatedPayee;
 
             set((state) => ({
@@ -126,7 +149,14 @@ const usePayeeStore = create((set, get) => ({
 
     // Get unique payee types for filter dropdown
     getPayeeTypes: () => {
-        const types = new Set(get().payees.map((p) => p.type).filter(Boolean));
+        const payees = get().payees;
+        if (!Array.isArray(payees)) return ["all"];
+        const types = new Set(
+            payees
+                .filter((p) => p && typeof p === "object")
+                .map((p) => p.type)
+                .filter(Boolean),
+        );
         return ["all", ...Array.from(types)];
     },
 }));

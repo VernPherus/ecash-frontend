@@ -127,7 +127,10 @@ const useAuthStore = create(
             isCheckingAuth: false,
           });
         } catch (error) {
-          toast.error(error);
+          const status = error.response?.status;
+          if (status !== 401) {
+            toast.error(error.response?.data?.message || "Auth check failed");
+          }
           set({
             authUser: null,
             isAuthenticated: false,

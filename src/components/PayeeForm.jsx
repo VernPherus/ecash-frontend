@@ -14,11 +14,11 @@ import usePayeeStore from "../store/usePayeeStore";
 
 const PayeeForm = ({ payee, onClose }) => {
   const { createPayee, updatePayee, isLoading } = usePayeeStore();
-  const isEditing = Boolean(payee);
+  const isEditing = Boolean(payee?.id);
 
   const [formData, setFormData] = useState({
     name: payee?.name || "",
-    type: payee?.type || "supplier",
+    type: payee?.type || "SUPPLIER",
     mobileNum: payee?.mobileNum || "", // Required by backend
     address: payee?.address || "",
     email: payee?.email || "",
@@ -56,14 +56,14 @@ const PayeeForm = ({ payee, onClose }) => {
     if (!validate()) return;
 
     let result;
-    if (isEditing) {
+    if (isEditing && payee?.id) {
       result = await updatePayee(payee.id, formData);
     } else {
       result = await createPayee(formData);
     }
 
-    if (result.success) {
-      onClose();
+    if (result?.success) {
+      onClose?.();
     }
   };
 
@@ -97,19 +97,21 @@ const PayeeForm = ({ payee, onClose }) => {
             <div className="form-control">
               <label className="label pt-0">
                 <span className="label-text font-medium">
-                  Payee Name <span className="text-error">*</span>
+                  Payee Name <span className="text-error" aria-label="required">*</span>
                 </span>
               </label>
               <input
                 type="text"
                 name="name"
-                placeholder="Enter company or individual name"
+                placeholder="Enter company or individual name (required)"
+                required
+                aria-required="true"
                 className={`input input-bordered w-full ${errors.name ? "input-error" : ""}`}
                 value={formData.name}
                 onChange={handleChange}
               />
               {errors.name && (
-                <span className="label-text-alt text-error mt-1">
+                <span className="label-text-alt text-error mt-1" role="alert">
                   {errors.name}
                 </span>
               )}
@@ -120,29 +122,34 @@ const PayeeForm = ({ payee, onClose }) => {
               <div className="form-control">
                 <label className="label pt-0">
                   <span className="label-text font-medium">
-                    Type <span className="text-error">*</span>
+                    Type <span className="text-error" aria-label="required">*</span>
                   </span>
                 </label>
                 <select
                   name="type"
-                  className="select select-bordered w-full"
+                  required
+                  aria-required="true"
+                  aria-invalid={Boolean(errors.type)}
+                  className={`select select-bordered w-full ${errors.type ? "select-error" : ""}`}
                   value={formData.type}
                   onChange={handleChange}
                 >
-                  <option value="supplier">Supplier</option>
-                  <option value="contractor">Contractor</option>
-                  <option value="employee">Employee</option>
-                  <option value="utility">Utility</option>
-                  <option value="government">Government</option>
-                  <option value="other">Other</option>
+                  <option value="">Select type...</option>
+                  <option value="SUPPLIER">Supplier</option>
+                  <option value="EMPLOYEE">Employee</option>
                 </select>
+                {errors.type && (
+                  <span className="label-text-alt text-error mt-1" role="alert">
+                    {errors.type}
+                  </span>
+                )}
               </div>
 
               {/* Mobile Number (Required) */}
               <div className="form-control">
                 <label className="label pt-0">
                   <span className="label-text font-medium">
-                    Mobile Number <span className="text-error">*</span>
+                    Mobile Number <span className="text-error" aria-label="required">*</span>
                   </span>
                 </label>
                 <div className="relative">
@@ -150,14 +157,17 @@ const PayeeForm = ({ payee, onClose }) => {
                   <input
                     type="tel"
                     name="mobileNum"
-                    placeholder="09XX XXX XXXX"
+                    placeholder="09XX XXX XXXX (required)"
+                    required
+                    aria-required="true"
+                    aria-invalid={Boolean(errors.mobileNum)}
                     className={`input input-bordered w-full pl-10 ${errors.mobileNum ? "input-error" : ""}`}
                     value={formData.mobileNum}
                     onChange={handleChange}
                   />
                 </div>
                 {errors.mobileNum && (
-                  <span className="label-text-alt text-error mt-1">
+                  <span className="label-text-alt text-error mt-1" role="alert">
                     {errors.mobileNum}
                   </span>
                 )}

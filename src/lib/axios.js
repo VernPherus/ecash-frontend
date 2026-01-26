@@ -30,14 +30,15 @@ axiosInstance.interceptors.response.use(
     // Handle specific error codes
     if (response) {
       switch (response.status) {
-        case 401:
-          // Unauthorized - clear auth state and redirect to login
-          // HTTP-only cookie will be cleared by backend
-          // Only redirect if not already on login page
-          if (!window.location.pathname.includes("/login")) {
+        case 401: {
+          // Skip redirect for /auth/check – handled by checkAuth (avoids reload loop)
+          const url = error.config?.url ?? "";
+          const isAuthCheck = String(url).includes("/auth/check");
+          if (!isAuthCheck && !window.location.pathname.includes("/login")) {
             window.location.href = "/login";
           }
           break;
+        }
         case 403:
           // Forbidden - user doesn't have permission
           console.error("Access denied: Insufficient permissions");

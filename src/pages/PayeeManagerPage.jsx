@@ -192,17 +192,17 @@ const PayeeManagerPage = () => {
                 <tbody className="text-sm divide-y divide-base-100">
                   {filteredPayees.map((payee) => (
                     <tr
-                      key={payee.id}
+                      key={payee?.id}
                       className="group hover:bg-base-200/40 transition-colors"
                     >
                       {/* Name & Address */}
                       <td className="px-6 py-4">
                         <div className="flex flex-col max-w-[250px]">
                           <span className="font-semibold text-base-content group-hover:text-primary transition-colors">
-                            {payee.name}
+                            {payee?.name || "Unnamed Payee"}
                           </span>
                           <span className="text-xs text-base-content/50 truncate mt-0.5">
-                            {payee.address || "No address provided"}
+                            {payee?.address || "No address provided"}
                           </span>
                         </div>
                       </td>
@@ -210,28 +210,28 @@ const PayeeManagerPage = () => {
                       {/* Type */}
                       <td className="px-6 py-4">
                         <span
-                          className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border capitalize ${getTypeColor(payee.type)}`}
+                          className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border capitalize ${getTypeColor(payee?.type)}`}
                         >
-                          {payee.type || "supplier"}
+                          {payee?.type || "supplier"}
                         </span>
                       </td>
 
                       {/* Contact */}
                       <td className="px-6 py-4">
                         <div className="space-y-1">
-                          {payee.email ? (
+                          {payee?.email ? (
                             <div className="flex items-center gap-2 text-xs text-base-content/70">
                               <Mail className="w-3 h-3 text-base-content/40" />
                               {payee.email}
                             </div>
                           ) : null}
-                          {payee.mobileNum ? (
+                          {payee?.mobileNum ? (
                             <div className="flex items-center gap-2 text-xs text-base-content/70">
                               <Phone className="w-3 h-3 text-base-content/40" />
                               {payee.mobileNum}
                             </div>
                           ) : null}
-                          {!payee.email && !payee.mobileNum && (
+                          {!payee?.email && !payee?.mobileNum && (
                             <span className="text-xs text-base-content/40 italic">
                               Not set
                             </span>
@@ -241,12 +241,12 @@ const PayeeManagerPage = () => {
 
                       {/* TIN */}
                       <td className="px-6 py-4 font-mono text-xs text-base-content/70">
-                        {payee.tinNum || "—"}
+                        {payee?.tinNum || "—"}
                       </td>
 
                       {/* Status */}
                       <td className="px-6 py-4 text-center">
-                        {payee.isActive !== false ? (
+                        {payee?.isActive !== false ? (
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-success/10 text-success border border-success/20">
                             Active
                           </span>
@@ -261,16 +261,18 @@ const PayeeManagerPage = () => {
                       <td className="px-6 py-4 text-center">
                         <div className="flex items-center justify-center gap-2">
                           <button
-                            onClick={() => handleView(payee)}
+                            onClick={() => payee && handleView(payee)}
                             className="btn btn-xs btn-outline border-base-300 text-base-content/60 hover:text-info hover:border-info"
                             title="View Details"
+                            disabled={!payee}
                           >
                             <Eye className="w-3 h-3" />
                           </button>
                           <button
-                            onClick={() => handleEdit(payee)}
+                            onClick={() => payee && handleEdit(payee)}
                             className="btn btn-xs btn-outline border-base-300 text-base-content/60 hover:text-primary hover:border-primary"
                             title="Edit"
+                            disabled={!payee}
                           >
                             <Edit2 className="w-3 h-3" />
                           </button>
