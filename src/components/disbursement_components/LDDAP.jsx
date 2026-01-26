@@ -10,45 +10,99 @@ import {
   Trash2,
   Hash,
   FileText,
+  CheckCircle2,
 } from "lucide-react";
 import useDisbursementStore from "../../store/useDisbursementStore";
 import useFundStore from "../../store/useFundStore";
 import usePayeeStore from "../../store/usePayeeStore";
 
-const Lddap = ({ onClose }) => {
-  const { createDisbursement, isLoading } = useDisbursementStore();
+const defaultFormData = () => ({
+  payeeId: "",
+  fundSourceId: "",
+  dateReceived: new Date().toISOString().split("T")[0],
+  lddapNum: "",
+  dvNum: "",
+  orsNum: "",
+  uacsCode: "",
+  acicNum: "",
+  respCode: "",
+  particulars: "",
+  ageLimit: "",
+});
+
+const Lddap = ({ onClose, initialData }) => {
+  const isEdit = Boolean(initialData?.id);
+  const { createDisbursement, updateDisbursement, isLoading } =
+    useDisbursementStore();
   const { funds, fetchFunds } = useFundStore();
   const { payees, fetchPayees } = usePayeeStore();
 
-  // Mode: "ONLINE" or "MANUAL"
   const [method, setMethod] = useState("ONLINE");
-
-  const [formData, setFormData] = useState({
-    payeeId: "",
-    fundSourceId: "",
-    dateReceived: new Date().toISOString().split("T")[0],
-    lddapNum: "", // Specific to LDDAP
-    dvNum: "",
-    orsNum: "",
-    uacsCode: "",
-    particulars: "",
-  });
-
-  // For Manual: Line Items & Deductions
+  const [formData, setFormData] = useState(defaultFormData());
   const [items, setItems] = useState([
     { description: "", accountCode: "", amount: "" },
   ]);
   const [deductions, setDeductions] = useState([]);
-
-  // For Online: Single Total Amount
   const [onlineAmount, setOnlineAmount] = useState("");
-
+  const [isApproved, setIsApproved] = useState(true);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
     fetchFunds();
     fetchPayees();
   }, [fetchFunds, fetchPayees]);
+
+  useEffect(() => {
+    if (!initialData) return;
+    const ref = initialData.references?.[0];
+    const isOnline =
+      initialData.lddapMthd === "ONLINE" ||
+      (initialData.items?.length === 1 &&
+        initialData.items[0]?.description === "LDDAP Online Transfer");
+    setMethod(isOnline ? "ONLINE" : "MANUAL");
+    setFormData({
+      payeeId: String(initialData.payeeId ?? ""),
+      fundSourceId: String(initialData.fundSourceId ?? ""),
+      dateReceived: initialData.dateReceived
+        ? new Date(initialData.dateReceived).toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0],
+      lddapNum: initialData.lddapNum ?? "",
+      dvNum: ref?.dvNum ?? "",
+      orsNum: ref?.orsNum ?? "",
+      uacsCode: ref?.uacsCode ?? "",
+      acicNum: ref?.acicNum ?? "",
+      respCode: ref?.respCode ?? "",
+      particulars: initialData.particulars ?? "",
+      ageLimit: initialData.ageLimit != null ? String(initialData.ageLimit) : "",
+    });
+    if (isOnline) {
+      setOnlineAmount(String(initialData.grossAmount ?? ""));
+      setItems([{ description: "", accountCode: "", amount: "" }]);
+      setDeductions([]);
+    } else {
+      setOnlineAmount("");
+      setItems(
+        initialData.items?.length
+          ? initialData.items.map((i) => ({
+              description: i.description ?? "",
+              accountCode: i.accountCode ?? "",
+              amount: String(i.amount ?? ""),
+            }))
+          : [{ description: "", accountCode: "", amount: "" }],
+      );
+      setDeductions(
+        initialData.deductions?.length
+          ? initialData.deductions.map((d) => ({
+              deductionType: d.deductionType ?? "",
+              amount: String(d.amount ?? ""),
+            }))
+          : [],
+      );
+    }
+    setIsApproved(
+      initialData.status === "PAID" || initialData.approvedAt != null,
+    );
+  }, [initialData]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -117,38 +171,58 @@ const Lddap = ({ onClose }) => {
     } else {
       // Manual: Use the form lists
       finalItems = items.map((i) => ({ ...i, amount: Number(i.amount) }));
-      finalDeductions = deductions.map((d) => ({
-        ...d,
-        amount: Number(d.amount),
-      }));
+      finalDeductions = deductions
+        .filter((d) => d.deductionType && d.deductionType.trim() !== "" && d.amount)
+        .map((d) => ({
+          deductionType: d.deductionType.trim(),
+          amount: Number(d.amount),
+        }));
 
       grossAmount = finalItems.reduce((sum, i) => sum + i.amount, 0);
       totalDeductions = finalDeductions.reduce((sum, d) => sum + d.amount, 0);
     }
 
+    const ageLimitVal = formData.ageLimit?.trim()
+      ? Number(formData.ageLimit)
+      : 5;
     const payload = {
       ...formData,
       payeeId: Number(formData.payeeId),
       fundSourceId: Number(formData.fundSourceId),
-      method: "LDDAP", // Main Method
-      lddapMethod: method, // Sub Method (ONLINE/MANUAL)
+      method: "LDDAP",
+      lddapMethod: method,
+      ageLimit: ageLimitVal,
       grossAmount,
       totalDeductions,
       netAmount: grossAmount - totalDeductions,
+      approvedAt: isApproved ? new Date().toISOString() : null,
+      status: isApproved ? "PAID" : "PENDING",
       items: finalItems,
       deductions: finalDeductions,
+      acicNum: formData.acicNum ?? "",
+      orsNum: formData.orsNum ?? "",
+      dvNum: formData.dvNum ?? "",
+      uacsCode: formData.uacsCode ?? "",
+      respCode: formData.respCode ?? "",
     };
 
-    const result = await createDisbursement(payload);
-    if (result.success) onClose();
+    if (isEdit) {
+      const result = await updateDisbursement(initialData.id, payload);
+      if (result.success) onClose();
+    } else {
+      const result = await createDisbursement(payload);
+      if (result.success) onClose();
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto pr-2 p-6 custom-scrollbar">
-        {/* 1. Mode Switcher */}
+        {/* 1. Mode Switcher (locked when editing) */}
         <div className="flex justify-center mb-6">
-          <div className="bg-base-200 p-1 rounded-lg inline-flex shadow-inner">
+          <div
+            className={`bg-base-200 p-1 rounded-lg inline-flex shadow-inner ${isEdit ? "opacity-70 pointer-events-none" : ""}`}
+          >
             <button
               type="button"
               onClick={() => setMethod("ONLINE")}
@@ -168,7 +242,7 @@ const Lddap = ({ onClose }) => {
 
         <div className="space-y-6 animate-fade-in">
           {/* 2. Common Fields */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="form-control">
               <label className="label pt-0">
                 <span className="label-text font-medium">
@@ -214,6 +288,23 @@ const Lddap = ({ onClose }) => {
                   ))}
                 </select>
               </div>
+            </div>
+            <div className="form-control">
+              <label className="label pt-0">
+                <span className="label-text font-medium text-xs uppercase">
+                  Age limit (days)
+                </span>
+              </label>
+              <input
+                type="number"
+                name="ageLimit"
+                min={1}
+                placeholder="5"
+                title="Days until overdue; default 5 if empty"
+                className="input input-bordered w-full font-mono"
+                value={formData.ageLimit}
+                onChange={handleChange}
+              />
             </div>
           </div>
 
@@ -478,6 +569,24 @@ const Lddap = ({ onClose }) => {
               </div>
             </div>
           )}
+
+          {/* Approved checkbox (common) */}
+          <div className="form-control p-3 bg-base-200/50 rounded-lg border border-base-200">
+            <label className="label cursor-pointer justify-start gap-3 py-0">
+              <input
+                type="checkbox"
+                className="checkbox checkbox-sm checkbox-success"
+                checked={isApproved}
+                onChange={(e) => setIsApproved(e.target.checked)}
+              />
+              <span className="label-text font-medium flex items-center gap-2">
+                <CheckCircle2
+                  className={`w-4 h-4 ${isApproved ? "text-success" : "text-base-content/40"}`}
+                />
+                Mark as Paid / Approved Immediately
+              </span>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -500,7 +609,7 @@ const Lddap = ({ onClose }) => {
           ) : (
             <Save className="w-4 h-4 mr-2" />
           )}
-          Submit LDDAP
+          {isEdit ? "Update" : "Submit LDDAP"}
         </button>
       </div>
     </form>

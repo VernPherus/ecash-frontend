@@ -15,11 +15,13 @@ import {
   Wallet,
   TrendingDown,
   Banknote,
+  X,
 } from "lucide-react";
 
 import InfoCard, { InfoRow } from "../components/InfoCard";
 import useDisbursementStore from "../store/useDisbursementStore";
 import ApprovalModal from "../components/ApprovalModal";
+import DisbursementForm from "../components/DisbursementForm";
 import { formatCurrency, formatDate } from "../lib/formatters";
 
 // Minimal Copy Button Component
@@ -63,6 +65,7 @@ const DisbursementViewPage = () => {
 
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -132,6 +135,36 @@ const DisbursementViewPage = () => {
         isLoading={isApproving}
       />
 
+      {/* Edit Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setIsEditModalOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="relative w-full max-w-3xl bg-base-100 rounded-xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-scaleIn border border-base-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-base-200 bg-base-50/50 shrink-0">
+              <h3 className="text-lg font-bold text-base-content">
+                Edit Disbursement
+              </h3>
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                className="btn btn-ghost btn-sm btn-square"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden p-6">
+              <DisbursementForm
+                initialData={disbursement}
+                onClose={() => setIsEditModalOpen(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* --- Top Navigation --- */}
       <nav className="bg-base-100/80 border-b border-base-300 sticky top-0 z-30 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -178,9 +211,10 @@ const DisbursementViewPage = () => {
               >
                 <Printer className="w-4 h-4" />
               </button>
-              {status.status === "PENDING" && (
+              {status.status === "pending" && (
                 <button
-                  className="btn btn-ghost btn-sm btn-square text-base-content/60"
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-primary hover:bg-base-200"
                   title="Edit Record"
                 >
                   <Edit2 className="w-4 h-4" />

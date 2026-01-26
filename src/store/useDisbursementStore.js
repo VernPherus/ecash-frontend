@@ -19,7 +19,7 @@ const useDisbursementStore = create((set, get) => ({
 
   // Calculate status and age for UI badges
   getDisbursementStatus: (disbursement) => {
-    // 1. Check if Paid/Approved (Backend uses lowercase 'approved' in approveRec, check logic)
+    // Check if Paid/Approved (Backend uses lowercase 'approved' in approveRec, check logic)
     const status = disbursement.status?.toLowerCase();
 
     if (status === "paid" || status === "approved") {
@@ -30,7 +30,7 @@ const useDisbursementStore = create((set, get) => ({
       };
     }
 
-    // 2. Calculate Age (Days since received)
+    // Calculate Age (Days since received)
     const daysSinceReceived = disbursement.dateReceived
       ? Math.floor(
           (new Date() - new Date(disbursement.dateReceived)) /
@@ -38,7 +38,7 @@ const useDisbursementStore = create((set, get) => ({
         )
       : 0;
 
-    // 3. Check Overdue (Default limit 5 days if not set)
+    // Check Overdue (Default limit 5 days if not set)
     const limit = disbursement.ageLimit || 5;
 
     if (daysSinceReceived > limit) {
@@ -50,7 +50,7 @@ const useDisbursementStore = create((set, get) => ({
       };
     }
 
-    // 4. Pending / In Progress
+    // Pending / In Progress
     return {
       status: "pending",
       label: `${daysSinceReceived} Days`,
@@ -72,8 +72,8 @@ const useDisbursementStore = create((set, get) => ({
     status = "",
     startDate = "",
     endDate = "",
-    method = "", // Added
-    fundId = "", // Added
+    method = "", 
+    fundId = "", 
   ) => {
     set({ isLoading: true, error: null });
     try {
@@ -122,8 +122,6 @@ const useDisbursementStore = create((set, get) => ({
   createDisbursement: async (disbursementData) => {
     set({ isLoading: true });
     try {
-      // MAPPING FIX: The backend 'storeRec' expects 'fundsourceId' (lowercase 's')
-      // but 'editRec' expects 'fundSourceId'. We ensure payload matches storeRec here.
       const payload = {
         ...disbursementData,
         fundsourceId:

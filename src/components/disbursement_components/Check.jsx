@@ -13,33 +13,79 @@ import useDisbursementStore from "../../store/useDisbursementStore";
 import useFundStore from "../../store/useFundStore";
 import usePayeeStore from "../../store/usePayeeStore";
 
-const Check = ({ onClose }) => {
-  const { createDisbursement, isLoading } = useDisbursementStore();
+const defaultFormData = () => ({
+  payeeId: "",
+  fundSourceId: "",
+  dateReceived: new Date().toISOString().split("T")[0],
+  checkNum: "",
+  dvNum: "",
+  orsNum: "",
+  uacsCode: "",
+  acicNum: "",
+  respCode: "",
+  particulars: "",
+  ageLimit: "",
+});
+
+const Check = ({ onClose, initialData }) => {
+  const isEdit = Boolean(initialData?.id);
+  const { createDisbursement, updateDisbursement, isLoading } =
+    useDisbursementStore();
   const { funds, fetchFunds } = useFundStore();
   const { payees, fetchPayees } = usePayeeStore();
 
-  const [formData, setFormData] = useState({
-    payeeId: "",
-    fundSourceId: "",
-    dateReceived: new Date().toISOString().split("T")[0],
-    checkNum: "",
-    dvNum: "",
-    orsNum: "",
-    uacsCode: "",
-    particulars: "",
-  });
-
+  const [formData, setFormData] = useState(defaultFormData());
   const [items, setItems] = useState([
     { description: "", accountCode: "", amount: "" },
   ]);
   const [deductions, setDeductions] = useState([]);
-  const [isApproved, setIsApproved] = useState(true); // Default: Checked
+  const [isApproved, setIsApproved] = useState(true);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
     fetchFunds();
     fetchPayees();
   }, [fetchFunds, fetchPayees]);
+
+  useEffect(() => {
+    if (!initialData) return;
+    const ref = initialData.references?.[0];
+    setFormData({
+      payeeId: String(initialData.payeeId ?? ""),
+      fundSourceId: String(initialData.fundSourceId ?? ""),
+      dateReceived: initialData.dateReceived
+        ? new Date(initialData.dateReceived).toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0],
+      checkNum: initialData.checkNum ?? "",
+      dvNum: ref?.dvNum ?? "",
+      orsNum: ref?.orsNum ?? "",
+      uacsCode: ref?.uacsCode ?? "",
+      acicNum: ref?.acicNum ?? "",
+      respCode: ref?.respCode ?? "",
+      particulars: initialData.particulars ?? "",
+      ageLimit: initialData.ageLimit != null ? String(initialData.ageLimit) : "",
+    });
+    setItems(
+      initialData.items?.length
+        ? initialData.items.map((i) => ({
+            description: i.description ?? "",
+            accountCode: i.accountCode ?? "",
+            amount: String(i.amount ?? ""),
+          }))
+        : [{ description: "", accountCode: "", amount: "" }],
+    );
+    setDeductions(
+      initialData.deductions?.length
+        ? initialData.deductions.map((d) => ({
+            deductionType: d.deductionType ?? "",
+            amount: String(d.amount ?? ""),
+          }))
+        : [],
+    );
+    const paid =
+      initialData.status === "PAID" || initialData.approvedAt != null;
+    setIsApproved(paid);
+  }, [initialData]);
 
   // --- Handlers ---
   const handleChange = (e) => {
@@ -48,8 +94,9 @@ const Check = ({ onClose }) => {
   };
 
   const handleArrayChange = (setter, list, idx, field, val) => {
-    const updated = [...list];
-    updated[idx][field] = val;
+    const updated = list.map((item, i) =>
+      i === idx ? { ...item, [field]: val } : item,
+    );
     setter(updated);
   };
 
@@ -77,29 +124,46 @@ const Check = ({ onClose }) => {
       0,
     );
 
+    const ageLimitVal = formData.ageLimit?.trim()
+      ? Number(formData.ageLimit)
+      : 5;
     const payload = {
       ...formData,
       payeeId: Number(formData.payeeId),
       fundSourceId: Number(formData.fundSourceId),
       method: "CHECK",
+      lddapMethod: null,
+      ageLimit: ageLimitVal,
       grossAmount,
       totalDeductions,
       netAmount: grossAmount - totalDeductions,
       approvedAt: isApproved ? new Date().toISOString() : null,
-      status: isApproved ? "PAID" : "PENDING", // FIX: Use PAID instead of APPROVED
+      status: isApproved ? "PAID" : "PENDING",
       items: items.map((i) => ({
         description: i.description,
         accountCode: i.accountCode,
         amount: Number(i.amount),
       })),
-      deductions: deductions.map((d) => ({
-        deductionType: d.deductionType || "",
-        amount: Number(d.amount),
-      })),
+      deductions: deductions
+        .filter((d) => d.deductionType && d.deductionType.trim() !== "" && d.amount)
+        .map((d) => ({
+          deductionType: d.deductionType.trim(),
+          amount: Number(d.amount),
+        })),
+      acicNum: formData.acicNum ?? "",
+      orsNum: formData.orsNum ?? "",
+      dvNum: formData.dvNum ?? "",
+      uacsCode: formData.uacsCode ?? "",
+      respCode: formData.respCode ?? "",
     };
 
-    const result = await createDisbursement(payload);
-    if (result.success) onClose();
+    if (isEdit) {
+      const result = await updateDisbursement(initialData.id, payload);
+      if (result.success) onClose();
+    } else {
+      const result = await createDisbursement(payload);
+      if (result.success) onClose();
+    }
   };
 
   // --- Render Helper ---
@@ -317,6 +381,13 @@ const Check = ({ onClose }) => {
                 icon: Calendar,
                 type: "date",
               },
+              {
+                label: "Age limit (days)",
+                name: "ageLimit",
+                type: "number",
+                placeholder: "5",
+                title: "Days until overdue; default 5 if empty",
+              },
               { label: "DV Number", name: "dvNum" },
               { label: "ORS Number", name: "orsNum" },
               { label: "UACS Code", name: "uacsCode", fullWidth: true },
@@ -338,10 +409,12 @@ const Check = ({ onClose }) => {
                   <input
                     type={f.type || "text"}
                     name={f.name}
-                    placeholder="..."
+                    placeholder={f.placeholder ?? "..."}
+                    title={f.title}
                     className={`input input-bordered input-sm w-full ${f.icon ? "pl-9" : ""} ${errors[f.name] ? "input-error" : ""}`}
                     value={formData[f.name]}
                     onChange={handleChange}
+                    min={f.type === "number" ? 1 : undefined}
                   />
                 </div>
               </div>
@@ -402,7 +475,7 @@ const Check = ({ onClose }) => {
           ) : (
             <Save className="w-4 h-4 mr-1" />
           )}{" "}
-          Submit
+          {isEdit ? "Update" : "Submit"}
         </button>
       </div>
     </form>
