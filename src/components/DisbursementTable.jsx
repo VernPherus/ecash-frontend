@@ -109,7 +109,7 @@ const DisbursementTable = () => {
           </div>
 
           <button
-            onClick={() => navigate("/disbursements")}
+            onClick={() => navigate("/disbursement/new")}
             className="btn btn-sm btn-ghost text-primary hover:bg-primary/10"
           >
             View All

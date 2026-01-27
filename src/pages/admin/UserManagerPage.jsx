@@ -93,31 +93,6 @@ const UserManagerPage = () => {
 
             {/* Main Content */}
             <div className="p-8 max-w-7xl mx-auto space-y-6">
-                {/* Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="card-static p-4 text-center">
-                        <p className="text-2xl font-bold text-base-content">{users.length}</p>
-                        <p className="text-sm text-base-content/60">Total Users</p>
-                    </div>
-                    <div className="card-static p-4 text-center">
-                        <p className="text-2xl font-bold text-purple-600">
-                            {users.filter((u) => u.role === "ADMIN").length}
-                        </p>
-                        <p className="text-sm text-base-content/60">Admins</p>
-                    </div>
-                    <div className="card-static p-4 text-center">
-                        <p className="text-2xl font-bold text-blue-600">
-                            {users.filter((u) => u.role === "STAFF").length}
-                        </p>
-                        <p className="text-sm text-base-content/60">Staff</p>
-                    </div>
-                    <div className="card-static p-4 text-center">
-                        <p className="text-2xl font-bold text-gray-600">
-                            {users.filter((u) => u.role === "USER" || !u.role).length}
-                        </p>
-                        <p className="text-sm text-base-content/60">Users</p>
-                    </div>
-                </div>
 
                 {/* Filters */}
                 <div className="card-static p-4">
