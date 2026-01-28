@@ -87,6 +87,15 @@ const LogsPage = () => {
                                 type="text"
                                 placeholder="Search logs..."
                                 className="input input-bordered w-full pl-11 bg-base-200"
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        setFilters({ search: e.target.value });
+                                        applyFilters();
+                                    }
+                                }}
+                                onChange={(e) => {
+                                    // Optional: could debounce search here, but Enter is safer for performance
+                                }}
                             />
                         </div>
                         <button
