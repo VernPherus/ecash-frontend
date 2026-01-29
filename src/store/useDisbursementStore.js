@@ -72,8 +72,8 @@ const useDisbursementStore = create((set, get) => ({
     status = "",
     startDate = "",
     endDate = "",
-    method = "", 
-    fundId = "", 
+    method = "",
+    fundId = "",
   ) => {
     set({ isLoading: true, error: null });
     try {
@@ -145,6 +145,17 @@ const useDisbursementStore = create((set, get) => ({
       set({ isLoading: false });
       toast.error(message);
       return { success: false, error: message };
+    }
+  },
+
+  getLddapCode: async () => {
+    try {
+      const response = await axiosInstance.get(`/disbursement/genlddapcode`);
+      return response.data.lddapCode
+    } catch (error) {
+      const message = error.response?.data?.message || "Failed to fetch code";
+      toast.error(message);
+      return null;
     }
   },
 
@@ -268,6 +279,38 @@ const useDisbursementStore = create((set, get) => ({
       set({ isLoading: false });
       toast.error(message);
       return { success: false, error: message };
+    }
+  },
+
+  handleSocketUpdate: async (payload) => {
+    const { type, data, id } = payload;
+    const currentList = get().disbursements;
+    const currentPagination = get().pagination;
+
+    if (type === "CREATE") {
+      set({
+        disbursements: [data, ...currentList],
+        pagination: {
+          ...currentPagination,
+          totalRecords: currentPagination.totalRecords + 1,
+        },
+      });
+    } else if (type === "UPDATE") {
+      set({
+        disbursements: [
+          currentList.map((item) =>
+            item.id === data.id ? { ...item, ...data } : item,
+          ),
+        ],
+      });
+    } else if (type === "DELETE") {
+      set({
+        disbursements: currentList.filter((item) => item.id !== id),
+        pagination: {
+          ...currentPagination,
+          totalRecords: Math.max(0, currentPagination.totalRecords - 2),
+        },
+      });
     }
   },
 

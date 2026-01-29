@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { socket } from "../lib/socket";
 import {
   Search,
   Calendar,
-  Plus,
   ChevronLeft,
   ChevronRight,
   FileText,
@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import useDisbursementStore from "../store/useDisbursementStore";
 import { formatCurrency, formatDate } from "../lib/formatters";
-// Import the Form Component
 import DisbursementForm from "../components/DisbursementForm";
 import Header from "../components/Header";
 
@@ -34,6 +33,7 @@ const DisbursementPage = () => {
   const {
     disbursements,
     fetchDisbursements,
+    handleSocketUpdate,
     isLoading,
     pagination,
     getDisbursementStatus,
@@ -49,13 +49,17 @@ const DisbursementPage = () => {
       dateRange.start,
       dateRange.end,
     );
-  }, [
-    fetchDisbursements,
-    pagination.currentPage,
-    search,
-    statusFilter,
-    dateRange,
-  ]);
+
+    const onDisbursementupdate = (payload) => {
+      handleSocketUpdate(payload);
+    };
+
+    socket.on("disbursement_updates", onDisbursementupdate);
+
+    return () => {
+      socket.off("disbursement_updates", onDisbursementupdate);
+    };
+  }, []);
 
   // --- Handlers ---
   const handlePageChange = (newPage) => {

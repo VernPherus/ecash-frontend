@@ -315,6 +315,29 @@ const useFundStore = create((set, get) => ({
     }
   },
 
+  handleSocketUpdate: async (payload) => {
+    const { type, data, id } = payload;
+    const currentFunds = get().funds;
+
+    if (type === "CREATE") {
+      set({ funds: [...currentFunds, data] });
+    } else if (type === "UPDATE") {
+      set({
+        funds: currentFunds.map((fund) =>
+          fund.id === data.id ? { ...fund, ...data } : fund,
+        ),
+      });
+    } else if (type === "DELETE") {
+      set({
+        funds: currentFunds.map((fund) =>
+          fund.id === data.id ? { ...fund, ...data } : fund,
+        ),
+      });
+    } else if (type === "RESET") {
+      get().fetchFunds();
+    }
+  },
+
   // --- Helpers ---
 
   setSelectedFund: (fund) => {

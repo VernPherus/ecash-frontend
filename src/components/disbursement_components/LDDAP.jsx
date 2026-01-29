@@ -11,6 +11,7 @@ import {
   Hash,
   FileText,
   CheckCircle2,
+  RefreshCw, // Added icon for generate button
 } from "lucide-react";
 import useDisbursementStore from "../../store/useDisbursementStore";
 import useFundStore from "../../store/useFundStore";
@@ -24,7 +25,7 @@ const defaultFormData = () => ({
   dvNum: "",
   orsNum: "",
   uacsCode: "",
-  acicNum: "",
+  acicNum: "", // Ensure this is initialized
   respCode: "",
   particulars: "",
   ageLimit: "",
@@ -32,7 +33,7 @@ const defaultFormData = () => ({
 
 const Lddap = ({ onClose, initialData }) => {
   const isEdit = Boolean(initialData?.id);
-  const { createDisbursement, updateDisbursement, isLoading } =
+  const { createDisbursement, updateDisbursement, isLoading, getLddapCode } =
     useDisbursementStore();
   const { funds, fetchFunds } = useFundStore();
   const { payees, fetchPayees } = usePayeeStore();
@@ -46,6 +47,20 @@ const Lddap = ({ onClose, initialData }) => {
   const [onlineAmount, setOnlineAmount] = useState("");
   const [isApproved, setIsApproved] = useState(true);
   const [errors, setErrors] = useState({});
+  const [isGenerating, setIsGenerating] = useState(false); // Loading state for code gen
+
+  // * NEW: Code Generation Handler
+  const handleGenerateLDDAPCode = async () => {
+    setIsGenerating(true);
+    const code = await getLddapCode();
+    setIsGenerating(false);
+
+    if (code) {
+      setFormData((prev) => ({ ...prev, lddapNum: code }));
+      // Clear error if it existed
+      if (errors.lddapNum) setErrors((prev) => ({ ...prev, lddapNum: null }));
+    }
+  };
 
   useEffect(() => {
     fetchFunds();
@@ -73,7 +88,8 @@ const Lddap = ({ onClose, initialData }) => {
       acicNum: ref?.acicNum ?? "",
       respCode: ref?.respCode ?? "",
       particulars: initialData.particulars ?? "",
-      ageLimit: initialData.ageLimit != null ? String(initialData.ageLimit) : "",
+      ageLimit:
+        initialData.ageLimit != null ? String(initialData.ageLimit) : "",
     });
     if (isOnline) {
       setOnlineAmount(String(initialData.grossAmount ?? ""));
@@ -139,6 +155,7 @@ const Lddap = ({ onClose, initialData }) => {
     if (method === "ONLINE") {
       if (!onlineAmount || isNaN(onlineAmount))
         newErrors.onlineAmount = "Amount is required";
+      if (!formData.lddapNum) newErrors.lddapNum = "LDDAP No. Required";
     } else {
       if (items.some((i) => !i.description || !i.amount))
         newErrors.items = "Incomplete items";
@@ -172,7 +189,9 @@ const Lddap = ({ onClose, initialData }) => {
       // Manual: Use the form lists
       finalItems = items.map((i) => ({ ...i, amount: Number(i.amount) }));
       finalDeductions = deductions
-        .filter((d) => d.deductionType && d.deductionType.trim() !== "" && d.amount)
+        .filter(
+          (d) => d.deductionType && d.deductionType.trim() !== "" && d.amount,
+        )
         .map((d) => ({
           deductionType: d.deductionType.trim(),
           amount: Number(d.amount),
@@ -305,6 +324,154 @@ const Lddap = ({ onClose, initialData }) => {
                 value={formData.ageLimit}
                 onChange={handleChange}
               />
+            </div>
+          </div>
+
+          {/* References Grid (Moved up for Online visibility too if needed, but keeping structure) */}
+          <div className="space-y-4 pt-2">
+            <h4 className="text-sm font-bold uppercase text-base-content/70 border-b border-base-200 pb-2">
+              References
+            </h4>
+
+            {/* LDDAP No. & Date */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="form-control">
+                <label className="label pt-0">
+                  <span className="label-text font-medium text-xs uppercase">
+                    LDDAP Number <span className="text-error">*</span>
+                  </span>
+                </label>
+                <div className="relative flex gap-2">
+                  <div className="relative flex-1">
+                    <Hash className="absolute left-3 top-3 w-4 h-4 text-base-content/40" />
+                    <input
+                      type="text"
+                      name="lddapNum"
+                      placeholder="LDDAP #..."
+                      className={`input input-bordered w-full pl-10 ${errors.lddapNum ? "input-error" : ""}`}
+                      value={formData.lddapNum}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  {/* GENERATE BUTTON */}
+                  <button
+                    type="button"
+                    onClick={handleGenerateLDDAPCode}
+                    disabled={isGenerating || isEdit} // Disable on edit or loading
+                    className="btn btn-square btn-outline border-base-300"
+                    title="Generate Code"
+                  >
+                    {isGenerating ? (
+                      <span className="loading loading-spinner loading-xs" />
+                    ) : (
+                      <RefreshCw className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+              <div className="form-control">
+                <label className="label pt-0">
+                  <span className="label-text font-medium text-xs uppercase">
+                    Date
+                  </span>
+                </label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-3 w-4 h-4 text-base-content/40" />
+                  <input
+                    type="date"
+                    name="dateReceived"
+                    className="input input-bordered w-full pl-10"
+                    value={formData.dateReceived}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* DV & ORS */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="form-control">
+                <label className="label pt-0">
+                  <span className="label-text font-medium text-xs uppercase">
+                    DV Number<span className="text-error">*</span>
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  name="dvNum"
+                  className="input input-bordered w-full font-mono"
+                  placeholder="DV-XXXX"
+                  value={formData.dvNum}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="form-control">
+                <label className="label pt-0">
+                  <span className="label-text font-medium text-xs uppercase">
+                    ORS Number<span className="text-error">*</span>
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  name="orsNum"
+                  className="input input-bordered w-full font-mono"
+                  placeholder="ORS-XXXX"
+                  value={formData.orsNum}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+
+            {/* UACS */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="form-control">
+                <label className="label pt-0">
+                  <span className="label-text font-medium text-xs uppercase">
+                    UACS Code<span className="text-error">*</span>
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  name="uacsCode"
+                  className="input input-bordered w-full font-mono"
+                  value={formData.uacsCode}
+                  onChange={handleChange}
+                />
+              </div>
+
+              {/* ACIC */}
+              <div className="form-control">
+                <label className="label pt-0">
+                  <span className="label-text font-medium text-xs uppercase">
+                    ACIC Number<span className="text-error">*</span>
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  name="acicNum"
+                  className="input input-bordered w-full font-mono"
+                  placeholder="ACIC-XXXX"
+                  value={formData.acicNum}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+
+            {/* Particulars */}
+            <div className="form-control">
+              <label className="label pt-0">
+                <span className="label-text font-medium">Particulars</span>
+              </label>
+              <div className="relative">
+                <FileText className="absolute left-3 top-3 w-4 h-4 text-base-content/40" />
+                <textarea
+                  name="particulars"
+                  placeholder="Enter details..."
+                  className="textarea textarea-bordered w-full pl-10 h-20 resize-none"
+                  value={formData.particulars}
+                  onChange={handleChange}
+                />
+              </div>
             </div>
           </div>
 
@@ -454,119 +621,6 @@ const Lddap = ({ onClose, initialData }) => {
                   </div>
                 ))}
               </div>
-
-              {/* References Grid */}
-              <div className="space-y-4 pt-2">
-                <h4 className="text-sm font-bold uppercase text-base-content/70 border-b border-base-200 pb-2">
-                  References
-                </h4>
-
-                {/* LDDAP No. & Date */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="form-control">
-                    <label className="label pt-0">
-                      <span className="label-text font-medium text-xs uppercase">
-                        LDDAP Number <span className="text-error">*</span>
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <Hash className="absolute left-3 top-3 w-4 h-4 text-base-content/40" />
-                      <input
-                        type="text"
-                        name="lddapNum"
-                        placeholder="LDDAP #..."
-                        className={`input input-bordered w-full pl-10 ${errors.lddapNum ? "input-error" : ""}`}
-                        value={formData.lddapNum}
-                        onChange={handleChange}
-                      />
-                    </div>
-                  </div>
-                  <div className="form-control">
-                    <label className="label pt-0">
-                      <span className="label-text font-medium text-xs uppercase">
-                        Date
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-3 w-4 h-4 text-base-content/40" />
-                      <input
-                        type="date"
-                        name="dateReceived"
-                        className="input input-bordered w-full pl-10"
-                        value={formData.dateReceived}
-                        onChange={handleChange}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* DV & ORS */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="form-control">
-                    <label className="label pt-0">
-                      <span className="label-text font-medium text-xs uppercase">
-                        DV Number
-                      </span>
-                    </label>
-                    <input
-                      type="text"
-                      name="dvNum"
-                      className="input input-bordered w-full font-mono"
-                      placeholder="DV-XXXX"
-                      value={formData.dvNum}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="form-control">
-                    <label className="label pt-0">
-                      <span className="label-text font-medium text-xs uppercase">
-                        ORS Number
-                      </span>
-                    </label>
-                    <input
-                      type="text"
-                      name="orsNum"
-                      className="input input-bordered w-full font-mono"
-                      placeholder="ORS-XXXX"
-                      value={formData.orsNum}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
-
-                {/* UACS */}
-                <div className="form-control">
-                  <label className="label pt-0">
-                    <span className="label-text font-medium text-xs uppercase">
-                      UACS Code
-                    </span>
-                  </label>
-                  <input
-                    type="text"
-                    name="uacsCode"
-                    className="input input-bordered w-full font-mono"
-                    value={formData.uacsCode}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                {/* Particulars */}
-                <div className="form-control">
-                  <label className="label pt-0">
-                    <span className="label-text font-medium">Particulars</span>
-                  </label>
-                  <div className="relative">
-                    <FileText className="absolute left-3 top-3 w-4 h-4 text-base-content/40" />
-                    <textarea
-                      name="particulars"
-                      placeholder="Enter details..."
-                      className="textarea textarea-bordered w-full pl-10 h-20 resize-none"
-                      value={formData.particulars}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
-              </div>
             </div>
           )}
 
@@ -580,9 +634,6 @@ const Lddap = ({ onClose, initialData }) => {
                 onChange={(e) => setIsApproved(e.target.checked)}
               />
               <span className="label-text font-medium flex items-center gap-2">
-                <CheckCircle2
-                  className={`w-4 h-4 ${isApproved ? "text-success" : "text-base-content/40"}`}
-                />
                 Mark as Paid / Approved Immediately
               </span>
             </label>
