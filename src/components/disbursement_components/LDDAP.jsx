@@ -423,7 +423,7 @@ const Lddap = ({ onClose, initialData }) => {
             </div>
 
             {/* UACS */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="form-control">
                 <label className="label pt-0">
                   <span className="label-text font-medium text-xs uppercase">
@@ -452,6 +452,21 @@ const Lddap = ({ onClose, initialData }) => {
                   className="input input-bordered w-full font-mono"
                   placeholder="ACIC-XXXX"
                   value={formData.acicNum}
+                  onChange={handleChange}
+                />
+              </div>
+
+              {/* RESP CODE */}
+              <div className="form-control">
+                <label className="label pt-0">
+                  <span className="label-text font-medium text-xs uppercase">
+                    Response Code <span className="text-error">*</span>
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  className="input input-bordered w-full font-mono"
+                  value={formData.respCode}
                   onChange={handleChange}
                 />
               </div>
