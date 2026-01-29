@@ -8,6 +8,7 @@ import {
   Trash2,
   Hash,
   CheckCircle2,
+  FileText, // Added for Particulars
 } from "lucide-react";
 import useDisbursementStore from "../../store/useDisbursementStore";
 import useFundStore from "../../store/useFundStore";
@@ -63,7 +64,8 @@ const Check = ({ onClose, initialData }) => {
       acicNum: ref?.acicNum ?? "",
       respCode: ref?.respCode ?? "",
       particulars: initialData.particulars ?? "",
-      ageLimit: initialData.ageLimit != null ? String(initialData.ageLimit) : "",
+      ageLimit:
+        initialData.ageLimit != null ? String(initialData.ageLimit) : "",
     });
     setItems(
       initialData.items?.length
@@ -145,7 +147,9 @@ const Check = ({ onClose, initialData }) => {
         amount: Number(i.amount),
       })),
       deductions: deductions
-        .filter((d) => d.deductionType && d.deductionType.trim() !== "" && d.amount)
+        .filter(
+          (d) => d.deductionType && d.deductionType.trim() !== "" && d.amount,
+        )
         .map((d) => ({
           deductionType: d.deductionType.trim(),
           amount: Number(d.amount),
@@ -175,52 +179,60 @@ const Check = ({ onClose, initialData }) => {
       <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-6">
         {/* 1. Primary Selectors */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[
-            {
-              label: "Payee",
-              name: "payeeId",
-              icon: User,
-              options: payees,
-              display: "name",
-            },
-            {
-              label: "Fund Source",
-              name: "fundSourceId",
-              icon: Wallet,
-              options: funds,
-              display: (f) => `${f.code} - ${f.name}`,
-            },
-          ].map((field) => (
-            <div key={field.name} className="form-control">
-              <label className="label pt-0">
-                <span className="label-text font-medium">
-                  {field.label} <span className="text-error">*</span>
-                </span>
-              </label>
-              <div className="relative">
-                <field.icon className="absolute left-3 top-2.5 w-4 h-4 text-base-content/40" />
-                <select
-                  name={field.name}
-                  className={`select select-bordered select-sm w-full pl-10 ${errors[field.name] ? "select-error" : ""}`}
-                  value={formData[field.name]}
-                  onChange={handleChange}
-                >
-                  <option value="">Select {field.label}...</option>
-                  {field.options.map((opt) => (
-                    <option key={opt.id} value={opt.id}>
-                      {typeof field.display === "function"
-                        ? field.display(opt)
-                        : opt[field.display]}
-                    </option>
-                  ))}
-                </select>
-              </div>
+          {/* Payee */}
+          <div className="form-control">
+            <label className="label pt-0">
+              <span className="label-text font-medium">
+                Payee <span className="text-error">*</span>
+              </span>
+            </label>
+            <div className="relative">
+              <User className="absolute left-3 top-2.5 w-4 h-4 text-base-content/40" />
+              <select
+                name="payeeId"
+                className={`select select-bordered select-sm w-full pl-10 ${errors.payeeId ? "select-error" : ""}`}
+                value={formData.payeeId}
+                onChange={handleChange}
+              >
+                <option value="">Select Payee...</option>
+                {payees.map((opt) => (
+                  <option key={opt.id} value={opt.id}>
+                    {opt.name}
+                  </option>
+                ))}
+              </select>
             </div>
-          ))}
+          </div>
+
+          {/* Fund Source */}
+          <div className="form-control">
+            <label className="label pt-0">
+              <span className="label-text font-medium">
+                Fund Source <span className="text-error">*</span>
+              </span>
+            </label>
+            <div className="relative">
+              <Wallet className="absolute left-3 top-2.5 w-4 h-4 text-base-content/40" />
+              <select
+                name="fundSourceId"
+                className={`select select-bordered select-sm w-full pl-10 ${errors.fundSourceId ? "select-error" : ""}`}
+                value={formData.fundSourceId}
+                onChange={handleChange}
+              >
+                <option value="">Select Fund...</option>
+                {funds.map((opt) => (
+                  <option key={opt.id} value={opt.id}>
+                    {opt.code} - {opt.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
 
         {/* 2. Items & Deductions */}
         <div className="space-y-4">
+          {/* Items */}
           <div className="flex justify-between items-center border-b border-base-200 pb-1">
             <span className="text-xs font-bold uppercase text-base-content/60">
               Line Items
@@ -299,6 +311,7 @@ const Check = ({ onClose, initialData }) => {
           ))}
           {errors.items && <p className="text-error text-xs">{errors.items}</p>}
 
+          {/* Deductions */}
           <div className="flex justify-between items-center border-b border-base-200 pb-1 pt-2">
             <span className="text-xs font-bold uppercase text-base-content/60">
               Deductions
@@ -363,96 +376,189 @@ const Check = ({ onClose, initialData }) => {
         </div>
 
         {/* 3. References Grid */}
-        <div className="space-y-3">
-          <h4 className="text-xs font-bold uppercase text-base-content/60 border-b border-base-200 pb-1">
+        <div className="space-y-4 pt-2">
+          <h4 className="text-sm font-bold uppercase text-base-content/70 border-b border-base-200 pb-2">
             References
           </h4>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              {
-                label: "Check Number",
-                name: "checkNum",
-                icon: Hash,
-                required: true,
-              },
-              {
-                label: "Date",
-                name: "dateReceived",
-                icon: Calendar,
-                type: "date",
-              },
-              {
-                label: "Age limit (days)",
-                name: "ageLimit",
-                type: "number",
-                placeholder: "5",
-                title: "Days until overdue; default 5 if empty",
-              },
-              { label: "DV Number", name: "dvNum" },
-              { label: "ORS Number", name: "orsNum" },
-              { label: "UACS Code", name: "uacsCode", fullWidth: true },
-            ].map((f) => (
-              <div
-                key={f.name}
-                className={`form-control ${f.fullWidth ? "col-span-2" : ""}`}
-              >
-                <label className="label pt-0">
-                  <span className="text-xs font-medium uppercase text-base-content/70">
-                    {f.label}{" "}
-                    {f.required && <span className="text-error">*</span>}
-                  </span>
-                </label>
-                <div className="relative">
-                  {f.icon && (
-                    <f.icon className="absolute left-3 top-2.5 w-3.5 h-3.5 text-base-content/40" />
-                  )}
-                  <input
-                    type={f.type || "text"}
-                    name={f.name}
-                    placeholder={f.placeholder ?? "..."}
-                    title={f.title}
-                    className={`input input-bordered input-sm w-full ${f.icon ? "pl-9" : ""} ${errors[f.name] ? "input-error" : ""}`}
-                    value={formData[f.name]}
-                    onChange={handleChange}
-                    min={f.type === "number" ? 1 : undefined}
-                  />
-                </div>
+
+          {/* Row 1: Check No. & Date */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="form-control">
+              <label className="label pt-0">
+                <span className="label-text font-medium text-xs uppercase">
+                  Check Number <span className="text-error">*</span>
+                </span>
+              </label>
+              <div className="relative">
+                <Hash className="absolute left-3 top-2.5 w-3.5 h-3.5 text-base-content/40" />
+                <input
+                  type="text"
+                  name="checkNum"
+                  placeholder="Check #..."
+                  className={`input input-bordered input-sm w-full pl-9 ${errors.checkNum ? "input-error" : ""}`}
+                  value={formData.checkNum}
+                  onChange={handleChange}
+                />
               </div>
-            ))}
+            </div>
+
+            <div className="form-control">
+              <label className="label pt-0">
+                <span className="label-text font-medium text-xs uppercase">
+                  Date
+                </span>
+              </label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-2.5 w-3.5 h-3.5 text-base-content/40" />
+                <input
+                  type="date"
+                  name="dateReceived"
+                  className="input input-bordered input-sm w-full pl-9"
+                  value={formData.dateReceived}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
           </div>
 
+          {/* Row 2: DV & ORS */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="form-control">
+              <label className="label pt-0">
+                <span className="label-text font-medium text-xs uppercase">
+                  DV Number
+                </span>
+              </label>
+              <input
+                type="text"
+                name="dvNum"
+                className="input input-bordered input-sm w-full font-mono"
+                placeholder="DV-XXXX"
+                value={formData.dvNum}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="form-control">
+              <label className="label pt-0">
+                <span className="label-text font-medium text-xs uppercase">
+                  ORS Number
+                </span>
+              </label>
+              <input
+                type="text"
+                name="orsNum"
+                className="input input-bordered input-sm w-full font-mono"
+                placeholder="ORS-XXXX"
+                value={formData.orsNum}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          {/* Row 3: UACS, ACIC, Resp Code */}
+          <div className="grid grid-cols-3 gap-4">
+            <div className="form-control">
+              <label className="label pt-0">
+                <span className="label-text font-medium text-xs uppercase">
+                  UACS Code
+                </span>
+              </label>
+              <input
+                type="text"
+                name="uacsCode"
+                className="input input-bordered input-sm w-full font-mono"
+                value={formData.uacsCode}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="form-control">
+              <label className="label pt-0">
+                <span className="label-text font-medium text-xs uppercase">
+                  ACIC Number
+                </span>
+              </label>
+              <input
+                type="text"
+                name="acicNum"
+                className="input input-bordered input-sm w-full font-mono"
+                placeholder="ACIC-XXXX"
+                value={formData.acicNum}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="form-control">
+              <label className="label pt-0">
+                <span className="label-text font-medium text-xs uppercase">
+                  Response Code
+                </span>
+              </label>
+              <input
+                type="text"
+                name="respCode"
+                className="input input-bordered input-sm w-full font-mono"
+                value={formData.respCode}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          {/* Age Limit */}
           <div className="form-control">
             <label className="label pt-0">
-              <span className="text-xs font-medium uppercase text-base-content/70">
-                Particulars
+              <span className="label-text font-medium text-xs uppercase">
+                Age limit (days)
               </span>
             </label>
-            <textarea
-              name="particulars"
-              placeholder="Details..."
-              className="textarea textarea-bordered h-20 text-sm resize-none"
-              value={formData.particulars}
+            <input
+              type="number"
+              name="ageLimit"
+              min={1}
+              placeholder="5"
+              title="Days until overdue; default 5 if empty"
+              className="input input-bordered input-sm w-full font-mono"
+              value={formData.ageLimit}
               onChange={handleChange}
             />
           </div>
 
-          {/* --- APPROVAL CHECKBOX --- */}
-          <div className="form-control mt-2 p-3 bg-base-200/50 rounded-lg border border-base-200">
-            <label className="label cursor-pointer justify-start gap-3 py-0">
-              <input
-                type="checkbox"
-                className="checkbox checkbox-sm checkbox-success"
-                checked={isApproved}
-                onChange={(e) => setIsApproved(e.target.checked)}
-              />
-              <span className="label-text font-medium flex items-center gap-2">
-                <CheckCircle2
-                  className={`w-4 h-4 ${isApproved ? "text-success" : "text-base-content/40"}`}
-                />
-                Mark as Paid / Approved Immediately
+          {/* Particulars */}
+          <div className="form-control">
+            <label className="label pt-0">
+              <span className="label-text font-medium text-xs uppercase">
+                Particulars
               </span>
             </label>
+            <div className="relative">
+              <FileText className="absolute left-3 top-3 w-4 h-4 text-base-content/40" />
+              <textarea
+                name="particulars"
+                placeholder="Details..."
+                className="textarea textarea-bordered h-20 text-sm resize-none pl-10"
+                value={formData.particulars}
+                onChange={handleChange}
+              />
+            </div>
           </div>
+        </div>
+
+        {/* --- APPROVAL CHECKBOX --- */}
+        <div className="form-control p-3 bg-base-200/50 rounded-lg border border-base-200">
+          <label className="label cursor-pointer justify-start gap-3 py-0">
+            <input
+              type="checkbox"
+              className="checkbox checkbox-sm checkbox-success"
+              checked={isApproved}
+              onChange={(e) => setIsApproved(e.target.checked)}
+            />
+            <span className="label-text font-medium flex items-center gap-2">
+              <CheckCircle2
+                className={`w-4 h-4 ${isApproved ? "text-success" : "text-base-content/40"}`}
+              />
+              Mark as Paid / Approved Immediately
+            </span>
+          </label>
         </div>
       </div>
 

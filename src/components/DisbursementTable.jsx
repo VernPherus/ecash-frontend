@@ -9,12 +9,14 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
-  Eye, // Added Eye icon for the View button
+  Eye,
+  Pencil, // Added Pencil icon
 } from "lucide-react";
 import useDisbursementStore from "../store/useDisbursementStore";
 import { formatCurrency, formatDate } from "../lib/formatters";
 
-const DisbursementTable = () => {
+const DisbursementTable = ({ onEdit }) => {
+  // Added onEdit prop
   const navigate = useNavigate();
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -146,17 +148,12 @@ const DisbursementTable = () => {
               <table className="w-full text-left border-collapse">
                 <thead className="bg-base-200/50 text-base-content/70">
                   <tr className="border-b border-base-200 text-xs uppercase tracking-wider font-semibold">
-                    {/* ALIGNMENT: Left */}
                     <th className="px-6 py-4 rounded-tl-lg text-left">
                       Payee & Date
                     </th>
-                    {/* ALIGNMENT: Center for short codes */}
                     <th className="px-6 py-4 text-center">Fund Source</th>
-                    {/* ALIGNMENT: Right for currency */}
                     <th className="px-6 py-4 text-right">Amount</th>
-                    {/* ALIGNMENT: Center for badges */}
                     <th className="px-6 py-4 text-center">Status</th>
-                    {/* ALIGNMENT: Center for buttons */}
                     <th className="px-6 py-4 text-center rounded-tr-lg">
                       Action
                     </th>
@@ -172,7 +169,7 @@ const DisbursementTable = () => {
                         key={item.id}
                         className="group border-b border-base-100 last:border-0 hover:bg-base-200/60 even:bg-base-100/40 transition-colors duration-150"
                       >
-                        {/* Payee & Date (Left) */}
+                        {/* Payee & Date */}
                         <td className="px-6 py-4 text-left">
                           <div className="flex flex-col">
                             <span className="font-semibold text-base-content group-hover:text-primary transition-colors">
@@ -184,19 +181,19 @@ const DisbursementTable = () => {
                           </div>
                         </td>
 
-                        {/* Fund Source (Center) */}
+                        {/* Fund Source */}
                         <td className="px-6 py-4 text-center">
                           <div className="inline-flex items-center px-2.5 py-1 rounded-md bg-base-300/50 border border-base-300 text-xs font-medium text-base-content/80">
                             {item.fundSource?.code || "---"}
                           </div>
                         </td>
 
-                        {/* Amount (Right) */}
+                        {/* Amount */}
                         <td className="px-6 py-4 text-right font-mono font-medium text-base-content">
                           {formatCurrency(item.netAmount)}
                         </td>
 
-                        {/* Status (Center) */}
+                        {/* Status */}
                         <td className="px-6 py-4">
                           <div className="flex justify-center">
                             <span
@@ -214,15 +211,30 @@ const DisbursementTable = () => {
                           </div>
                         </td>
 
-                        {/* Action (Center) - CHANGED to "View" Button */}
+                        {/* Action Buttons */}
                         <td className="px-6 py-4 text-center">
-                          <button
-                            onClick={() => navigate(`/disbursement/${item.id}`)}
-                            className="btn btn-xs btn-outline border-base-300 hover:border-primary hover:bg-primary hover:text-white text-base-content/70 gap-1.5 font-normal transition-all"
-                          >
-                            <Eye className="w-3 h-3" />
-                            View
-                          </button>
+                          <div className="flex justify-center gap-2">
+                            {/* Edit Button (Only shows if onEdit prop is passed) */}
+                            {onEdit && (
+                              <button
+                                onClick={() => onEdit(item)}
+                                className="btn btn-xs btn-outline border-base-300 hover:border-warning hover:bg-warning hover:text-warning-content text-base-content/70 gap-1.5 font-normal transition-all"
+                                title="Edit Disbursement"
+                              >
+                                <Pencil className="w-3 h-3" />
+                              </button>
+                            )}
+                            {/* View Button */}
+                            <button
+                              onClick={() =>
+                                navigate(`/disbursement/${item.id}`)
+                              }
+                              className="btn btn-xs btn-outline border-base-300 hover:border-primary hover:bg-primary hover:text-white text-base-content/70 gap-1.5 font-normal transition-all"
+                              title="View Details"
+                            >
+                              <Eye className="w-3 h-3" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
