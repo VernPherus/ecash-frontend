@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { socket } from "../lib/socket";
 import {
   Search,
   Calendar,
-  Plus,
   ChevronLeft,
   ChevronRight,
   FileText,
@@ -12,10 +12,11 @@ import {
   ArrowUpDown,
   X,
   Eye,
+  Pencil, // Added Pencil icon
+  Plus, // Added Plus icon for Create button
 } from "lucide-react";
 import useDisbursementStore from "../store/useDisbursementStore";
 import { formatCurrency, formatDate } from "../lib/formatters";
-// Import the Form Component
 import DisbursementForm from "../components/DisbursementForm";
 import Header from "../components/Header";
 
@@ -27,13 +28,15 @@ const DisbursementPage = () => {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
 
-  // --- Modal State ---
+  // --- Modal & Edit State ---
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingDisbursement, setEditingDisbursement] = useState(null);
 
   // Access Store
   const {
     disbursements,
     fetchDisbursements,
+    handleSocketUpdate,
     isLoading,
     pagination,
     getDisbursementStatus,
@@ -49,13 +52,17 @@ const DisbursementPage = () => {
       dateRange.start,
       dateRange.end,
     );
-  }, [
-    fetchDisbursements,
-    pagination.currentPage,
-    search,
-    statusFilter,
-    dateRange,
-  ]);
+
+    const onDisbursementupdate = (payload) => {
+      handleSocketUpdate(payload);
+    };
+
+    socket.on("disbursement_updates", onDisbursementupdate);
+
+    return () => {
+      socket.off("disbursement_updates", onDisbursementupdate);
+    };
+  }, []);
 
   // --- Handlers ---
   const handlePageChange = (newPage) => {
@@ -75,6 +82,24 @@ const DisbursementPage = () => {
     setSearch("");
     setStatusFilter("ALL");
     setDateRange({ start: "", end: "" });
+  };
+
+  // Open Modal for Create
+  const handleCreate = () => {
+    setEditingDisbursement(null);
+    setIsModalOpen(true);
+  };
+
+  // Open Modal for Edit
+  const handleEdit = (item) => {
+    setEditingDisbursement(item);
+    setIsModalOpen(true);
+  };
+
+  // Close Modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingDisbursement(null);
   };
 
   const hasActiveFilters =
@@ -183,12 +208,19 @@ const DisbursementPage = () => {
                   ? "Try adjusting your search or filters to find what you're looking for."
                   : "Get started by creating a new disbursement record."}
               </p>
-              {hasActiveFilters && (
+              {hasActiveFilters ? (
                 <button
                   onClick={clearFilters}
                   className="btn btn-link btn-sm mt-2 text-primary no-underline hover:underline"
                 >
                   Clear all filters
+                </button>
+              ) : (
+                <button
+                  onClick={handleCreate}
+                  className="btn btn-primary btn-sm mt-4 gap-2"
+                >
+                  <Plus className="w-4 h-4" /> Create Record
                 </button>
               )}
             </div>
@@ -223,7 +255,9 @@ const DisbursementPage = () => {
                           <td className="px-6 py-4">
                             <div className="flex flex-col">
                               <span className="font-mono font-medium text-base-content group-hover:text-primary transition-colors">
-                                DV-{item.dvNum || item.id}
+                                {item.lddapNum ||
+                                  item.checkNum ||
+                                  `ID#${item.id}`}
                               </span>
                               <span className="text-xs text-base-content/50 mt-0.5 flex items-center gap-1">
                                 <Calendar className="w-3 h-3" />
@@ -277,14 +311,27 @@ const DisbursementPage = () => {
 
                           {/* Actions */}
                           <td className="px-6 py-4 text-center">
-                            <button
-                              onClick={() =>
-                                navigate(`/disbursement/${item.id}`)
-                              }
-                              className="btn btn-xs btn-outline border-base-300 text-base-content/60 hover:text-primary hover:border-primary gap-1 font-normal"
-                            >
-                              <Eye className="w-3 h-3" /> View
-                            </button>
+                            <div className="flex items-center justify-center gap-2">
+                              {/* EDIT BUTTON */}
+                              <button
+                                onClick={() => handleEdit(item)}
+                                className="btn btn-xs btn-outline border-base-300 text-base-content/60 hover:text-warning hover:border-warning gap-1 font-normal"
+                                title="Edit Record"
+                              >
+                                <Pencil className="w-3 h-3" /> Edit
+                              </button>
+
+                              {/* VIEW BUTTON */}
+                              <button
+                                onClick={() =>
+                                  navigate(`/disbursement/${item.id}`)
+                                }
+                                className="btn btn-xs btn-outline border-base-300 text-base-content/60 hover:text-primary hover:border-primary gap-1 font-normal"
+                                title="View Details"
+                              >
+                                <Eye className="w-3 h-3" /> View
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -334,13 +381,13 @@ const DisbursementPage = () => {
         </div>
       </main>
 
-      {/* --- CREATE MODAL (CENTERED) --- */}
+      {/* --- MODAL (CREATE / EDIT) --- */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-            onClick={() => setIsModalOpen(false)}
+            onClick={handleCloseModal}
           />
 
           {/* Modal Container */}
@@ -348,10 +395,12 @@ const DisbursementPage = () => {
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-base-200 bg-base-50/50 shrink-0">
               <h3 className="text-lg font-bold text-base-content">
-                Create New Disbursement
+                {editingDisbursement
+                  ? "Edit Disbursement"
+                  : "Create New Disbursement"}
               </h3>
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={handleCloseModal}
                 className="btn btn-ghost btn-sm btn-square"
               >
                 <X className="w-5 h-5" />
@@ -359,8 +408,11 @@ const DisbursementPage = () => {
             </div>
 
             {/* Modal Body (Form) */}
-            <div className="flex-1 overflow-hidden p-6">
-              <DisbursementForm onClose={() => setIsModalOpen(false)} />
+            <div className="flex-1 overflow-y-auto p-6 min-h-0">
+              <DisbursementForm
+                onClose={handleCloseModal}
+                initialData={editingDisbursement}
+              />
             </div>
           </div>
         </div>
