@@ -9,6 +9,7 @@ const useFundStore = create((set, get) => ({
     funds: [],
     totals: null,
   },
+  fundStats: [],
   entries: [],
   selectedFund: null,
   pagination: {
@@ -95,6 +96,26 @@ const useFundStore = create((set, get) => ({
       return response.data;
     } catch (error) {
       const message = error.response?.data?.message || "Fund not found";
+      set({ error: message, isLoading: false });
+      toast.error(message);
+      return null;
+    }
+  },
+
+  displayFundStats: async (fundData) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axiosInstance.post("/fund/displayStats", fundData);
+
+      const data = response.data.stats;
+      set({
+        fundStats: data,
+        isLoading: false,
+      });
+      return data;
+    } catch (error) {
+      const message =
+        error.response?.data?.message || "Failed to fetch fund stats";
       set({ error: message, isLoading: false });
       toast.error(message);
       return null;

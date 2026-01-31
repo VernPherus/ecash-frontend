@@ -64,15 +64,6 @@ const DisbursementTable = ({ onEdit }) => {
     <section className="bg-white dark:bg-base-100 border border-base-300 rounded-xl shadow-md overflow-visible animate-fade-in-up">
       {/* --- HEADER --- */}
       <div className="px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-base-200">
-        <div>
-          <h3 className="font-bold text-lg text-base-content flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-primary" />
-            Transactions
-          </h3>
-          <p className="text-xs text-base-content/50 mt-1">
-            Recent disbursement activity
-          </p>
-        </div>
 
         <div className="flex items-center gap-3">
           {/* Filter Dropdown */}
