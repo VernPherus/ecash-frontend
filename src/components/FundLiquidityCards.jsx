@@ -30,16 +30,8 @@ const FundLiquidityCards = ({
     return null;
   }
 
-  // Calculate Global Utilization for the Total Card
-  //   const globalUtilization = dashboard.totals
-  //     ? (dashboard.totals.totalSpent / dashboard.totals.totalBudget) * 100
-  //     : 0;
-
   return (
     <section className="space-y-4">
-      {/* Header */}
-      
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         <p>Fund: {fundId}</p>
         <p>Total Entries: {totalEntries}</p>
