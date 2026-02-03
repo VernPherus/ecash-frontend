@@ -5,7 +5,7 @@ import { Wallet, FileText, TrendingUp, Activity, Banknote } from "lucide-react";
 
 // Note: This component renders a SINGLE card for a specific fund.
 // It is mapped over in DashboardPage.jsx
-const FundLiquidityCards = ({
+const FundStatCard = ({
   fundId,
   totalEntries,
   totalDisbursements,
@@ -100,4 +100,4 @@ const FundLiquidityCards = ({
   );
 };
 
-export default FundLiquidityCards;
+export default FundStatCard;

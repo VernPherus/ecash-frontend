@@ -1,10 +1,11 @@
 import { useEffect } from "react";
 //* Component imports
 import Header from "../components/Header";
-import FundLiquidityCards from "../components/FundLiquidityCards";
 import { TrendingUp, Wallet, ArrowRight, LayoutGrid } from "lucide-react";
 import DisbursementTable from "../components/DisbursementTable";
 import DashboardTimeStats from "../components/DashboardTimeStats";
+import FundStatCard from "../components/FundStatCard";
+
 //* Store Imports
 import useSystemStore from "../store/useSystemStore";
 import useFundStore from "../store/useFundStore";
@@ -61,7 +62,7 @@ const DashboardPage = () => {
           {fundStats.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {fundStats.map((fundStat) => (
-                <FundLiquidityCards
+                <FundStatCard
                   key={fundStat.fundId} // Added key
                   fundId={fundStat.fundId}
                   totalEntries={fundStat.totalEntries}

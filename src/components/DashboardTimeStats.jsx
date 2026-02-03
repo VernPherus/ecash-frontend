@@ -13,41 +13,41 @@ function DashboardTimeStats({ currentDate, quarter }) {
   const dateObj = currentDate ? new Date(currentDate) : new Date();
 
   return (
-<div className="card-static p-6 border-l-4 border-l-primary flex flex-col md:flex-row md:items-center justify-between gap-6 animate-fade-in-up">
+    <div className="card-static p-4 border-l-4 border-l-primary flex items-center justify-between gap-4 animate-fade-in-up">
       {/* Date Section */}
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
-          <Calendar className="w-6 h-6" />
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+          <Calendar className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-sm font-bold text-base-content/50 uppercase tracking-wider">
+          <h2 className="text-xs font-semibold text-base-content/50 uppercase tracking-wide">
             Current Date
           </h2>
-          <p className="text-xl md:text-2xl font-bold text-base-content">
+          <p className="text-lg font-bold text-base-content leading-tight">
             {formatDate(dateObj)}
           </p>
-          <p className="text-xs text-base-content/60 font-medium mt-0.5 flex items-center gap-1">
+          <p className="text-xs text-base-content/60 flex items-center gap-1 mt-0.5">
             <Clock className="w-3 h-3" />
             {dateObj.toLocaleDateString("en-PH", { weekday: "long" })}
           </p>
         </div>
       </div>
 
-      <div className="h-px w-full md:w-px md:h-12 bg-base-300 hidden md:block"></div>
+      <div className="w-px h-10 bg-base-300"></div>
 
       {/* Quarter Section */}
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary shrink-0">
-          <PieChart className="w-6 h-6" />
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary shrink-0">
+          <PieChart className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-sm font-bold text-base-content/50 uppercase tracking-wider">
+          <h2 className="text-xs font-semibold text-base-content/50 uppercase tracking-wide">
             Fiscal Period
           </h2>
-          <p className="text-xl md:text-2xl font-bold text-base-content">
+          <p className="text-lg font-bold text-base-content leading-tight">
             {quarter ? `Quarter ${quarter}` : "—"}
           </p>
-          <p className="text-xs text-base-content/60 font-medium mt-0.5">
+          <p className="text-xs text-base-content/60 mt-0.5">
             FY {dateObj.getFullYear()}
           </p>
         </div>
