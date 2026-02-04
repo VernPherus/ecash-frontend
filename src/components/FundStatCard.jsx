@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 import useFundStore from "../store/useFundStore";
 import { formatCurrency } from "../lib/formatters";
-import { Wallet, FileText, TrendingUp, Activity, Banknote } from "lucide-react";
+import { Wallet } from "lucide-react";
 
 // Note: This component renders a SINGLE card for a specific fund.
 // It is mapped over in DashboardPage.jsx
@@ -30,70 +30,68 @@ const FundStatCard = ({
   const fundCode = fund?.code || `ID-${fundId}`;
 
   return (
-    <div className="card-static p-0 overflow-hidden flex flex-col h-full border border-base-300 hover:border-primary/50 transition-colors group">
+    <div className="card-static group flex h-full flex-col overflow-hidden border border-base-200 bg-base-100 transition-all hover:border-primary/40 hover:shadow-md">
       {/* Header */}
-      <div className="px-5 py-4 border-b border-base-200 bg-base-50/50 group-hover:bg-primary/5 transition-colors">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="badge badge-sm font-mono font-bold bg-primary text-white border-none">
-                {fundCode}
-              </span>
-            </div>
-            <h3
-              className="font-bold text-base-content line-clamp-1"
-              title={fundName}
-            >
-              {fundName}
-            </h3>
-          </div>
-          <div className="p-2 rounded-lg bg-base-200 text-primary/80">
-            <Wallet className="w-5 h-5" />
+      <div className="flex items-start justify-between px-5 pt-5 pb-4">
+        <div className="flex-1 space-y-1">
+          <span className="inline-block rounded px-1.5 py-0.5 text-[10px] font-bold tracking-wider uppercase bg-primary/10 text-primary">
+            {fundCode}
+          </span>
+          <h3
+            className="line-clamp-1 text-sm font-semibold text-base-content/90"
+            title={fundName}
+          >
+            {fundName}
+          </h3>
+        </div>
+        <Wallet className="w-5 h-5 text-base-content/20 group-hover:text-primary/40 transition-colors shrink-0" />
+      </div>
+
+      {/* Primary Metrics - Equal Visual Weight */}
+      <div className="flex-1 px-5 space-y-6">
+        {/* Monthly Total */}
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-base-content/50 mb-1.5">
+            Monthly Total
+          </p>
+          <p className="text-2xl font-bold tracking-tight text-base-content">
+            {formatCurrency(totalMonthly)}
+          </p>
+        </div>
+
+        {/* Entries Total */}
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-base-content/50 mb-1.5">
+            Entries Total
+          </p>
+          <p className="text-2xl font-bold tracking-tight text-base-content">
+            {formatCurrency(totalEntries) || 0}
+          </p>
+        </div>
+
+        {/* Cash Utilization */}
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-base-content/50 mb-1.5">
+            Cash Utilization
+          </p>
+          <div className="flex items-baseline gap-1">
+            <span className="text-2xl font-bold tracking-tight text-base-content">
+              {totalCashUtil}
+            </span>
+            <span className="text-lg font-semibold text-primary">%</span>
           </div>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="p-5 grid grid-cols-2 gap-y-6 gap-x-4 flex-1">
-        {/* Total Cash Util (Highlighted) */}
-        <div className="col-span-2">
-          <p className="text-xs font-bold text-base-content/50 uppercase tracking-wide flex items-center gap-1.5 mb-1">
-            <Activity className="w-3.5 h-3.5" />
-            Cash Utilization
-          </p>
-          <p className="text-xl font-bold text-primary tracking-tight">
-            {formatCurrency(totalCashUtil)}
-          </p>
-        </div>
-
-        {/* Entries */}
-        <div>
-          <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-wide mb-1 flex items-center gap-1">
-            <FileText className="w-3 h-3" /> Entries
-          </p>
-          <p className="font-semibold text-base-content">{totalEntries || 0}</p>
-        </div>
-
-        {/* Disbursements */}
-        <div>
-          <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-wide mb-1 flex items-center gap-1">
-            <TrendingUp className="w-3 h-3" /> Disbursed
-          </p>
-          <p className="font-semibold text-base-content">
+      {/* Secondary Metric */}
+      <div className="mt-auto px-5 pb-5 pt-4 border-t border-base-200">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-base-content/40">
+            Disbursed
+          </span>
+          <span className="text-sm font-semibold text-base-content/70">
             {formatCurrency(totalDisbursements)}
-          </p>
-        </div>
-
-        {/* Monthly (Full Width if needed, or keeping grid) */}
-        <div className="col-span-2 pt-2 border-t border-dashed border-base-200">
-          <div className="flex justify-between items-center">
-            <p className="text-[10px] font-bold text-base-content/40 uppercase tracking-wide flex items-center gap-1">
-              <Banknote className="w-3 h-3" /> Monthly Total
-            </p>
-            <p className="font-mono font-medium text-sm text-base-content/80">
-              {formatCurrency(totalMonthly)}
-            </p>
-          </div>
+          </span>
         </div>
       </div>
     </div>
