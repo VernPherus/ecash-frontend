@@ -11,11 +11,11 @@ import {
   Mail,
   CreditCard,
   Filter,
-  Briefcase,
 } from "lucide-react";
 
 import usePayeeStore from "../store/usePayeeStore";
 import PayeeForm from "../components/PayeeForm";
+import Header from "../components/Header";
 
 const PayeeManagerPage = () => {
   const {
@@ -83,25 +83,7 @@ const PayeeManagerPage = () => {
   return (
     <div className="min-h-screen bg-base-200/50 pb-20 font-sans">
       {/* --- HEADER --- */}
-      <header className="bg-base-100 border-b border-base-300 sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-base-content tracking-tight flex items-center gap-3">
-              Payee Management
-            </h1>
-            <p className="text-sm text-base-content/60 mt-0.5">
-              Directory of suppliers, contractors, and employees.
-            </p>
-          </div>
-          <button
-            onClick={() => setShowForm(true)}
-            className="btn btn-primary gap-2 shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
-          >
-            <Plus className="w-5 h-5" />
-            <span className="hidden sm:inline">Add Payee</span>
-          </button>
-        </div>
-      </header>
+      <Header />
 
       {/* --- MAIN CONTENT --- */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-6">

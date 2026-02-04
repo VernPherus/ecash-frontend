@@ -1,13 +1,5 @@
-import {
-  Settings as SettingsIcon,
-  Sun,
-  Moon,
-  Bell,
-  Eye,
-  Globe,
-  Database,
-  Info,
-} from "lucide-react";
+import { Settings as SettingsIcon, Sun, Moon, Eye, Info } from "lucide-react";
+import Header from "../components/Header";
 
 import useThemeStore from "../store/useThemeStore";
 
@@ -32,19 +24,7 @@ const SettingsPage = () => {
   return (
     <div className="min-h-screen bg-base-200">
       {/* Header */}
-      <header className="bg-base-100 border-b border-base-300 px-8 py-5 sticky top-0 z-10 shadow-soft">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold text-base-content flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <SettingsIcon className="w-5 h-5 text-primary" />
-            </div>
-            Settings
-          </h1>
-          <p className="text-sm text-base-content/60 mt-1">
-            Customize your eCash experience
-          </p>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <div className="p-8 max-w-4xl mx-auto space-y-6">
@@ -126,8 +106,7 @@ const SettingsPage = () => {
           </div>
 
           <p className="text-center text-sm text-base-content/40 mt-6">
-            eCash © {new Date().getFullYear()} — Financial Tracking Made
-            Easier
+            eCash © {new Date().getFullYear()} — Financial Tracking Made Easier
           </p>
         </div>
       </div>

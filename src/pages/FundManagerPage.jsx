@@ -1,12 +1,11 @@
 import { useEffect, useState, useMemo } from "react";
+import Header from "../components/Header";
 import {
   Wallet,
-  Plus,
   Search,
   Edit2,
   X,
   Banknote,
-  ArrowRightLeft,
   Layers,
   FileText,
   Save,
@@ -14,7 +13,7 @@ import {
   CheckCircle2,
   Ban,
   Trash2,
-  Power, // Added Power icon for deactivation
+  Power,
 } from "lucide-react";
 
 import useFundStore from "../store/useFundStore";
@@ -151,37 +150,7 @@ const FundManagerPage = () => {
   return (
     <div className="min-h-screen bg-base-200/50 pb-20 font-sans">
       {/* --- HEADER --- */}
-      <header className="bg-base-100 border-b border-base-300 sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-base-content tracking-tight flex items-center gap-3">
-              Fund Manager
-            </h1>
-            <p className="text-sm text-base-content/60 mt-0.5">
-              Allocations, balances, and ledger entries.
-            </p>
-          </div>
-
-          <div className="flex gap-3">
-            <button
-              onClick={() => setIsEntryModalOpen(true)}
-              className="btn btn-outline border-base-300 bg-base-100 hover:bg-base-200 hover:border-base-300 gap-2 shadow-sm"
-            >
-              <ArrowRightLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">New Entry</span>
-            </button>
-
-            <button
-              onClick={() => openFundModal()}
-              className="btn btn-primary gap-2 shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
-            >
-              <Plus className="w-5 h-5" />
-              <span className="hidden sm:inline">New Fund</span>
-            </button>
-          </div>
-        </div>
-      </header>
-
+      <Header />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
         {/* --- STATS OVERVIEW --- */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -384,7 +353,6 @@ const FundManagerPage = () => {
           )}
         </div>
       </main>
-
       {/* --- MODAL: FUND FORM --- */}
       {isFundModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -410,7 +378,6 @@ const FundManagerPage = () => {
           </div>
         </div>
       )}
-
       {/* --- MODAL: ENTRY FORM --- */}
       {isEntryModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
