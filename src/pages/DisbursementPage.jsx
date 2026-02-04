@@ -1,24 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { socket } from "../lib/socket";
 import {
   Search,
   Calendar,
-  ChevronLeft,
-  ChevronRight,
   FileText,
   CheckCircle2,
   Clock,
-  ArrowUpDown,
   X,
   Eye,
-  Pencil, // Added Pencil icon
-  Plus, // Added Plus icon for Create button
+  Pencil,
+  Plus,
+  Filter,
 } from "lucide-react";
 import useDisbursementStore from "../store/useDisbursementStore";
 import { formatCurrency, formatDate } from "../lib/formatters";
 import DisbursementForm from "../components/DisbursementForm";
 import Header from "../components/Header";
+import DataTable from "../components/DataTable"; //
+import FloatingNotification from "../components/FloatingNotification";
 
 const DisbursementPage = () => {
   const navigate = useNavigate();
@@ -62,7 +62,15 @@ const DisbursementPage = () => {
     return () => {
       socket.off("disbursement_updates", onDisbursementupdate);
     };
-  }, []);
+  }, [
+    fetchDisbursements,
+    handleSocketUpdate,
+    pagination.currentPage,
+    search,
+    statusFilter,
+    dateRange.start,
+    dateRange.end,
+  ]);
 
   // --- Handlers ---
   const handlePageChange = (newPage) => {
@@ -105,13 +113,147 @@ const DisbursementPage = () => {
   const hasActiveFilters =
     search || statusFilter !== "ALL" || dateRange.start || dateRange.end;
 
+  // --- Table Configuration ---
+  const columns = useMemo(
+    () => [
+      {
+        key: "reference",
+        header: "Reference & Date",
+        headerAlign: "text-left",
+        align: "text-left",
+        render: (row) => (
+          <div className="flex flex-col">
+            <span className="font-mono font-medium text-base-content group-hover:text-primary transition-colors">
+              {row.lddapNum || row.checkNum || `ID#${row.id}`}
+            </span>
+            <span className="text-xs text-base-content/50 mt-0.5 flex items-center gap-1">
+              <Calendar className="w-3 h-3" />
+              {formatDate(row.dateReceived)}
+            </span>
+          </div>
+        ),
+      },
+      {
+        key: "payee",
+        header: "Payee",
+        headerAlign: "text-left",
+        align: "text-left",
+        render: (row) => (
+          <>
+            <div
+              className="max-w-[200px] truncate font-medium text-base-content/90"
+              title={row.payee?.name}
+            >
+              {row.payee?.name || "—"}
+            </div>
+            <div className="text-xs text-base-content/40 mt-0.5">
+              {row.payee?.type || "Supplier"}
+            </div>
+          </>
+        ),
+      },
+      {
+        key: "fundSource",
+        header: "Fund Source",
+        headerAlign: "text-center",
+        align: "text-center",
+        render: (row) => (
+          <div className="inline-flex items-center px-2.5 py-1 rounded-md bg-base-200 text-xs font-mono text-base-content/70 border border-base-300">
+            {row.fundSource?.code || "---"}
+          </div>
+        ),
+      },
+      {
+        key: "amount",
+        header: "Amount",
+        headerAlign: "text-right",
+        align: "text-right",
+        render: (row) => (
+          <span className="font-mono font-bold text-base-content">
+            {formatCurrency(row.netAmount)}
+          </span>
+        ),
+      },
+      {
+        key: "status",
+        header: "Status",
+        headerAlign: "text-center",
+        align: "text-center",
+        render: (row) => {
+          const { label, className } = getDisbursementStatus(row);
+          return (
+            <div className="flex justify-center">
+              <span
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${className}`}
+              >
+                {label.includes("Approved") || label.includes("Paid") ? (
+                  <CheckCircle2 className="w-3 h-3" />
+                ) : (
+                  <Clock className="w-3 h-3" />
+                )}
+                {label}
+              </span>
+            </div>
+          );
+        },
+      },
+      {
+        key: "actions",
+        header: "Actions",
+        headerAlign: "text-center",
+        align: "text-center",
+        render: (row) => (
+          <div className="flex items-center justify-center gap-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEdit(row);
+              }}
+              className="btn btn-xs btn-outline border-base-300 text-base-content/60 hover:text-warning hover:border-warning gap-1 font-normal"
+              title="Edit Record"
+            >
+              <Pencil className="w-3 h-3" /> Edit
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/disbursement/${row.id}`);
+              }}
+              className="btn btn-xs btn-outline border-base-300 text-base-content/60 hover:text-primary hover:border-primary gap-1 font-normal"
+              title="View Details"
+            >
+              <Eye className="w-3 h-3" /> View
+            </button>
+          </div>
+        ),
+      },
+    ],
+    [getDisbursementStatus, navigate],
+  );
+
+  const filterOptions = [
+    { value: "ALL", label: "All Status" },
+    { value: "PAID", label: "Paid / Approved" },
+    { value: "PENDING", label: "Pending" },
+  ];
+
+  const headerActions = (
+    <button
+      onClick={handleCreate}
+      className="btn btn-sm btn-primary gap-2 shadow-sm"
+    >
+      <Plus className="w-4 h-4" />
+      <span className="hidden sm:inline">New Record</span>
+    </button>
+  );
+
   return (
     <div className="min-h-screen bg-base-200/50 pb-20 font-sans">
       {/* --- HEADER --- */}
-      <Header />
+      <FloatingNotification />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
-        {/* --- TOOLBAR --- */}
+        {/* --- TOOLBAR (Search & Date) --- */}
         <div className="bg-base-100 p-4 rounded-xl border border-base-300 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
           {/* Search */}
           <div className="relative w-full md:w-96">
@@ -158,17 +300,6 @@ const DisbursementPage = () => {
               />
             </div>
 
-            {/* Status Dropdown */}
-            <select
-              className="select select-bordered h-10 min-h-0 text-sm bg-base-200/50 focus:bg-base-100"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="ALL">All Status</option>
-              <option value="PAID">Paid</option>
-              <option value="PENDING">Pending</option>
-            </select>
-
             {/* Clear Button */}
             {hasActiveFilters && (
               <button
@@ -182,203 +313,26 @@ const DisbursementPage = () => {
           </div>
         </div>
 
-        {/* --- TABLE CARD --- */}
-        <div className="bg-base-100 border border-base-300 rounded-xl shadow-sm overflow-hidden">
-          {isLoading ? (
-            // Loading Skeleton
-            <div className="p-6 space-y-4">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div
-                  key={i}
-                  className="h-12 w-full bg-base-200/50 rounded-lg animate-pulse"
-                />
-              ))}
-            </div>
-          ) : disbursements.length === 0 ? (
-            // Empty State
-            <div className="py-20 text-center flex flex-col items-center">
-              <div className="w-16 h-16 bg-base-200 rounded-full flex items-center justify-center mb-4">
-                <FileText className="w-8 h-8 text-base-content/30" />
-              </div>
-              <h3 className="text-lg font-bold text-base-content/70">
-                No records found
-              </h3>
-              <p className="text-sm text-base-content/40 mt-1 max-w-xs">
-                {hasActiveFilters
-                  ? "Try adjusting your search or filters to find what you're looking for."
-                  : "Get started by creating a new disbursement record."}
-              </p>
-              {hasActiveFilters ? (
-                <button
-                  onClick={clearFilters}
-                  className="btn btn-link btn-sm mt-2 text-primary no-underline hover:underline"
-                >
-                  Clear all filters
-                </button>
-              ) : (
-                <button
-                  onClick={handleCreate}
-                  className="btn btn-primary btn-sm mt-4 gap-2"
-                >
-                  <Plus className="w-4 h-4" /> Create Record
-                </button>
-              )}
-            </div>
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead className="bg-base-200/50 text-base-content/60 text-xs uppercase font-semibold tracking-wider">
-                    <tr className="border-b border-base-200">
-                      <th className="px-6 py-4">Reference & Date</th>
-                      <th className="px-6 py-4">Payee</th>
-                      <th className="px-6 py-4 text-center">Fund Source</th>
-                      <th className="px-6 py-4 text-right cursor-pointer group flex items-center justify-end gap-1 hover:text-base-content">
-                        Amount
-                        <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50 transition-opacity" />
-                      </th>
-                      <th className="px-6 py-4 text-center">Status</th>
-                      <th className="px-6 py-4 text-center">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-sm divide-y divide-base-100">
-                    {disbursements.map((item) => {
-                      const { status, label, className } =
-                        getDisbursementStatus(item);
-
-                      return (
-                        <tr
-                          key={item.id}
-                          className="group hover:bg-base-200/40 transition-colors"
-                        >
-                          {/* Reference & Date */}
-                          <td className="px-6 py-4">
-                            <div className="flex flex-col">
-                              <span className="font-mono font-medium text-base-content group-hover:text-primary transition-colors">
-                                {item.lddapNum ||
-                                  item.checkNum ||
-                                  `ID#${item.id}`}
-                              </span>
-                              <span className="text-xs text-base-content/50 mt-0.5 flex items-center gap-1">
-                                <Calendar className="w-3 h-3" />
-                                {formatDate(item.dateReceived)}
-                              </span>
-                            </div>
-                          </td>
-
-                          {/* Payee */}
-                          <td className="px-6 py-4">
-                            <div
-                              className="max-w-[200px] truncate font-medium text-base-content/90"
-                              title={item.payee?.name}
-                            >
-                              {item.payee?.name || "—"}
-                            </div>
-                            <div className="text-xs text-base-content/40 mt-0.5">
-                              {item.payee?.type || "Supplier"}
-                            </div>
-                          </td>
-
-                          {/* Fund Source */}
-                          <td className="px-6 py-4 text-center">
-                            <div className="inline-flex items-center px-2.5 py-1 rounded-md bg-base-200 text-xs font-mono text-base-content/70 border border-base-300">
-                              {item.fundSource?.code || "---"}
-                            </div>
-                          </td>
-
-                          {/* Amount */}
-                          <td className="px-6 py-4 text-right">
-                            <span className="font-mono font-bold text-base-content">
-                              {formatCurrency(item.netAmount)}
-                            </span>
-                          </td>
-
-                          {/* Status */}
-                          <td className="px-6 py-4">
-                            <div className="flex justify-center">
-                              <span
-                                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${className}`}
-                              >
-                                {status === "approved" ? (
-                                  <CheckCircle2 className="w-3 h-3" />
-                                ) : (
-                                  <Clock className="w-3 h-3" />
-                                )}
-                                {label}
-                              </span>
-                            </div>
-                          </td>
-
-                          {/* Actions */}
-                          <td className="px-6 py-4 text-center">
-                            <div className="flex items-center justify-center gap-2">
-                              {/* EDIT BUTTON */}
-                              <button
-                                onClick={() => handleEdit(item)}
-                                className="btn btn-xs btn-outline border-base-300 text-base-content/60 hover:text-warning hover:border-warning gap-1 font-normal"
-                                title="Edit Record"
-                              >
-                                <Pencil className="w-3 h-3" /> Edit
-                              </button>
-
-                              {/* VIEW BUTTON */}
-                              <button
-                                onClick={() =>
-                                  navigate(`/disbursement/${item.id}`)
-                                }
-                                className="btn btn-xs btn-outline border-base-300 text-base-content/60 hover:text-primary hover:border-primary gap-1 font-normal"
-                                title="View Details"
-                              >
-                                <Eye className="w-3 h-3" /> View
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* --- PAGINATION --- */}
-              {pagination && pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between px-6 py-4 border-t border-base-200 bg-base-50/30">
-                  <span className="text-xs text-base-content/50">
-                    Showing page{" "}
-                    <span className="font-medium">
-                      {pagination.currentPage}
-                    </span>{" "}
-                    of{" "}
-                    <span className="font-medium">{pagination.totalPages}</span>
-                  </span>
-
-                  <div className="join">
-                    <button
-                      className="join-item btn btn-sm btn-outline border-base-300 text-base-content/70 hover:bg-base-200 hover:text-primary hover:border-base-300"
-                      disabled={pagination.currentPage === 1}
-                      onClick={() =>
-                        handlePageChange(pagination.currentPage - 1)
-                      }
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <button
-                      className="join-item btn btn-sm btn-outline border-base-300 text-base-content/70 hover:bg-base-200 hover:text-primary hover:border-base-300"
-                      disabled={
-                        pagination.currentPage === pagination.totalPages
-                      }
-                      onClick={() =>
-                        handlePageChange(pagination.currentPage + 1)
-                      }
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </div>
+        {/* --- DATA TABLE --- */}
+        <DataTable
+          data={disbursements}
+          isLoading={isLoading}
+          columns={columns}
+          pagination={pagination}
+          onPageChange={handlePageChange}
+          filters={filterOptions}
+          activeFilter={statusFilter}
+          onFilterChange={setStatusFilter}
+          headerActions={headerActions}
+          onRowClick={(row) => navigate(`/disbursement/${row.id}`)}
+          emptyState={{
+            icon: FileText,
+            title: "No records found",
+            description: hasActiveFilters
+              ? "Try adjusting your search or filters."
+              : "Get started by creating a new disbursement record.",
+          }}
+        />
       </main>
 
       {/* --- MODAL (CREATE / EDIT) --- */}

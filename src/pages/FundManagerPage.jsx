@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/preserve-manual-memoization */
 import { useEffect, useState, useMemo } from "react";
 import Header from "../components/Header";
 import {
@@ -14,10 +15,12 @@ import {
   Ban,
   Trash2,
   Power,
+  Plus,
 } from "lucide-react";
 
 import useFundStore from "../store/useFundStore";
 import FundSourceForm from "../components/FundSourceForm";
+import DataTable from "../components/DataTable"; //
 import { formatCurrency, formatDate } from "../lib/formatters";
 import { totalAllocation } from "../lib/formulas";
 import toast from "react-hot-toast";
@@ -31,7 +34,7 @@ const FundManagerPage = () => {
     fetchEntries,
     createEntry,
     deleteEntry,
-    deactivateFund, // Added deactivate action
+    deactivateFund,
     setSelectedFund,
     selectedFund,
     isLoading: isStoreLoading,
@@ -129,7 +132,6 @@ const FundManagerPage = () => {
     }
   };
 
-  // --- NEW: Handle Deactivate Fund ---
   const handleDeactivateFund = async (id, code) => {
     if (
       !window.confirm(
@@ -138,12 +140,181 @@ const FundManagerPage = () => {
     ) {
       return;
     }
-
-    // We can reuse the isDeleting state or create a new one since both block UI interactions conceptually
     setIsDeleting(true);
     const result = await deactivateFund(id);
     setIsDeleting(false);
   };
+
+  // --- Column Definitions ---
+  const fundColumns = useMemo(
+    () => [
+      {
+        key: "code",
+        header: "Fund Code",
+        render: (row, idx) => (
+          <span
+            className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-mono font-bold border ${
+              idx % 2 === 0
+                ? "bg-primary/10 text-primary border-primary/20"
+                : "bg-secondary/10 text-secondary border-secondary/20"
+            }`}
+          >
+            {row.code}
+          </span>
+        ),
+      },
+      {
+        key: "name",
+        header: "Name",
+        render: (row) => (
+          <span className="font-medium text-base-content">{row.name}</span>
+        ),
+      },
+      {
+        key: "balance",
+        header: "Balance",
+        align: "text-right",
+        headerAlign: "text-right",
+        render: (row) => (
+          <span className="font-mono font-medium">
+            {formatCurrency(row.initialBalance)}
+          </span>
+        ),
+      },
+      {
+        key: "status",
+        header: "Status",
+        align: "text-center",
+        headerAlign: "text-center",
+        render: (row) =>
+          row.isActive !== false ? (
+            <div className="flex justify-center">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-success/10 text-success border border-success/20">
+                <CheckCircle2 className="w-3 h-3" /> Active
+              </span>
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-base-300 text-base-content/50 border border-base-300">
+                <Ban className="w-3 h-3" /> Inactive
+              </span>
+            </div>
+          ),
+      },
+      {
+        key: "actions",
+        header: "Action",
+        align: "text-center",
+        headerAlign: "text-center",
+        render: (row) => (
+          <div className="flex items-center justify-center gap-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                openFundModal(row);
+              }}
+              className="btn btn-xs btn-ghost text-base-content/60 hover:text-primary hover:bg-primary/10"
+              title="Edit Fund"
+            >
+              <Edit2 className="w-3 h-3" />
+            </button>
+
+            {row.isActive !== false && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeactivateFund(row.id, row.code);
+                }}
+                className="btn btn-xs btn-ghost text-base-content/40 hover:text-error hover:bg-error/10"
+                title="Deactivate Fund"
+                disabled={isDeleting}
+              >
+                <Power className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+        ),
+      },
+    ],
+    [isDeleting],
+  );
+
+  const ledgerColumns = useMemo(
+    () => [
+      {
+        key: "date",
+        header: "Date",
+        render: (row) => (
+          <span className="text-base-content/60 font-mono text-xs">
+            {formatDate(row.createdAt)}
+          </span>
+        ),
+      },
+      {
+        key: "description",
+        header: "Description",
+        render: (row) => (
+          <span className="font-medium text-base-content">{row.name}</span>
+        ),
+      },
+      {
+        key: "fund",
+        header: "Fund Source",
+        render: (row) => (
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono bg-base-200 text-base-content/70 border border-base-300">
+            {row.fundSource?.code || "UNK"}
+          </span>
+        ),
+      },
+      {
+        key: "amount",
+        header: "Amount",
+        align: "text-right",
+        headerAlign: "text-right",
+        render: (row) => (
+          <span className="font-mono font-bold text-base-content">
+            {formatCurrency(row.amount)}
+          </span>
+        ),
+      },
+      {
+        key: "actions",
+        header: "Action",
+        align: "text-center",
+        headerAlign: "text-center",
+        render: (row) => (
+          <div className="flex justify-center">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteEntry(row.id);
+              }}
+              disabled={isDeleting}
+              className="btn btn-xs btn-ghost text-base-content/40 hover:text-error hover:bg-error/10"
+              title="Delete Entry"
+            >
+              <Trash2 className="w-3 h-3" />
+            </button>
+          </div>
+        ),
+      },
+    ],
+    [isDeleting],
+  );
+
+  const headerActions = (
+    <button
+      onClick={() =>
+        activeTab === "FUNDS" ? openFundModal() : setIsEntryModalOpen(true)
+      }
+      className="btn btn-sm btn-primary gap-2 shadow-sm"
+    >
+      <Plus className="w-4 h-4" />
+      <span className="hidden sm:inline">
+        {activeTab === "FUNDS" ? "New Fund" : "New Entry"}
+      </span>
+    </button>
+  );
 
   const totalBudget = totalAllocation(funds);
 
@@ -211,148 +382,25 @@ const FundManagerPage = () => {
           </div>
         </div>
 
-        {/* --- TABLE CONTENT --- */}
-        <div className="bg-base-100 border border-base-300 rounded-xl shadow-sm overflow-hidden min-h-[400px]">
-          {isStoreLoading && !isDeleting ? (
-            <div className="p-8 space-y-4">
-              {[1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className="h-12 bg-base-200/50 rounded-lg animate-pulse"
-                />
-              ))}
-            </div>
-          ) : filteredData.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-64 text-center">
-              <div className="w-16 h-16 bg-base-200 rounded-full flex items-center justify-center mb-4">
-                <Search className="w-8 h-8 text-base-content/20" />
-              </div>
-              <h3 className="text-base font-semibold text-base-content/70">
-                No records found
-              </h3>
-              <p className="text-sm text-base-content/40 mt-1">
-                Try adding a new {activeTab === "FUNDS" ? "fund" : "entry"}.
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-base-200/50 text-base-content/60 text-xs uppercase font-semibold tracking-wider">
-                  <tr className="border-b border-base-200">
-                    {activeTab === "FUNDS" ? (
-                      <>
-                        <th className="px-6 py-4">Fund Code</th>
-                        <th className="px-6 py-4">Name</th>
-                        <th className="px-6 py-4 text-right">Balance</th>
-                        <th className="px-6 py-4 text-center">Status</th>
-                        <th className="px-6 py-4 text-center">Action</th>
-                      </>
-                    ) : (
-                      <>
-                        <th className="px-6 py-4">Date</th>
-                        <th className="px-6 py-4">Description</th>
-                        <th className="px-6 py-4">Fund Source</th>
-                        <th className="px-6 py-4 text-right">Amount</th>
-                        <th className="px-6 py-4 text-center">Action</th>
-                      </>
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="text-sm divide-y divide-base-100">
-                  {activeTab === "FUNDS"
-                    ? filteredData.map((fund, idx) => (
-                        <tr
-                          key={fund?.id || idx}
-                          className="group hover:bg-base-200/40 transition-colors"
-                        >
-                          <td className="px-6 py-4">
-                            <span
-                              className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-mono font-bold border ${idx % 2 === 0 ? "bg-primary/10 text-primary border-primary/20" : "bg-secondary/10 text-secondary border-secondary/20"}`}
-                            >
-                              {fund.code}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 font-medium text-base-content">
-                            {fund.name}
-                          </td>
-                          <td className="px-6 py-4 text-right font-mono font-medium">
-                            {formatCurrency(fund.initialBalance)}
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            {fund.isActive !== false ? (
-                              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-success/10 text-success border border-success/20">
-                                <CheckCircle2 className="w-3 h-3" /> Active
-                              </div>
-                            ) : (
-                              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-base-300 text-base-content/50 border border-base-300">
-                                <Ban className="w-3 h-3" /> Inactive
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            <div className="flex items-center justify-center gap-2">
-                              <button
-                                onClick={() => openFundModal(fund)}
-                                className="btn btn-xs btn-ghost text-base-content/60 hover:text-primary hover:bg-primary/10"
-                                title="Edit Fund"
-                              >
-                                <Edit2 className="w-3 h-3" />
-                              </button>
-
-                              {/* DEACTIVATE BUTTON (Only if active) */}
-                              {fund.isActive !== false && (
-                                <button
-                                  onClick={() =>
-                                    handleDeactivateFund(fund.id, fund.code)
-                                  }
-                                  className="btn btn-xs btn-ghost text-base-content/40 hover:text-error hover:bg-error/10"
-                                  title="Deactivate Fund"
-                                  disabled={isDeleting}
-                                >
-                                  <Power className="w-3 h-3" />
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    : filteredData.map((entry, idx) => (
-                        <tr
-                          key={entry?.id || idx}
-                          className="group hover:bg-base-200/40 transition-colors"
-                        >
-                          <td className="px-6 py-4 text-base-content/60 font-mono text-xs">
-                            {formatDate(entry.createdAt)}
-                          </td>
-                          <td className="px-6 py-4 font-medium text-base-content">
-                            {entry.name}
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono bg-base-200 text-base-content/70 border border-base-300">
-                              {entry.fundSource?.code || "UNK"}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-right font-mono font-bold text-base-content">
-                            {formatCurrency(entry.amount)}
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            <button
-                              onClick={() => handleDeleteEntry(entry.id)}
-                              disabled={isDeleting}
-                              className="btn btn-xs btn-ghost text-base-content/40 hover:text-error hover:bg-error/10"
-                              title="Delete Entry"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+        {/* --- DATA TABLE --- */}
+        <DataTable
+          data={filteredData}
+          isLoading={isStoreLoading && !isDeleting}
+          columns={activeTab === "FUNDS" ? fundColumns : ledgerColumns}
+          headerActions={headerActions}
+          onRowClick={
+            activeTab === "FUNDS" ? (row) => openFundModal(row) : undefined
+          }
+          emptyState={{
+            icon: activeTab === "FUNDS" ? Layers : FileText,
+            title: "No records found",
+            description: `Try adding a new ${
+              activeTab === "FUNDS" ? "fund" : "entry"
+            }.`,
+          }}
+        />
       </main>
+
       {/* --- MODAL: FUND FORM --- */}
       {isFundModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -378,6 +426,7 @@ const FundManagerPage = () => {
           </div>
         </div>
       )}
+
       {/* --- MODAL: ENTRY FORM --- */}
       {isEntryModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

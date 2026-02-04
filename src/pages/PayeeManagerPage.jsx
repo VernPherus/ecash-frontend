@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+/* eslint-disable react-hooks/preserve-manual-memoization */
+import { useEffect, useState, useMemo } from "react";
 import {
   Users,
   Plus,
@@ -10,12 +11,12 @@ import {
   Phone,
   Mail,
   CreditCard,
-  Filter,
 } from "lucide-react";
 
 import usePayeeStore from "../store/usePayeeStore";
 import PayeeForm from "../components/PayeeForm";
 import Header from "../components/Header";
+import DataTable from "../components/DataTable"; //
 
 const PayeeManagerPage = () => {
   const {
@@ -80,6 +81,142 @@ const PayeeManagerPage = () => {
     }
   };
 
+  // --- Table Configuration ---
+  const columns = useMemo(
+    () => [
+      {
+        key: "name",
+        header: "Payee Name",
+        render: (row) => (
+          <div className="flex flex-col max-w-62.5">
+            <span className="font-semibold text-base-content group-hover:text-primary transition-colors">
+              {row.name || "Unnamed Payee"}
+            </span>
+            <span className="text-xs text-base-content/50 truncate mt-0.5">
+              {row.address || "No address provided"}
+            </span>
+          </div>
+        ),
+      },
+      {
+        key: "type",
+        header: "Type",
+        render: (row) => (
+          <span
+            className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border capitalize ${getTypeColor(
+              row.type,
+            )}`}
+          >
+            {row.type || "supplier"}
+          </span>
+        ),
+      },
+      {
+        key: "contact",
+        header: "Contact Info",
+        render: (row) => (
+          <div className="space-y-1">
+            {row.email ? (
+              <div className="flex items-center gap-2 text-xs text-base-content/70">
+                <Mail className="w-3 h-3 text-base-content/40" />
+                {row.email}
+              </div>
+            ) : null}
+            {row.mobileNum ? (
+              <div className="flex items-center gap-2 text-xs text-base-content/70">
+                <Phone className="w-3 h-3 text-base-content/40" />
+                {row.mobileNum}
+              </div>
+            ) : null}
+            {!row.email && !row.mobileNum && (
+              <span className="text-xs text-base-content/40 italic">
+                Not set
+              </span>
+            )}
+          </div>
+        ),
+      },
+      {
+        key: "tin",
+        header: "TIN",
+        render: (row) => (
+          <span className="font-mono text-xs text-base-content/70">
+            {row.tinNum || "—"}
+          </span>
+        ),
+      },
+      {
+        key: "status",
+        header: "Status",
+        align: "text-center",
+        headerAlign: "text-center",
+        render: (row) =>
+          row.isActive !== false ? (
+            <div className="flex justify-center">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-success/10 text-success border border-success/20">
+                Active
+              </span>
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-base-300 text-base-content/50 border border-base-300">
+                Inactive
+              </span>
+            </div>
+          ),
+      },
+      {
+        key: "actions",
+        header: "Actions",
+        align: "text-center",
+        headerAlign: "text-center",
+        render: (row) => (
+          <div className="flex items-center justify-center gap-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleView(row);
+              }}
+              className="btn btn-xs btn-outline border-base-300 text-base-content/60 hover:text-info hover:border-info"
+              title="View Details"
+            >
+              <Eye className="w-3 h-3" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEdit(row);
+              }}
+              className="btn btn-xs btn-outline border-base-300 text-base-content/60 hover:text-primary hover:border-primary"
+              title="Edit"
+            >
+              <Edit2 className="w-3 h-3" />
+            </button>
+          </div>
+        ),
+      },
+    ],
+    [],
+  );
+
+  const filterOptions = payeeTypes.map((type) => ({
+    value: type,
+    label:
+      type === "all"
+        ? "All Types"
+        : type.charAt(0).toUpperCase() + type.slice(1),
+  }));
+
+  const headerActions = (
+    <button
+      onClick={() => setShowForm(true)}
+      className="btn btn-sm btn-primary gap-2 shadow-sm"
+    >
+      <Plus className="w-4 h-4" />
+      <span className="hidden sm:inline">Add Payee</span>
+    </button>
+  );
+
   return (
     <div className="min-h-screen bg-base-200/50 pb-20 font-sans">
       {/* --- HEADER --- */}
@@ -87,9 +224,8 @@ const PayeeManagerPage = () => {
 
       {/* --- MAIN CONTENT --- */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
-        {/* FILTERS TOOLBAR */}
+        {/* TOOLBAR (Search Only - Filter moved to Table) */}
         <div className="bg-base-100 p-4 rounded-xl border border-base-300 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
-          {/* Search */}
           <div className="relative w-full md:w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-base-content/40" />
             <input
@@ -100,173 +236,30 @@ const PayeeManagerPage = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-
-          {/* Filter Dropdown */}
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <div className="flex items-center gap-2 px-3 py-2 bg-base-200/50 rounded-lg border border-base-300 w-full md:w-auto">
-              <Filter className="w-4 h-4 text-base-content/50" />
-              <select
-                className="bg-transparent text-sm font-medium text-base-content focus:outline-none cursor-pointer w-full"
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-              >
-                {payeeTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type === "all"
-                      ? "All Types"
-                      : type.charAt(0).toUpperCase() + type.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
         </div>
 
-        {/* TABLE CARD */}
-        <div className="bg-base-100 border border-base-300 rounded-xl shadow-sm overflow-hidden min-h-[400px]">
-          {isLoading ? (
-            <div className="p-8 space-y-4">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div
-                  key={i}
-                  className="h-12 bg-base-200/50 rounded-lg animate-pulse"
-                />
-              ))}
-            </div>
-          ) : filteredPayees.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-80 text-center">
-              <div className="w-16 h-16 bg-base-200 rounded-full flex items-center justify-center mb-4">
-                <Users className="w-8 h-8 text-base-content/20" />
-              </div>
-              <h3 className="text-lg font-semibold text-base-content/70">
-                {searchQuery || filterType !== "all"
-                  ? "No payees match your filters"
-                  : "No Payees Found"}
-              </h3>
-              <p className="text-sm text-base-content/40 mt-1 max-w-xs mx-auto">
-                {searchQuery || filterType !== "all"
-                  ? "Try adjusting your search criteria."
-                  : "Get started by adding your first supplier or contractor."}
-              </p>
-              {!searchQuery && filterType === "all" && (
-                <button
-                  onClick={() => setShowForm(true)}
-                  className="btn btn-primary btn-sm mt-4 gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Payee
-                </button>
-              )}
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-base-200/50 text-base-content/60 text-xs uppercase font-semibold tracking-wider">
-                  <tr className="border-b border-base-200">
-                    <th className="px-6 py-4">Payee Name</th>
-                    <th className="px-6 py-4">Type</th>
-                    <th className="px-6 py-4">Contact Info</th>
-                    <th className="px-6 py-4">TIN</th>
-                    <th className="px-6 py-4 text-center">Status</th>
-                    <th className="px-6 py-4 text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="text-sm divide-y divide-base-100">
-                  {filteredPayees.map((payee) => (
-                    <tr
-                      key={payee?.id}
-                      className="group hover:bg-base-200/40 transition-colors"
-                    >
-                      {/* Name & Address */}
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col max-w-[250px]">
-                          <span className="font-semibold text-base-content group-hover:text-primary transition-colors">
-                            {payee?.name || "Unnamed Payee"}
-                          </span>
-                          <span className="text-xs text-base-content/50 truncate mt-0.5">
-                            {payee?.address || "No address provided"}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Type */}
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border capitalize ${getTypeColor(payee?.type)}`}
-                        >
-                          {payee?.type || "supplier"}
-                        </span>
-                      </td>
-
-                      {/* Contact */}
-                      <td className="px-6 py-4">
-                        <div className="space-y-1">
-                          {payee?.email ? (
-                            <div className="flex items-center gap-2 text-xs text-base-content/70">
-                              <Mail className="w-3 h-3 text-base-content/40" />
-                              {payee.email}
-                            </div>
-                          ) : null}
-                          {payee?.mobileNum ? (
-                            <div className="flex items-center gap-2 text-xs text-base-content/70">
-                              <Phone className="w-3 h-3 text-base-content/40" />
-                              {payee.mobileNum}
-                            </div>
-                          ) : null}
-                          {!payee?.email && !payee?.mobileNum && (
-                            <span className="text-xs text-base-content/40 italic">
-                              Not set
-                            </span>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* TIN */}
-                      <td className="px-6 py-4 font-mono text-xs text-base-content/70">
-                        {payee?.tinNum || "—"}
-                      </td>
-
-                      {/* Status */}
-                      <td className="px-6 py-4 text-center">
-                        {payee?.isActive !== false ? (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-success/10 text-success border border-success/20">
-                            Active
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-base-300 text-base-content/50 border border-base-300">
-                            Inactive
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Actions */}
-                      <td className="px-6 py-4 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => payee && handleView(payee)}
-                            className="btn btn-xs btn-outline border-base-300 text-base-content/60 hover:text-info hover:border-info"
-                            title="View Details"
-                            disabled={!payee}
-                          >
-                            <Eye className="w-3 h-3" />
-                          </button>
-                          <button
-                            onClick={() => payee && handleEdit(payee)}
-                            className="btn btn-xs btn-outline border-base-300 text-base-content/60 hover:text-primary hover:border-primary"
-                            title="Edit"
-                            disabled={!payee}
-                          >
-                            <Edit2 className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+        {/* DATA TABLE */}
+        <DataTable
+          data={filteredPayees}
+          isLoading={isLoading}
+          columns={columns}
+          filters={filterOptions}
+          activeFilter={filterType}
+          onFilterChange={setFilterType}
+          headerActions={headerActions}
+          onRowClick={(row) => handleView(row)}
+          emptyState={{
+            icon: Users,
+            title:
+              searchQuery || filterType !== "all"
+                ? "No payees match your filters"
+                : "No Payees Found",
+            description:
+              searchQuery || filterType !== "all"
+                ? "Try adjusting your search criteria."
+                : "Get started by adding your first supplier or contractor.",
+          }}
+        />
       </main>
 
       {/* --- MODAL: CREATE / EDIT FORM --- */}
@@ -331,7 +324,9 @@ const PayeeManagerPage = () => {
                   </h4>
                   <div className="flex items-center gap-2 mt-2">
                     <span
-                      className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold border capitalize ${getTypeColor(selectedPayee.type)}`}
+                      className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold border capitalize ${getTypeColor(
+                        selectedPayee.type,
+                      )}`}
                     >
                       {selectedPayee.type || "supplier"}
                     </span>
@@ -469,14 +464,14 @@ const PayeeManagerPage = () => {
 
       {/* Animation Styles */}
       <style>{`
-                @keyframes scaleIn {
-                    from { opacity: 0; transform: scale(0.95); }
-                    to { opacity: 1; transform: scale(1); }
-                }
-                .animate-scaleIn {
-                    animation: scaleIn 0.2s ease-out forwards;
-                }
-            `}</style>
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animate-scaleIn {
+            animation: scaleIn 0.2s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 };

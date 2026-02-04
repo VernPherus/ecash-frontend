@@ -465,7 +465,9 @@ const Lddap = ({ onClose, initialData }) => {
                 </label>
                 <input
                   type="text"
+                  name="respCode"
                   className="input input-bordered w-full font-mono"
+                  placeholder="RESP-CODE-XXXX"
                   value={formData.respCode}
                   onChange={handleChange}
                 />
