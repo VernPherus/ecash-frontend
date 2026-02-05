@@ -13,6 +13,8 @@ import {
   Trash2,
   Plus,
   Eye,
+  Wallet,
+  LayoutGrid,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -21,6 +23,7 @@ import FundSourceForm from "../components/FundSourceForm";
 import DataTable from "../components/DataTable";
 import FloatingNotification from "../components/FloatingNotification";
 import useSystemStore from "../store/useSystemStore";
+import FundStatCard from "../components/FundStatCard";
 
 import { formatCurrency, formatDate } from "../lib/formatters";
 
@@ -63,6 +66,28 @@ const FundManagerPage = () => {
     fetchFunds();
     fetchEntries();
   }, [fetchFunds, fetchEntries]);
+
+  // --- For fund Stats ---
+  useEffect(() => {
+    const initializeFundStats = async () => {
+      try {
+        await getTime();
+        fetchFunds();
+
+        const { time: updatedTime } = useSystemStore.getState();
+
+        if (updatedTime?.month) {
+          await displayFundStats({
+            month: Number(updatedTime.month),
+          });
+        }
+      } catch (error) {
+        console.error("Failed to initialize dashboard:", error);
+      }
+    };
+
+    initializeFundStats();
+  }, [getTime, displayFundStats, fetchFunds]);
 
   // --- Filter Logic ---
   const filteredData = useMemo(() => {
@@ -298,6 +323,36 @@ const FundManagerPage = () => {
       <FloatingNotification />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
         {/* --- STATS OVERVIEW --- */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-lg text-base-content flex items-center gap-2">
+              <Wallet className="w-5 h-5 text-primary" />
+              Fund Liquidity Overview
+            </h3>
+          </div>
+
+          {fundStats.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {fundStats.map((fundStat) => (
+                <FundStatCard
+                  key={fundStat.fundId}
+                  fundId={fundStat.fundId}
+                  totalEntries={fundStat.totalEntries}
+                  totalMonthly={fundStat.totalMonthly}
+                  totalDisbursements={fundStat.totalDisbursement}
+                  totalCashUtil={fundStat.totalCashUtil}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-base-100 rounded-xl border border-base-300 border-dashed">
+              <LayoutGrid className="w-12 h-12 mx-auto text-base-content/20 mb-3" />
+              <p className="text-base-content/50">
+                No fund statistics available for this period.
+              </p>
+            </div>
+          )}
+        </section>
 
         {/* --- TABS & FILTERS --- */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
