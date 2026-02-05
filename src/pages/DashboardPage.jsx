@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 //* Component imports
-import Header from "../components/Header";
 import {
   TrendingUp,
   Wallet,
@@ -10,11 +9,12 @@ import {
   Clock,
   AlertCircle,
   Eye,
-  FileText, // Added for emptyState icon
+  FileText,
 } from "lucide-react";
 import DataTable from "../components/DataTable";
 import DashboardTimeStats from "../components/DashboardTimeStats";
 import FundStatCard from "../components/FundStatCard";
+import FloatingNotification from "../components/FloatingNotification";
 
 //* Store Imports
 import useSystemStore from "../store/useSystemStore";
@@ -176,7 +176,7 @@ const DashboardPage = () => {
 
   return (
     <div className="min-h-screen bg-base-200/50 pb-20">
-      <Header />
+      <FloatingNotification />
 
       <div className="px-6 lg:px-8 py-8 max-w-7xl mx-auto space-y-8">
         {/* Time Stats Section */}

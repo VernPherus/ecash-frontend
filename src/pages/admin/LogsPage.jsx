@@ -10,7 +10,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import useLogStore from "../../store/useLogStore";
-import Header from "../../components/Header";
+import FloatingNotification from "../../components/FloatingNotification";
 
 const LogsPage = () => {
   const {
@@ -53,8 +53,7 @@ const LogsPage = () => {
 
   return (
     <div className="min-h-screen bg-base-200">
-      {/* Header */}
-      <Header />
+      <FloatingNotification />
 
       {/* Main Content */}
       <div className="p-8 max-w-7xl mx-auto space-y-6">

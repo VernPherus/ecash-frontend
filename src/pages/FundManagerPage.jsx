@@ -1,6 +1,5 @@
 /* eslint-disable react-hooks/preserve-manual-memoization */
 import { useEffect, useState, useMemo } from "react";
-import Header from "../components/Header";
 import {
   Wallet,
   Search,
@@ -17,13 +16,15 @@ import {
   Power,
   Plus,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 import useFundStore from "../store/useFundStore";
 import FundSourceForm from "../components/FundSourceForm";
-import DataTable from "../components/DataTable"; //
+import DataTable from "../components/DataTable";
+import FloatingNotification from "../components/FloatingNotification";
+
 import { formatCurrency, formatDate } from "../lib/formatters";
 import { totalAllocation } from "../lib/formulas";
-import toast from "react-hot-toast";
 
 const FundManagerPage = () => {
   // --- Store ---
@@ -321,7 +322,7 @@ const FundManagerPage = () => {
   return (
     <div className="min-h-screen bg-base-200/50 pb-20 font-sans">
       {/* --- HEADER --- */}
-      <Header />
+      <FloatingNotification />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
         {/* --- STATS OVERVIEW --- */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

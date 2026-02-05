@@ -15,8 +15,8 @@ import {
 
 import usePayeeStore from "../store/usePayeeStore";
 import PayeeForm from "../components/PayeeForm";
-import Header from "../components/Header";
-import DataTable from "../components/DataTable"; //
+import DataTable from "../components/DataTable";
+import FloatingNotification from "../components/FloatingNotification";
 
 const PayeeManagerPage = () => {
   const {
@@ -219,8 +219,8 @@ const PayeeManagerPage = () => {
 
   return (
     <div className="min-h-screen bg-base-200/50 pb-20 font-sans">
-      {/* --- HEADER --- */}
-      <Header />
+      {/* --- NOTIFICATION --- */}
+      <FloatingNotification/>
 
       {/* --- MAIN CONTENT --- */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-6">

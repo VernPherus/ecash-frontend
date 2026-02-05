@@ -61,11 +61,15 @@ const DisbursementViewPage = () => {
     approveDisbursement,
     isLoading,
     getDisbursementStatus,
+    deleteDisbursement,
   } = useDisbursementStore();
 
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
+
+  // --- Modal & Edit State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingDisbursement, setEditingDisbursement] = useState(null)
 
   useEffect(() => {
     if (id) {
@@ -205,12 +209,6 @@ const DisbursementViewPage = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <button
-                className="btn btn-ghost btn-sm btn-square text-base-content/60"
-                title="Print Record"
-              >
-                <Printer className="w-4 h-4" />
-              </button>
               {status.status === "pending" && (
                 <button
                   onClick={() => setIsEditModalOpen(true)}
@@ -394,7 +392,6 @@ const DisbursementViewPage = () => {
           <div className="space-y-6">
             {/* A. Action Panel (Only if PENDING) */}
             {status.status === "PENDING" && (
-              // FIX: Changed 'bg-white' to 'bg-base-100'
               <div className="bg-base-100 rounded-xl shadow-lg border border-primary/20 overflow-hidden relative">
                 <div className="absolute top-0 left-0 w-1 h-full bg-primary"></div>
                 <div className="p-6">
@@ -512,7 +509,7 @@ const DisbursementViewPage = () => {
               )}
             </InfoCard>
 
-            {/* D. Involved Entities */}
+            {/* Involved Entities */}
             <InfoCard icon={Users} title="Involved Entities">
               {/* Payee */}
               <div className="flex items-center gap-4 py-2">

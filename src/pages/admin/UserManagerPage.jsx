@@ -6,12 +6,12 @@ import {
   Edit2,
   Trash2,
   User,
-  UserPlus,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../lib/axios";
 import toast from "react-hot-toast";
-import Header from "../../components/Header";
+
+import FloatingNotification from "../../components/FloatingNotification";
 
 const UserManagerPage = () => {
   const navigate = useNavigate();
@@ -68,8 +68,7 @@ const UserManagerPage = () => {
 
   return (
     <div className="min-h-screen bg-base-200">
-      {/* Header */}
-      <Header />
+      <FloatingNotification />
 
       {/* Main Content */}
       <div className="p-8 max-w-7xl mx-auto space-y-6">
@@ -138,7 +137,7 @@ const UserManagerPage = () => {
                     <tr key={user.id}>
                       <td>
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-emerald-400 flex items-center justify-center text-white font-bold">
+                          <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-emerald-400 flex items-center justify-center text-white font-bold">
                             {user.firstName?.[0] || "U"}
                             {user.lastName?.[0] || ""}
                           </div>
@@ -177,7 +176,7 @@ const UserManagerPage = () => {
                           </label>
                           <ul
                             tabIndex={0}
-                            className="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-lg w-48 border border-base-300"
+                            className="dropdown-content z-1 menu p-2 shadow-lg bg-base-100 rounded-lg w-48 border border-base-300"
                           >
                             <li>
                               <button>

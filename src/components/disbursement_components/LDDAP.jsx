@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Save,
   Calendar,
@@ -10,8 +10,7 @@ import {
   Trash2,
   Hash,
   FileText,
-  CheckCircle2,
-  RefreshCw, // Added icon for generate button
+  RefreshCw, 
 } from "lucide-react";
 import useDisbursementStore from "../../store/useDisbursementStore";
 import useFundStore from "../../store/useFundStore";
@@ -25,7 +24,7 @@ const defaultFormData = () => ({
   dvNum: "",
   orsNum: "",
   uacsCode: "",
-  acicNum: "", // Ensure this is initialized
+  acicNum: "", 
   respCode: "",
   particulars: "",
   ageLimit: "",
