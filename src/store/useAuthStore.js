@@ -80,7 +80,7 @@ const useAuthStore = create(
       requestPasswordResetOtp: async (email) => {
         set({ isLoading: true });
         try {
-          const response = await axiosInstance.post("/auth/reset-password", {
+          const response = await axiosInstance.put("/auth/resetPassword", {
             email,
           });
 
@@ -97,8 +97,8 @@ const useAuthStore = create(
 
       confirmPasswordReset: async (credentials) => {
         try {
-          const response = await axiosInstance.post(
-            "/auth/reset-password",
+          const response = await axiosInstance.put(
+            "/auth/resetPassword",
             credentials,
           );
 
