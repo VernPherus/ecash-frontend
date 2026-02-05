@@ -61,6 +61,10 @@ const DataTable = ({
     >
       {/* --- HEADER --- */}
       <div className="px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-base-200">
+        <div className="flex-1">
+          {/* This empty div or your title/search can go here */}
+        </div>
+
         <div className="flex items-center gap-3">
           {/* Filter Dropdown */}
           {filters.length > 0 && (

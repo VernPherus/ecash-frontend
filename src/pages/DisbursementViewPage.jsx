@@ -6,7 +6,6 @@ import {
   CheckCircle,
   Clock,
   Edit2,
-  Printer,
   Hash,
   Users,
   Copy,
@@ -16,13 +15,16 @@ import {
   TrendingDown,
   Banknote,
   X,
-  Trash2, // Added Trash2 icon
+  Trash2,
 } from "lucide-react";
+
+import useAuthStore from "../store/useAuthStore";
 
 import InfoCard, { InfoRow } from "../components/InfoCard";
 import useDisbursementStore from "../store/useDisbursementStore";
 import ApprovalModal from "../components/ApprovalModal";
 import DisbursementForm from "../components/DisbursementForm";
+
 import { formatCurrency, formatDate } from "../lib/formatters";
 
 // Minimal Copy Button Component
@@ -60,17 +62,17 @@ const DisbursementViewPage = () => {
     selectedDisbursement,
     showDisbursement,
     approveDisbursement,
-    deleteDisbursement, // Destructured delete action
+    deleteDisbursement,
     isLoading,
     getDisbursementStatus,
   } = useDisbursementStore();
+  const { authUser } = useAuthStore;
 
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
 
   // --- Modal & Edit State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingDisbursement, setEditingDisbursement] = useState(null);
 
   useEffect(() => {
     if (id) {
@@ -145,7 +147,7 @@ const DisbursementViewPage = () => {
 
   return (
     <div className="min-h-screen bg-base-200 pb-20 font-sans">
-    {/* Approval Modal */}
+      {/* Approval Modal */}
       <ApprovalModal
         isOpen={isApprovalModalOpen}
         onClose={() => setIsApprovalModalOpen(false)}

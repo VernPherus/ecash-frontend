@@ -242,7 +242,7 @@ const DisbursementPage = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
         {/* --- TOOLBAR (Search & Date) --- */}
-        <div className="bg-base-100 p-4 rounded-xl border border-base-300 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="bg-base-100 p-4 rounded-xl border border-base-300 shadow-sm flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
           {/* Search */}
           <div className="relative w-full md:w-96">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -258,15 +258,15 @@ const DisbursementPage = () => {
           </div>
 
           {/* Filters Group */}
-          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
             {/* Date Start */}
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <div className="relative w-full sm:w-auto">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
                 <Calendar className="h-4 w-4 text-base-content/40" />
               </div>
               <input
                 type="date"
-                className="input input-bordered h-10 pl-10 text-sm w-full sm:w-auto bg-base-200/50 focus:bg-base-100"
+                className="input input-bordered h-10 pl-10 pr-3 text-sm w-full sm:w-44 bg-base-200/50 focus:bg-base-100"
                 value={dateRange.start}
                 onChange={(e) =>
                   setDateRange({ ...dateRange, start: e.target.value })
@@ -277,10 +277,10 @@ const DisbursementPage = () => {
             <span className="text-base-content/30 hidden sm:inline">-</span>
 
             {/* Date End */}
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               <input
                 type="date"
-                className="input input-bordered h-10 px-3 text-sm w-full sm:w-auto bg-base-200/50 focus:bg-base-100"
+                className="input input-bordered h-10 px-3 text-sm w-full sm:w-44 bg-base-200/50 focus:bg-base-100"
                 value={dateRange.end}
                 onChange={(e) =>
                   setDateRange({ ...dateRange, end: e.target.value })

@@ -35,10 +35,6 @@ const FloatingNotification = () => {
   // Access store for unread count
   //   const { unreadCount, fetchNotifications } = useNotificationStore();
 
-  // Initial fetch
-  //   useEffect(() => {
-  //     fetchNotifications();
-  //   }, [fetchNotifications]);
   const {
     notifications,
     getUnreadCount,
@@ -49,6 +45,10 @@ const FloatingNotification = () => {
 
   const unreadCount = getUnreadCount();
 
+  // Initial fetch
+  //   useEffect(() => {
+  //     fetchNotifications();
+  //   }, [fetchNotifications]);
   // Close when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -74,12 +74,12 @@ const FloatingNotification = () => {
   return (
     <div
       ref={containerRef}
-      className="fixed top-5 right-5 z-50 flex flex-col items-end gap-2"
+      className="fixed top-5 right-5 z-50 flex flex-col items-end gap-2 pointer-events-none"
     >
       {/* Floating Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`btn btn-circle shadow-xl border border-base-content/10 transition-all duration-300 ${
+        className={`btn btn-circle shadow-xl border border-base-content/10 transition-all duration-300 pointer-events-auto ${
           isOpen ? "btn-neutral rotate-90" : "btn-primary hover:scale-105"
         }`}
       >
@@ -99,7 +99,7 @@ const FloatingNotification = () => {
 
       {/* Dropdown Content */}
       <div
-        className={`transition-all duration-300 ease-in-out origin-top-right ${
+        className={`transition-all duration-300 ease-in-out origin-top-right pointer-events-auto ${
           isOpen
             ? "opacity-100 scale-100 translate-y-0"
             : "opacity-0 scale-95 -translate-y-4 pointer-events-none"
