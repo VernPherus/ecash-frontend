@@ -2,11 +2,8 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Wallet,
   Search,
-  Edit2,
   X,
-  Banknote,
   Layers,
   FileText,
   Save,
@@ -14,7 +11,6 @@ import {
   CheckCircle2,
   Ban,
   Trash2,
-  Power,
   Plus,
   Eye,
 } from "lucide-react";
@@ -24,26 +20,28 @@ import useFundStore from "../store/useFundStore";
 import FundSourceForm from "../components/FundSourceForm";
 import DataTable from "../components/DataTable";
 import FloatingNotification from "../components/FloatingNotification";
+import useSystemStore from "../store/useSystemStore";
 
 import { formatCurrency, formatDate } from "../lib/formatters";
-import { totalAllocation } from "../lib/formulas";
 
 const FundManagerPage = () => {
   const navigate = useNavigate();
 
   // --- Store ---
   const {
+    displayFundStats,
+    fundStats,
     funds,
     entries,
     fetchFunds,
     fetchEntries,
     createEntry,
     deleteEntry,
-    deactivateFund,
     setSelectedFund,
     selectedFund,
     isLoading: isStoreLoading,
   } = useFundStore();
+  const { time, getTime } = useSystemStore();
 
   // --- UI State ---
   const [activeTab, setActiveTab] = useState("FUNDS"); // 'FUNDS' | 'LEDGER'
@@ -294,32 +292,12 @@ const FundManagerPage = () => {
     </button>
   );
 
-  const totalBudget = totalAllocation(funds);
-
   return (
     <div className="min-h-screen bg-base-200/50 pb-20 font-sans">
       {/* --- HEADER --- */}
       <FloatingNotification />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
         {/* --- STATS OVERVIEW --- */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-1 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-xl p-6 shadow-xl text-white relative overflow-hidden border border-indigo-500/20">
-            <div className="absolute -right-4 -bottom-4 opacity-10">
-              <Wallet className="w-32 h-32" />
-            </div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-2 text-indigo-100/80 mb-1">
-                <Banknote className="w-4 h-4" />
-                <span className="text-xs font-bold uppercase tracking-wider">
-                  Total Allocation
-                </span>
-              </div>
-              <h2 className="text-3xl font-bold tracking-tight">
-                {formatCurrency(totalBudget)}
-              </h2>
-            </div>
-          </div>
-        </div>
 
         {/* --- TABS & FILTERS --- */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
