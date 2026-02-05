@@ -205,16 +205,6 @@ const DisbursementPage = () => {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                handleEdit(row);
-              }}
-              className="btn btn-xs btn-outline border-base-300 text-base-content/60 hover:text-warning hover:border-warning gap-1 font-normal"
-              title="Edit Record"
-            >
-              <Pencil className="w-3 h-3" /> Edit
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
                 navigate(`/disbursement/${row.id}`);
               }}
               className="btn btn-xs btn-outline border-base-300 text-base-content/60 hover:text-primary hover:border-primary gap-1 font-normal"

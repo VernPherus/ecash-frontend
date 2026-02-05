@@ -16,6 +16,7 @@ import {
   TrendingDown,
   Banknote,
   X,
+  Trash2, // Added Trash2 icon
 } from "lucide-react";
 
 import InfoCard, { InfoRow } from "../components/InfoCard";
@@ -59,9 +60,9 @@ const DisbursementViewPage = () => {
     selectedDisbursement,
     showDisbursement,
     approveDisbursement,
+    deleteDisbursement, // Destructured delete action
     isLoading,
     getDisbursementStatus,
-    deleteDisbursement,
   } = useDisbursementStore();
 
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
@@ -69,7 +70,7 @@ const DisbursementViewPage = () => {
 
   // --- Modal & Edit State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingDisbursement, setEditingDisbursement] = useState(null)
+  const [editingDisbursement, setEditingDisbursement] = useState(null);
 
   useEffect(() => {
     if (id) {
@@ -84,6 +85,20 @@ const DisbursementViewPage = () => {
 
     if (result?.success) {
       setIsApprovalModalOpen(false);
+    }
+  };
+
+  // Added Delete Handler
+  const handleDelete = async () => {
+    if (
+      window.confirm(
+        "Are you sure you want to delete this disbursement? This action cannot be undone.",
+      )
+    ) {
+      const result = await deleteDisbursement(Number(id));
+      if (result.success) {
+        navigate("/"); // Redirect to dashboard after delete
+      }
     }
   };
 
@@ -130,7 +145,7 @@ const DisbursementViewPage = () => {
 
   return (
     <div className="min-h-screen bg-base-200 pb-20 font-sans">
-      {/* Approval Modal */}
+    {/* Approval Modal */}
       <ApprovalModal
         isOpen={isApprovalModalOpen}
         onClose={() => setIsApprovalModalOpen(false)}
@@ -159,7 +174,7 @@ const DisbursementViewPage = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="flex-1 overflow-hidden p-6">
+            <div className="flex-1 overflow-y-auto p-6 min-h-0">
               <DisbursementForm
                 initialData={disbursement}
                 onClose={() => setIsEditModalOpen(false)}
@@ -209,15 +224,21 @@ const DisbursementViewPage = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              {status.status === "pending" && (
-                <button
-                  onClick={() => setIsEditModalOpen(true)}
-                  className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-primary hover:bg-base-200"
-                  title="Edit Record"
-                >
-                  <Edit2 className="w-4 h-4" />
-                </button>
-              )}
+              {/* Buttons are now always visible regardless of status */}
+              <button
+                onClick={handleDelete}
+                className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-error hover:bg-error/10 transition-colors"
+                title="Delete Record"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setIsEditModalOpen(true)}
+                className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-primary hover:bg-base-200"
+                title="Edit Record"
+              >
+                <Edit2 className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
@@ -274,7 +295,6 @@ const DisbursementViewPage = () => {
 
             {/* Particulars */}
             <div className="bg-base-100 rounded-xl border border-base-300 shadow-sm overflow-hidden">
-              {/* FIX: Changed 'bg-base-50/50' to 'bg-base-200/50' */}
               <div className="bg-base-200/50 px-6 py-3 border-b border-base-200">
                 <h3 className="text-xs font-bold text-base-content/50 uppercase tracking-wider flex items-center gap-2">
                   <FileText className="w-4 h-4" />
@@ -415,7 +435,6 @@ const DisbursementViewPage = () => {
 
             {/* Approved Panel (Only if PAID) */}
             {status.status === "PAID" && (
-              // This usually looks okay in dark mode, but let's tweak the text colors just in case
               <div className="bg-emerald-500/10 rounded-xl border border-emerald-500/20 p-5 flex items-start gap-4">
                 <div className="bg-base-100 p-2 rounded-full border border-emerald-500/30 shadow-sm text-emerald-500">
                   <CheckCircle className="w-5 h-5" />
