@@ -19,6 +19,7 @@ import {
 import toast from "react-hot-toast";
 
 import useFundStore from "../store/useFundStore";
+import useAuthStore from "../store/useAuthStore"; // 1. Import Auth Store
 import FundSourceForm from "../components/FundSourceForm";
 import DataTable from "../components/DataTable";
 import FloatingNotification from "../components/FloatingNotification";
@@ -34,10 +35,12 @@ const FundManagerPage = () => {
   const {
     displayFundStats,
     fundStats,
+    dashboard, // Ensure dashboard is destructured if used (based on previous turns)
     funds,
     entries,
     fetchFunds,
     fetchEntries,
+    fetchDashboardStats, // Ensure fetchDashboardStats is available
     createEntry,
     deleteEntry,
     setSelectedFund,
@@ -45,6 +48,7 @@ const FundManagerPage = () => {
     isLoading: isStoreLoading,
   } = useFundStore();
   const { time, getTime } = useSystemStore();
+  const { authUser } = useAuthStore(); // 2. Get current user
 
   // --- UI State ---
   const [activeTab, setActiveTab] = useState("FUNDS"); // 'FUNDS' | 'LEDGER'
@@ -61,11 +65,15 @@ const FundManagerPage = () => {
   const [isSubmittingEntry, setIsSubmittingEntry] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // 3. Permission Check
+  const canDelete = authUser?.role === "ADMIN" || authUser?.role === "STAFF";
+
   // --- Initial Fetch ---
   useEffect(() => {
     fetchFunds();
     fetchEntries();
-  }, [fetchFunds, fetchEntries]);
+    if (fetchDashboardStats) fetchDashboardStats(); // Fetch stats if function exists
+  }, [fetchFunds, fetchEntries, fetchDashboardStats]);
 
   // --- For fund Stats ---
   useEffect(() => {
@@ -144,6 +152,12 @@ const FundManagerPage = () => {
   };
 
   const handleDeleteEntry = async (id) => {
+    // 4. Guard Clause
+    if (!canDelete) {
+      toast.error("You do not have permission to delete entries.");
+      return;
+    }
+
     if (
       !window.confirm(
         "Are you sure you want to delete this ledger entry? This will revert the fund balance.",
@@ -237,7 +251,7 @@ const FundManagerPage = () => {
         ),
       },
     ],
-    [isDeleting],
+    [isDeleting, navigate],
   );
 
   const ledgerColumns = useMemo(
@@ -285,22 +299,25 @@ const FundManagerPage = () => {
         headerAlign: "text-center",
         render: (row) => (
           <div className="flex justify-center">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteEntry(row.id);
-              }}
-              disabled={isDeleting}
-              className="btn btn-xs btn-ghost text-base-content/40 hover:text-error hover:bg-error/10"
-              title="Delete Entry"
-            >
-              <Trash2 className="w-3 h-3" />
-            </button>
+            {/* 5. Conditional Rendering based on Permission */}
+            {canDelete && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteEntry(row.id);
+                }}
+                disabled={isDeleting}
+                className="btn btn-xs btn-ghost text-base-content/40 hover:text-error hover:bg-error/10"
+                title="Delete Entry"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+            )}
           </div>
         ),
       },
     ],
-    [isDeleting],
+    [isDeleting, canDelete], // Add canDelete to dependency array
   );
 
   const headerActions = (
@@ -331,7 +348,20 @@ const FundManagerPage = () => {
             </h3>
           </div>
 
-          {fundStats.length > 0 ? (
+          {/* Render cards either from dashboard state (if available) or fundStats */}
+          {dashboard?.funds && dashboard.funds.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {dashboard.funds.map((fundStat) => (
+                <FundStatCard
+                  key={fundStat.fundId}
+                  fundId={fundStat.fundId}
+                  totalEntries={fundStat.totalEntries}
+                  totalMonthly={fundStat.totalMonthly}
+                  totalCashUtil={fundStat.totalCashUtil}
+                />
+              ))}
+            </div>
+          ) : fundStats.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {fundStats.map((fundStat) => (
                 <FundStatCard
@@ -339,7 +369,6 @@ const FundManagerPage = () => {
                   fundId={fundStat.fundId}
                   totalEntries={fundStat.totalEntries}
                   totalMonthly={fundStat.totalMonthly}
-                  totalDisbursements={fundStat.totalDisbursement}
                   totalCashUtil={fundStat.totalCashUtil}
                 />
               ))}

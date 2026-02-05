@@ -2,71 +2,127 @@ import { create } from "zustand";
 import axiosInstance from "../lib/axios";
 import toast from "react-hot-toast";
 
-export const useReportStore = create((set) => ({
+export const useReportStore = create((set, get) => ({
   isLoading: false,
   error: null,
 
   /**
-   * Downloads the SPV Excel report for a specific fund and date
-   * @param {string|number} year - e.g., 2025
-   * @param {string|number} month - e.g., 9 (September)
-   * @param {number} fundId - The ID of the fund source
-   * @param {string} fundCode - Used for the filename (e.g., "GF-101")
+   * Internal Helper: Handles file download logic for Blob responses.
+   * Parses errors if the blob is actually a JSON error message.
    */
-  downloadSPV: async (year, month, fundId, fundCode) => {
+  _handleDownload: async (url, params, fallbackFilename) => {
     set({ isLoading: true, error: null });
-
     try {
-      const response = await axiosInstance.get(`/reports/spv`, {
-        params: { year, month, fundId },
-        responseType: "blob", // IMPORTANT: Forces response to be treated as a binary file
-        withCredentials: true, // If you need cookies for auth
+      const response = await axiosInstance.get(url, {
+        params,
+        responseType: "blob", // Important: Treat response as binary
+        withCredentials: true,
       });
 
-      // --- Create a virtual link to trigger the browser download ---
+      // Check if the response is actually an error (some backends return JSON errors as blobs)
+      const contentType = response.headers["content-type"];
+      if (contentType && contentType.includes("application/json")) {
+        // This is actually an error response disguised as a blob
+        const text = await response.data.text();
+        const json = JSON.parse(text);
+        throw new Error(json.message || "Failed to download report.");
+      }
 
-      // 1. Create a URL for the blob
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-
-      // 2. Create a hidden <a> tag
-      const link = document.createElement("a");
-      link.href = url;
-
-      // 3. Set the filename (e.g., "SPV-2025-09-GF-101.xlsx")
-      const fileName = `SPV-${year}-${month
-        .toString()
-        .padStart(2, "0")}-${fundCode}.xlsx`;
-      link.setAttribute("download", fileName);
-
-      // 4. Append to body, click, and remove
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      // 5. Cleanup the URL object to free memory
-      window.URL.revokeObjectURL(url);
-
-      set({ isLoading: false });
-      return true; // Indicate success
-    } catch (error) {
-      console.error("Download failed:", error);
-
-      // Helper to read the error message from a Blob response (tricky part of axios blobs)
-      let errorMessage = "Failed to download report.";
-      if (error.response && error.response.data instanceof Blob) {
-        const text = await error.response.data.text();
-        try {
-          const json = JSON.parse(text);
-          errorMessage = json.message || errorMessage;
-        } catch (error) {
-          toast.error(error.message)
+      // Extract filename from Content-Disposition header if present
+      let fileName = fallbackFilename;
+      const disposition = response.headers["content-disposition"];
+      if (disposition && disposition.includes("filename=")) {
+        const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(
+          disposition,
+        );
+        if (matches != null && matches[1]) {
+          fileName = matches[1].replace(/['"]/g, "");
         }
       }
 
+      // Create download link
+      const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.setAttribute("download", fileName);
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+
+      set({ isLoading: false });
+      toast.success("Report downloaded successfully!");
+      return { success: true };
+    } catch (error) {
+      console.error(`Download failed for ${url}:`, error);
+
+      // Handle Blob Errors (Axios returns Blob even for 400/500 errors when responseType is 'blob')
+      let errorMessage = "Failed to download report.";
+      if (error.response?.data instanceof Blob) {
+        try {
+          const text = await error.response.data.text();
+          const json = JSON.parse(text);
+          errorMessage = json.message || errorMessage;
+        } catch (e) {
+          errorMessage = "Failed to download report. Please try again.";
+        }
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       set({ error: errorMessage, isLoading: false });
-      return false;
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
     }
+  },
+
+  /**
+   * Download Debit Report (ADA)
+   * GET /api/reports/debit
+   */
+  downloadDebitReport: async (year, month, fundId, fundCode) => {
+    // Validate required parameters
+    if (!year || !month || !fundId) {
+      const errorMessage = "Missing required parameters for debit report.";
+      toast.error(errorMessage);
+      set({ error: errorMessage });
+      return { success: false, error: errorMessage };
+    }
+
+    const fallbackName = `DebitReport-${fundCode || "Unknown"}-${year}-${String(month).padStart(2, "0")}.xlsx`;
+    return get()._handleDownload(
+      "/reports/debit",
+      { year, month, fundId },
+      fallbackName,
+    );
+  },
+
+  /**
+   * Download Check Report (RCI)
+   * GET /api/reports/check
+   */
+  downloadCheckReport: async (year, month, fundId, fundCode) => {
+    // Validate required parameters
+    if (!year || !month || !fundId) {
+      const errorMessage = "Missing required parameters for check report.";
+      toast.error(errorMessage);
+      set({ error: errorMessage });
+      return { success: false, error: errorMessage };
+    }
+
+    const fallbackName = `CheckReport-${fundCode || "Unknown"}-${year}-${String(month).padStart(2, "0")}.xlsx`;
+    return get()._handleDownload(
+      "/reports/check",
+      { year, month, fundId },
+      fallbackName,
+    );
   },
 
   clearError: () => set({ error: null }),
 }));
+
+export default useReportStore;

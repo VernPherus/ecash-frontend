@@ -14,12 +14,15 @@ import {
   CheckCircle,
   XCircle,
   X,
+  Download,
+  FileBarChart,
 } from "lucide-react";
 
 import InfoCard, { InfoRow } from "../components/InfoCard";
 import useFundStore from "../store/useFundStore";
 import useAuthStore from "../store/useAuthStore";
-import FundSourceForm from "../components/FundSourceForm"; // Reusing the existing form
+import useReportStore from "../store/useReportStore";
+import FundSourceForm from "../components/FundSourceForm";
 import { formatCurrency, formatDate } from "../lib/formatters";
 
 const FundViewPage = () => {
@@ -30,11 +33,24 @@ const FundViewPage = () => {
   const { selectedFund, fetchFundDetails, deactivateFund, isLoading } =
     useFundStore();
 
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const {
+    downloadDebitReport,
+    downloadCheckReport,
+    isLoading: isReportLoading,
+  } = useReportStore();
 
-  // --- Role-based access control
-  const canEdit = authUser?.role === "STAFF" || authUser?.role === "ADMIN";
-  const canDelete = authUser?.role === "STAFF" || authUser?.role === "ADMIN";
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+
+  // Report Form State
+  const [reportConfig, setReportConfig] = useState({
+    month: new Date().getMonth() + 1,
+    year: new Date().getFullYear(),
+    type: "CHECK",
+  });
+
+  // Access Control: Allow ADMIN and STAFF to modify
+  const canModify = authUser?.role === "ADMIN" || authUser?.role === "STAFF";
 
   useEffect(() => {
     if (id) {
@@ -43,11 +59,6 @@ const FundViewPage = () => {
   }, [id, fetchFundDetails]);
 
   const handleDelete = async () => {
-    if (!canDelete) {
-      alert("You don't have permission to deactivate this fund source.");
-      return;
-    }
-
     if (
       window.confirm(
         "Are you sure you want to deactivate this fund source? It will no longer be selectable for new disbursements.",
@@ -60,12 +71,30 @@ const FundViewPage = () => {
     }
   };
 
-  const handleEdit = () => {
-    if (!canEdit) {
-      alert("You don't have permission to edit this fund source.");
-      return;
+  const handleDownloadReport = async (e) => {
+    e.preventDefault();
+    if (!selectedFund) return;
+
+    let success = false;
+    if (reportConfig.type === "CHECK") {
+      success = await downloadCheckReport(
+        reportConfig.year,
+        reportConfig.month,
+        selectedFund.id,
+        selectedFund.code,
+      );
+    } else {
+      success = await downloadDebitReport(
+        reportConfig.year,
+        reportConfig.month,
+        selectedFund.id,
+        selectedFund.code,
+      );
     }
-    setIsEditModalOpen(true);
+
+    if (success) {
+      setIsReportModalOpen(false);
+    }
   };
 
   // --- Loading State ---
@@ -108,7 +137,6 @@ const FundViewPage = () => {
   }
 
   const fund = selectedFund;
-  // Fallback stats if backend returns null/undefined for stats object
   const stats = fund.stats || {
     initialBalance: fund.initialBalance || 0,
     remainingBalance: 0,
@@ -117,7 +145,9 @@ const FundViewPage = () => {
 
   return (
     <div className="min-h-screen bg-base-200 pb-20 font-sans">
-      {/* Edit Modal */}
+      {/* --- MODALS --- */}
+
+      {/* 1. Edit Fund Modal */}
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
@@ -143,6 +173,146 @@ const FundViewPage = () => {
                 onClose={() => setIsEditModalOpen(false)}
               />
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2. Generate Report Modal */}
+      {isReportModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => !isReportLoading && setIsReportModalOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="relative w-full max-w-md bg-base-100 rounded-xl shadow-2xl overflow-hidden animate-scaleIn border border-base-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-base-200 bg-base-50/50">
+              <h3 className="text-lg font-bold text-base-content flex items-center gap-2">
+                <FileBarChart className="w-5 h-5 text-primary" />
+                Generate Monthly Audit
+              </h3>
+              <button
+                onClick={() => setIsReportModalOpen(false)}
+                className="btn btn-ghost btn-sm btn-square"
+                disabled={isReportLoading}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleDownloadReport} className="p-6 space-y-5">
+              {/* Date Selection */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="form-control">
+                  <label className="label pt-0">
+                    <span className="label-text font-medium">Month</span>
+                  </label>
+                  <select
+                    className="select select-bordered w-full"
+                    value={reportConfig.month}
+                    onChange={(e) =>
+                      setReportConfig({
+                        ...reportConfig,
+                        month: Number(e.target.value),
+                      })
+                    }
+                  >
+                    {Array.from({ length: 12 }, (_, i) => (
+                      <option key={i + 1} value={i + 1}>
+                        {new Date(0, i).toLocaleString("default", {
+                          month: "long",
+                        })}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-control">
+                  <label className="label pt-0">
+                    <span className="label-text font-medium">Year</span>
+                  </label>
+                  <input
+                    type="number"
+                    className="input input-bordered w-full"
+                    value={reportConfig.year}
+                    onChange={(e) =>
+                      setReportConfig({
+                        ...reportConfig,
+                        year: Number(e.target.value),
+                      })
+                    }
+                    min="2000"
+                    max="2100"
+                  />
+                </div>
+              </div>
+
+              {/* Report Type Selection */}
+              <div className="form-control">
+                <label className="label pt-0">
+                  <span className="label-text font-medium">Report Type</span>
+                </label>
+                <div className="flex flex-col gap-3">
+                  <label
+                    className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${reportConfig.type === "CHECK" ? "border-primary bg-primary/5" : "border-base-300 hover:bg-base-200"}`}
+                  >
+                    <input
+                      type="radio"
+                      name="reportType"
+                      className="radio radio-primary radio-sm mt-0.5"
+                      checked={reportConfig.type === "CHECK"}
+                      onChange={() =>
+                        setReportConfig({ ...reportConfig, type: "CHECK" })
+                      }
+                    />
+                    <div>
+                      <span className="font-bold text-sm block">
+                        Report of Checks Issued (RCI)
+                      </span>
+                      <span className="text-xs text-base-content/60">
+                        For check disbursements
+                      </span>
+                    </div>
+                  </label>
+
+                  <label
+                    className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${reportConfig.type === "DEBIT" ? "border-primary bg-primary/5" : "border-base-300 hover:bg-base-200"}`}
+                  >
+                    <input
+                      type="radio"
+                      name="reportType"
+                      className="radio radio-primary radio-sm mt-0.5"
+                      checked={reportConfig.type === "DEBIT"}
+                      onChange={() =>
+                        setReportConfig({ ...reportConfig, type: "DEBIT" })
+                      }
+                    />
+                    <div>
+                      <span className="font-bold text-sm block">
+                        Report of Advice to Debit Account (ADA)
+                      </span>
+                      <span className="text-xs text-base-content/60">
+                        For LDDAP disbursements
+                      </span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  className="btn btn-primary w-full shadow-lg shadow-primary/20 gap-2"
+                  disabled={isReportLoading}
+                >
+                  {isReportLoading ? (
+                    <span className="loading loading-spinner loading-sm"></span>
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )}
+                  {isReportLoading ? "Generating..." : "Download Report"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -190,25 +360,39 @@ const FundViewPage = () => {
               </div>
             </div>
 
-            {/* Access Control: Only STAFF and ADMIN can Edit/Delete */}
+            {/* Actions */}
             <div className="flex items-center gap-2">
-              {canDelete && (
-                <button
-                  onClick={handleDelete}
-                  className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-error hover:bg-error/10 transition-colors"
-                  title="Deactivate Fund"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
-              {canEdit && (
-                <button
-                  onClick={handleEdit}
-                  className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-primary hover:bg-base-200"
-                  title="Edit Fund"
-                >
-                  <Edit2 className="w-4 h-4" />
-                </button>
+              {/* Report Button - Visible to all authorized users */}
+              <button
+                onClick={() => setIsReportModalOpen(true)}
+                className="btn btn-ghost btn-sm text-base-content/60 hover:text-primary hover:bg-primary/10 transition-colors gap-2"
+                title="Generate Monthly Audit"
+              >
+                <FileText className="w-4 h-4" />
+                <span className="hidden sm:inline text-xs font-bold">
+                  Audit Report
+                </span>
+              </button>
+
+              {/* Access Control: STAFF and ADMIN can Edit/Delete */}
+              {canModify && (
+                <>
+                  <div className="h-4 w-px bg-base-300 mx-1"></div>
+                  <button
+                    onClick={handleDelete}
+                    className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-error hover:bg-error/10 transition-colors"
+                    title="Deactivate Fund"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setIsEditModalOpen(true)}
+                    className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-primary hover:bg-base-200"
+                    title="Edit Fund"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                </>
               )}
             </div>
           </div>
