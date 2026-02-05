@@ -9,6 +9,7 @@ const useFundStore = create((set, get) => ({
     funds: [],
     totals: null,
   },
+  fundStats: [],
   entries: [],
   selectedFund: null,
   pagination: {
@@ -84,9 +85,7 @@ const useFundStore = create((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       // Route is /showfund, implies query param since no :id in route path
-      const response = await axiosInstance.get("/fund/showfund", {
-        params: { id },
-      });
+      const response = await axiosInstance.get(`/fund/showfund/${id}`);
 
       set({
         selectedFund: response.data,
@@ -95,6 +94,26 @@ const useFundStore = create((set, get) => ({
       return response.data;
     } catch (error) {
       const message = error.response?.data?.message || "Fund not found";
+      set({ error: message, isLoading: false });
+      toast.error(message);
+      return null;
+    }
+  },
+
+  displayFundStats: async (fundData) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axiosInstance.post("/fund/displayStats", fundData);
+
+      const data = response.data.stats;
+      set({
+        fundStats: data,
+        isLoading: false,
+      });
+      return data;
+    } catch (error) {
+      const message =
+        error.response?.data?.message || "Failed to fetch fund stats";
       set({ error: message, isLoading: false });
       toast.error(message);
       return null;
@@ -312,6 +331,29 @@ const useFundStore = create((set, get) => ({
       set({ isLoading: false });
       toast.error(message);
       return { success: false, error: message };
+    }
+  },
+
+  handleSocketUpdate: async (payload) => {
+    const { type, data, id } = payload;
+    const currentFunds = get().funds;
+
+    if (type === "CREATE") {
+      set({ funds: [...currentFunds, data] });
+    } else if (type === "UPDATE") {
+      set({
+        funds: currentFunds.map((fund) =>
+          fund.id === data.id ? { ...fund, ...data } : fund,
+        ),
+      });
+    } else if (type === "DELETE") {
+      set({
+        funds: currentFunds.map((fund) =>
+          fund.id === data.id ? { ...fund, ...data } : fund,
+        ),
+      });
+    } else if (type === "RESET") {
+      get().fetchFunds();
     }
   },
 

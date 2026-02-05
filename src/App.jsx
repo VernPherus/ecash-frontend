@@ -1,5 +1,12 @@
 import { useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  Outlet,
+} from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 
 // Store
 import useAuthStore from "./store/useAuthStore";
@@ -7,6 +14,7 @@ import useThemeStore from "./store/useThemeStore";
 
 // Layout Components
 import Sidebar from "./components/Sidebar";
+import LoadingScreen from "./components/LoadingScreen";
 
 // Pages
 import LoginPage from "./pages/LoginPage";
@@ -21,24 +29,12 @@ import SettingsPage from "./pages/SettingsPage";
 import UserManagerPage from "./pages/admin/UserManagerPage";
 import LogsPage from "./pages/admin/LogsPage";
 import SignUpPage from "./pages/admin/SignUpPage";
+
 import DisbursementPage from "./pages/DisbursementPage";
-
-
-import Check from './components/disbursement_components/Check';
-import Lddap from './components/disbursement_components/LDDAP';
-
-// Loading Spinner Component
-const LoadingScreen = () => (
-  <div className="min-h-screen flex items-center justify-center bg-base-200">
-    <div className="text-center">
-      <div className="w-16 h-16 mx-auto mb-4 relative">
-        <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
-        <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
-      </div>
-      <p className="text-base-content/60 font-medium">Loading eCash...</p>
-    </div>
-  </div>
-);
+import Check from "./components/disbursement_components/Check";
+import Lddap from "./components/disbursement_components/LDDAP";
+import FundViewPage from "./pages/FundViewPage";
+import PayeeViewPage from "./pages/PayeeViewPage";
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
@@ -97,78 +93,75 @@ const App = () => {
   }
 
   return (
-    <BrowserRouter>
-      {/* Toast Notifications */}
-    
+    <div>
+      <Toaster position="top-center" />
+      <BrowserRouter>
+        {/* Toast Notifications */}
 
-      <Routes>
-        {/* Auth Routes */}
-        <Route
-          path="/login"
-          element={
-            <AuthRoute>
-              <LoginPage />
-            </AuthRoute>
-          }
-        />
+        <Routes>
+          {/* Auth Routes */}
+          <Route
+            path="/login"
+            element={
+              <AuthRoute>
+                <LoginPage />
+              </AuthRoute>
+            }
+          />
 
+          {/* Protected Routes with Layout */}
+          <Route
+            element={
+              <ProtectedRoute>
+                <MainLayout />
+              </ProtectedRoute>
+            }
+          >
+            {/* Dashboard */}
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/dashboard" element={<Navigate to="/" replace />} />
 
+            {/* Management */}
+            <Route path="/funds" element={<FundManagerPage />} />
+            <Route path="/funds/:id" element={<FundViewPage />} />
+            <Route path="/payees" element={<PayeeManagerPage />} />
+            <Route path="/payees/:id" element={<PayeeViewPage />} />
+            <Route path="/disbursement/new" element={<DisbursementPage />} />
+            <Route
+              path="/disbursement/edit/:id"
+              element={<DisbursementPage />}
+            />
+            <Route
+              path="/disbursement/:id"
+              element={<DisbursementViewPage />}
+            />
 
+            {/* User */}
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/settings" element={<SettingsPage />} />
 
-        {/* Protected Routes with Layout */}
-        <Route
-          element={
-            <ProtectedRoute>
-              <MainLayout />
-            </ProtectedRoute>
-          }
-        >
-          {/* Dashboard */}
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/dashboard" element={<Navigate to="/" replace />} />
+            {/* Admin Routes */}
+            <Route path="/admin/users" element={<UserManagerPage />} />
+            <Route path="/admin/logs" element={<LogsPage />} />
+            <Route path="/admin/signup" element={<SignUpPage />} />
+          </Route>
 
-          {/* Management */}
-          <Route path="/funds" element={<FundManagerPage />} />
-          <Route path="/payees" element={<PayeeManagerPage />} />
-          <Route path="/disbursement/new" element={<DisbursementPage />} />
-          <Route path="/disbursement/edit/:id" element={<DisbursementPage />} />
-          <Route path="/disbursement/:id" element={<DisbursementViewPage />} />
+          {/* Catch-all redirect */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
 
-          {/* User */}
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/settings" element={<SettingsPage />} />
+        {/* Sidebar - THIS ALWAYS STAYS */}
+        <aside className="w-64 bg-slate-900">
+          {/* Your sidebar content */}
+        </aside>
 
-          {/* Admin Routes */}
-          <Route path="/admin/users" element={<UserManagerPage />} />
-          <Route path="/admin/logs" element={<LogsPage />} />
-          <Route path="/admin/signup" element={<SignUpPage />} />
-        </Route>
-
-        {/* Catch-all redirect */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-
-
-
-
-
-
-      </Routes>
-
-
-     
-  {/* Sidebar - THIS ALWAYS STAYS */}
-  <aside className="w-64 bg-slate-900">
-    {/* Your sidebar content */}
-  </aside>
-
-  {/* Main Content - ONLY THIS CHANGES */}
-  <Routes>
-   <Route path="/disbursement/check" element={<Check />} />
-<Route path="/disbursement/lddap" element={<Lddap />} />
-
-  </Routes>
-
-    </BrowserRouter>
+        {/* Main Content - ONLY THIS CHANGES */}
+        <Routes>
+          <Route path="/disbursement/check" element={<Check />} />
+          <Route path="/disbursement/lddap" element={<Lddap />} />
+        </Routes>
+      </BrowserRouter>
+    </div>
   );
 };
 

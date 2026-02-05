@@ -78,6 +78,7 @@ const useLogStore = create((set, get) => ({
                 userId: null,
                 startDate: null,
                 endDate: null,
+                search: "",
             },
         });
         get().fetchLogs({ page: 1 });

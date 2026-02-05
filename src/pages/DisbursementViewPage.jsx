@@ -6,7 +6,6 @@ import {
   CheckCircle,
   Clock,
   Edit2,
-  Printer,
   Hash,
   Users,
   Copy,
@@ -16,12 +15,16 @@ import {
   TrendingDown,
   Banknote,
   X,
+  Trash2,
 } from "lucide-react";
+
+import useAuthStore from "../store/useAuthStore";
 
 import InfoCard, { InfoRow } from "../components/InfoCard";
 import useDisbursementStore from "../store/useDisbursementStore";
 import ApprovalModal from "../components/ApprovalModal";
 import DisbursementForm from "../components/DisbursementForm";
+
 import { formatCurrency, formatDate } from "../lib/formatters";
 
 // Minimal Copy Button Component
@@ -59,13 +62,21 @@ const DisbursementViewPage = () => {
     selectedDisbursement,
     showDisbursement,
     approveDisbursement,
+    deleteDisbursement,
     isLoading,
     getDisbursementStatus,
   } = useDisbursementStore();
+  const { authUser } = useAuthStore();
 
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
+
+  // --- Modal & Edit State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  // --- Role-based access control
+  const canEdit = authUser?.role === "STAFF" || authUser?.role === "ADMIN";
+  const canDelete = authUser?.role === "STAFF" || authUser?.role === "ADMIN";
 
   useEffect(() => {
     if (id) {
@@ -81,6 +92,33 @@ const DisbursementViewPage = () => {
     if (result?.success) {
       setIsApprovalModalOpen(false);
     }
+  };
+
+  // Added Delete Handler
+  const handleDelete = async () => {
+    if (!canDelete) {
+      alert("You don't have permission to delete this record.");
+      return;
+    }
+
+    if (
+      window.confirm(
+        "Are you sure you want to delete this disbursement? This action cannot be undone.",
+      )
+    ) {
+      const result = await deleteDisbursement(Number(id));
+      if (result.success) {
+        navigate("/"); // Redirect to dashboard after delete
+      }
+    }
+  };
+
+  const handleEdit = () => {
+    if (!canEdit) {
+      alert("You don't have permission to edit this record.");
+      return;
+    }
+    setIsEditModalOpen(true);
   };
 
   // --- Loading State ---
@@ -155,7 +193,7 @@ const DisbursementViewPage = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="flex-1 overflow-hidden p-6">
+            <div className="flex-1 overflow-y-auto p-6 min-h-0">
               <DisbursementForm
                 initialData={disbursement}
                 onClose={() => setIsEditModalOpen(false)}
@@ -205,15 +243,19 @@ const DisbursementViewPage = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <button
-                className="btn btn-ghost btn-sm btn-square text-base-content/60"
-                title="Print Record"
-              >
-                <Printer className="w-4 h-4" />
-              </button>
-              {status.status === "pending" && (
+              {/* Only show buttons if user has permission */}
+              {canDelete && (
                 <button
-                  onClick={() => setIsEditModalOpen(true)}
+                  onClick={handleDelete}
+                  className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-error hover:bg-error/10 transition-colors"
+                  title="Delete Record"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+              {canEdit && (
+                <button
+                  onClick={handleEdit}
                   className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-primary hover:bg-base-200"
                   title="Edit Record"
                 >
@@ -276,7 +318,6 @@ const DisbursementViewPage = () => {
 
             {/* Particulars */}
             <div className="bg-base-100 rounded-xl border border-base-300 shadow-sm overflow-hidden">
-              {/* FIX: Changed 'bg-base-50/50' to 'bg-base-200/50' */}
               <div className="bg-base-200/50 px-6 py-3 border-b border-base-200">
                 <h3 className="text-xs font-bold text-base-content/50 uppercase tracking-wider flex items-center gap-2">
                   <FileText className="w-4 h-4" />
@@ -394,7 +435,6 @@ const DisbursementViewPage = () => {
           <div className="space-y-6">
             {/* A. Action Panel (Only if PENDING) */}
             {status.status === "PENDING" && (
-              // FIX: Changed 'bg-white' to 'bg-base-100'
               <div className="bg-base-100 rounded-xl shadow-lg border border-primary/20 overflow-hidden relative">
                 <div className="absolute top-0 left-0 w-1 h-full bg-primary"></div>
                 <div className="p-6">
@@ -418,7 +458,6 @@ const DisbursementViewPage = () => {
 
             {/* Approved Panel (Only if PAID) */}
             {status.status === "PAID" && (
-              // This usually looks okay in dark mode, but let's tweak the text colors just in case
               <div className="bg-emerald-500/10 rounded-xl border border-emerald-500/20 p-5 flex items-start gap-4">
                 <div className="bg-base-100 p-2 rounded-full border border-emerald-500/30 shadow-sm text-emerald-500">
                   <CheckCircle className="w-5 h-5" />
@@ -512,7 +551,7 @@ const DisbursementViewPage = () => {
               )}
             </InfoCard>
 
-            {/* D. Involved Entities */}
+            {/* Involved Entities */}
             <InfoCard icon={Users} title="Involved Entities">
               {/* Payee */}
               <div className="flex items-center gap-4 py-2">

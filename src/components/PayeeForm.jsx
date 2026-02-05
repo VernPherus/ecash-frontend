@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/static-components */
 import { useState } from "react";
 import {
   Save,
@@ -9,6 +10,7 @@ import {
   Building,
   Hash,
   Briefcase,
+  AlertTriangle,
 } from "lucide-react";
 import usePayeeStore from "../store/usePayeeStore";
 
@@ -32,6 +34,7 @@ const PayeeForm = ({ payee, onClose }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const validate = () => {
     const newErrors = {};
@@ -54,6 +57,13 @@ const PayeeForm = ({ payee, onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
+
+    // Show confirmation dialog
+    setShowConfirmation(true);
+  };
+
+  const handleConfirmedSubmit = async () => {
+    setShowConfirmation(false);
 
     let result;
     if (isEditing && payee?.id) {
@@ -86,284 +96,388 @@ const PayeeForm = ({ payee, onClose }) => {
   );
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col h-full">
-      {/* --- SCROLLABLE CONTENT AREA --- */}
-      <div className="flex-1 overflow-y-auto pr-2 space-y-6 custom-scrollbar max-h-[60vh] md:max-h-[65vh]">
-        {/* 1. Core Information */}
-        <div>
-          <SectionHeader icon={Briefcase} title="Core Information" />
-          <div className="space-y-4">
-            {/* Name (Required) */}
-            <div className="form-control">
-              <label className="label pt-0">
-                <span className="label-text font-medium">
-                  Payee Name <span className="text-error" aria-label="required">*</span>
+    <>
+      {/* Confirmation Modal */}
+      {showConfirmation && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowConfirmation(false)}
+            aria-hidden="true"
+          />
+          <div className="relative bg-base-100 rounded-xl shadow-2xl max-w-md w-full p-6 animate-scaleIn border border-base-200">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-6 h-6 text-warning" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-base-content mb-2">
+                  {isEditing ? "Confirm Update" : "Confirm Creation"}
+                </h3>
+                <p className="text-sm text-base-content/70 leading-relaxed">
+                  {isEditing
+                    ? `Are you sure you want to update the payee "${formData.name}"? This will modify the existing record.`
+                    : `Are you sure you want to create a new payee "${formData.name}"? Please verify all information is correct.`}
+                </p>
+              </div>
+            </div>
+
+            {/* Summary of key data */}
+            <div className="bg-base-200/50 rounded-lg p-4 mb-6 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-base-content/60">Name:</span>
+                <span className="font-medium text-base-content">
+                  {formData.name}
                 </span>
-              </label>
-              <input
-                type="text"
-                name="name"
-                placeholder="Enter company or individual name (required)"
-                required
-                aria-required="true"
-                className={`input input-bordered w-full ${errors.name ? "input-error" : ""}`}
-                value={formData.name}
-                onChange={handleChange}
-              />
-              {errors.name && (
-                <span className="label-text-alt text-error mt-1" role="alert">
-                  {errors.name}
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-base-content/60">Type:</span>
+                <span className="font-medium text-base-content">
+                  {formData.type}
                 </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-base-content/60">Mobile:</span>
+                <span className="font-medium text-base-content font-mono">
+                  {formData.mobileNum}
+                </span>
+              </div>
+              {formData.email && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-base-content/60">Email:</span>
+                  <span className="font-medium text-base-content">
+                    {formData.email}
+                  </span>
+                </div>
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Type (Required) */}
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowConfirmation(false)}
+                className="btn btn-ghost flex-1"
+                disabled={isLoading}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmedSubmit}
+                disabled={isLoading}
+                className="btn btn-primary flex-1"
+              >
+                {isLoading ? (
+                  <span className="loading loading-spinner loading-sm" />
+                ) : (
+                  "Confirm"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="flex flex-col h-full">
+        {/* --- SCROLLABLE CONTENT AREA --- */}
+        <div className="flex-1 overflow-y-auto pr-2 space-y-6 custom-scrollbar max-h-[60vh] md:max-h-[65vh]">
+          {/* 1. Core Information */}
+          <div>
+            <SectionHeader icon={Briefcase} title="Core Information" />
+            <div className="space-y-4">
+              {/* Name (Required) */}
               <div className="form-control">
                 <label className="label pt-0">
                   <span className="label-text font-medium">
-                    Type <span className="text-error" aria-label="required">*</span>
+                    Payee Name{" "}
+                    <span className="text-error" aria-label="required">
+                      *
+                    </span>
                   </span>
                 </label>
-                <select
-                  name="type"
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Enter company or individual name (required)"
                   required
                   aria-required="true"
-                  aria-invalid={Boolean(errors.type)}
-                  className={`select select-bordered w-full ${errors.type ? "select-error" : ""}`}
-                  value={formData.type}
+                  className={`input input-bordered w-full ${errors.name ? "input-error" : ""}`}
+                  value={formData.name}
                   onChange={handleChange}
-                >
-                  <option value="">Select type...</option>
-                  <option value="SUPPLIER">Supplier</option>
-                  <option value="EMPLOYEE">Employee</option>
-                </select>
-                {errors.type && (
+                />
+                {errors.name && (
                   <span className="label-text-alt text-error mt-1" role="alert">
-                    {errors.type}
+                    {errors.name}
                   </span>
                 )}
               </div>
 
-              {/* Mobile Number (Required) */}
-              <div className="form-control">
-                <label className="label pt-0">
-                  <span className="label-text font-medium">
-                    Mobile Number <span className="text-error" aria-label="required">*</span>
-                  </span>
-                </label>
-                <div className="relative">
-                  <Phone className="w-4 h-4 absolute left-3 top-3 text-base-content/40" />
-                  <input
-                    type="tel"
-                    name="mobileNum"
-                    placeholder="09XX XXX XXXX (required)"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Type (Required) */}
+                <div className="form-control">
+                  <label className="label pt-0">
+                    <span className="label-text font-medium">
+                      Type{" "}
+                      <span className="text-error" aria-label="required">
+                        *
+                      </span>
+                    </span>
+                  </label>
+                  <select
+                    name="type"
                     required
                     aria-required="true"
-                    aria-invalid={Boolean(errors.mobileNum)}
-                    className={`input input-bordered w-full pl-10 ${errors.mobileNum ? "input-error" : ""}`}
-                    value={formData.mobileNum}
+                    aria-invalid={Boolean(errors.type)}
+                    className={`select select-bordered w-full ${errors.type ? "select-error" : ""}`}
+                    value={formData.type}
                     onChange={handleChange}
-                  />
+                  >
+                    <option value="">Select type...</option>
+                    <option value="SUPPLIER">Supplier</option>
+                    <option value="EMPLOYEE">Employee</option>
+                  </select>
+                  {errors.type && (
+                    <span
+                      className="label-text-alt text-error mt-1"
+                      role="alert"
+                    >
+                      {errors.type}
+                    </span>
+                  )}
                 </div>
-                {errors.mobileNum && (
-                  <span className="label-text-alt text-error mt-1" role="alert">
-                    {errors.mobileNum}
-                  </span>
-                )}
-              </div>
-            </div>
 
-            {/* TIN Number */}
-            <div className="form-control">
-              <label className="label pt-0">
-                <span className="label-text font-medium">TIN Number</span>
-              </label>
-              <div className="relative">
-                <Hash className="w-4 h-4 absolute left-3 top-3 text-base-content/40" />
-                <input
-                  type="text"
-                  name="tinNum"
-                  placeholder="000-000-000"
-                  className="input input-bordered w-full pl-10 font-mono"
-                  value={formData.tinNum}
-                  onChange={handleChange}
-                />
+                {/* Mobile Number (Required) */}
+                <div className="form-control">
+                  <label className="label pt-0">
+                    <span className="label-text font-medium">
+                      Mobile Number{" "}
+                      <span className="text-error" aria-label="required">
+                        *
+                      </span>
+                    </span>
+                  </label>
+                  <div className="relative">
+                    <Phone className="w-4 h-4 absolute left-3 top-3 text-base-content/40" />
+                    <input
+                      type="tel"
+                      name="mobileNum"
+                      placeholder="09XX XXX XXXX (required)"
+                      required
+                      aria-required="true"
+                      aria-invalid={Boolean(errors.mobileNum)}
+                      className={`input input-bordered w-full pl-10 ${errors.mobileNum ? "input-error" : ""}`}
+                      value={formData.mobileNum}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  {errors.mobileNum && (
+                    <span
+                      className="label-text-alt text-error mt-1"
+                      role="alert"
+                    >
+                      {errors.mobileNum}
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
 
-        {/* 2. Contact Details */}
-        <div>
-          <SectionHeader icon={User} title="Contact Details" />
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Contact Person */}
+              {/* TIN Number */}
               <div className="form-control">
                 <label className="label pt-0">
-                  <span className="label-text font-medium">Contact Person</span>
-                </label>
-                <input
-                  type="text"
-                  name="contactPerson"
-                  placeholder="Representative Name"
-                  className="input input-bordered w-full"
-                  value={formData.contactPerson}
-                  onChange={handleChange}
-                />
-              </div>
-
-              {/* Email */}
-              <div className="form-control">
-                <label className="label pt-0">
-                  <span className="label-text font-medium">Email Address</span>
+                  <span className="label-text font-medium">TIN Number</span>
                 </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 absolute left-3 top-3 text-base-content/40" />
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="email@example.com"
-                    className={`input input-bordered w-full pl-10 ${errors.email ? "input-error" : ""}`}
-                    value={formData.email}
-                    onChange={handleChange}
-                  />
-                </div>
-                {errors.email && (
-                  <span className="label-text-alt text-error mt-1">
-                    {errors.email}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Address */}
-            <div className="form-control">
-              <label className="label pt-0">
-                <span className="label-text font-medium">Address</span>
-              </label>
-              <textarea
-                name="address"
-                placeholder="Registered business address"
-                className="textarea textarea-bordered h-20 resize-none w-full"
-                value={formData.address}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* 3. Banking & Remarks */}
-        <div>
-          <SectionHeader icon={Building} title="Banking & Other" />
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Bank Name */}
-              <div className="form-control">
-                <label className="label pt-0">
-                  <span className="label-text font-medium">Bank Name</span>
-                </label>
-                <input
-                  type="text"
-                  name="bankName"
-                  placeholder="e.g. BDO, BPI"
-                  className="input input-bordered w-full"
-                  value={formData.bankName}
-                  onChange={handleChange}
-                />
-              </div>
-
-              {/* Branch */}
-              <div className="form-control">
-                <label className="label pt-0">
-                  <span className="label-text font-medium">Branch</span>
-                </label>
-                <input
-                  type="text"
-                  name="bankBranch"
-                  placeholder="Branch Location"
-                  className="input input-bordered w-full"
-                  value={formData.bankBranch}
-                  onChange={handleChange}
-                />
-              </div>
-
-              {/* Account Name */}
-              <div className="form-control">
-                <label className="label pt-0">
-                  <span className="label-text font-medium">Account Name</span>
-                </label>
-                <input
-                  type="text"
-                  name="accountName"
-                  placeholder="Account Holder Name"
-                  className="input input-bordered w-full"
-                  value={formData.accountName}
-                  onChange={handleChange}
-                />
-              </div>
-
-              {/* Account Number */}
-              <div className="form-control">
-                <label className="label pt-0">
-                  <span className="label-text font-medium">Account Number</span>
-                </label>
-                <div className="relative">
-                  <CreditCard className="w-4 h-4 absolute left-3 top-3 text-base-content/40" />
+                  <Hash className="w-4 h-4 absolute left-3 top-3 text-base-content/40" />
                   <input
                     type="text"
-                    name="accountNumber"
-                    placeholder="0000 0000 00"
+                    name="tinNum"
+                    placeholder="000-000-000"
                     className="input input-bordered w-full pl-10 font-mono"
-                    value={formData.accountNumber}
+                    value={formData.tinNum}
                     onChange={handleChange}
                   />
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Remarks */}
-            <div className="form-control">
-              <label className="label pt-0">
-                <span className="label-text font-medium">Remarks</span>
-              </label>
-              <textarea
-                name="remarks"
-                placeholder="Additional notes..."
-                className="textarea textarea-bordered h-20 resize-none w-full"
-                value={formData.remarks}
-                onChange={handleChange}
-              />
+          {/* 2. Contact Details */}
+          <div>
+            <SectionHeader icon={User} title="Contact Details" />
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Contact Person */}
+                <div className="form-control">
+                  <label className="label pt-0">
+                    <span className="label-text font-medium">
+                      Contact Person
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    name="contactPerson"
+                    placeholder="Representative Name"
+                    className="input input-bordered w-full"
+                    value={formData.contactPerson}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* Email */}
+                <div className="form-control">
+                  <label className="label pt-0">
+                    <span className="label-text font-medium">
+                      Email Address
+                    </span>
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 absolute left-3 top-3 text-base-content/40" />
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="email@example.com"
+                      className={`input input-bordered w-full pl-10 ${errors.email ? "input-error" : ""}`}
+                      value={formData.email}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  {errors.email && (
+                    <span className="label-text-alt text-error mt-1">
+                      {errors.email}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Address */}
+              <div className="form-control">
+                <label className="label pt-0">
+                  <span className="label-text font-medium">Address</span>
+                </label>
+                <textarea
+                  name="address"
+                  placeholder="Registered business address"
+                  className="textarea textarea-bordered h-20 resize-none w-full"
+                  value={formData.address}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 3. Banking & Remarks */}
+          <div>
+            <SectionHeader icon={Building} title="Banking & Other" />
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Bank Name */}
+                <div className="form-control">
+                  <label className="label pt-0">
+                    <span className="label-text font-medium">Bank Name</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="bankName"
+                    placeholder="e.g. BDO, BPI"
+                    className="input input-bordered w-full"
+                    value={formData.bankName}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* Branch */}
+                <div className="form-control">
+                  <label className="label pt-0">
+                    <span className="label-text font-medium">Branch</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="bankBranch"
+                    placeholder="Branch Location"
+                    className="input input-bordered w-full"
+                    value={formData.bankBranch}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* Account Name */}
+                <div className="form-control">
+                  <label className="label pt-0">
+                    <span className="label-text font-medium">Account Name</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="accountName"
+                    placeholder="Account Holder Name"
+                    className="input input-bordered w-full"
+                    value={formData.accountName}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* Account Number */}
+                <div className="form-control">
+                  <label className="label pt-0">
+                    <span className="label-text font-medium">
+                      Account Number
+                    </span>
+                  </label>
+                  <div className="relative">
+                    <CreditCard className="w-4 h-4 absolute left-3 top-3 text-base-content/40" />
+                    <input
+                      type="text"
+                      name="accountNumber"
+                      placeholder="0000 0000 00"
+                      className="input input-bordered w-full pl-10 font-mono"
+                      value={formData.accountNumber}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Remarks */}
+              <div className="form-control">
+                <label className="label pt-0">
+                  <span className="label-text font-medium">Remarks</span>
+                </label>
+                <textarea
+                  name="remarks"
+                  placeholder="Additional notes..."
+                  className="textarea textarea-bordered h-20 resize-none w-full"
+                  value={formData.remarks}
+                  onChange={handleChange}
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* --- FIXED FOOTER ACTIONS --- */}
-      <div className="pt-4 mt-2 border-t border-base-200 flex gap-3">
-        <button
-          type="button"
-          onClick={onClose}
-          className="btn btn-ghost flex-1"
-        >
-          <X className="w-4 h-4" />
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="btn btn-primary flex-1 shadow-lg shadow-primary/20"
-        >
-          {isLoading ? (
-            <span className="loading loading-spinner loading-sm" />
-          ) : (
-            <Save className="w-4 h-4" />
-          )}
-          {isEditing ? "Save Changes" : "Create Payee"}
-        </button>
-      </div>
-    </form>
+        {/* --- FIXED FOOTER ACTIONS --- */}
+        <div className="pt-4 mt-2 border-t border-base-200 flex gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn btn-ghost flex-1"
+          >
+            <X className="w-4 h-4" />
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="btn btn-primary flex-1 shadow-lg shadow-primary/20"
+          >
+            {isLoading ? (
+              <span className="loading loading-spinner loading-sm" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            {isEditing ? "Save Changes" : "Create Payee"}
+          </button>
+        </div>
+      </form>
+    </>
   );
 };
 
