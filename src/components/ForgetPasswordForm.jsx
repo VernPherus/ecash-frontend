@@ -39,7 +39,7 @@ const ForgetPasswordForm = ({ onBackToLogin }) => {
     });
 
     if (result.success) {
-      onBackToLogin(); // Return to login screen on success
+      onBackToLogin();
     }
   };
 

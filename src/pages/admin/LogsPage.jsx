@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FileText,
   Search,
@@ -7,7 +7,6 @@ import {
   User,
   ChevronLeft,
   ChevronRight,
-  RefreshCw,
 } from "lucide-react";
 import useLogStore from "../../store/useLogStore";
 import FloatingNotification from "../../components/FloatingNotification";
