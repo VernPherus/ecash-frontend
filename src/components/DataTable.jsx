@@ -57,7 +57,7 @@ const DataTable = ({
 
   return (
     <section
-      className={`bg-white dark:bg-base-100 border border-base-300 rounded-xl shadow-md overflow-visible animate-fade-in-up ${className}`}
+      className={`bg-base-100 border border-base-300 rounded-xl shadow-soft overflow-visible animate-fade-in-up ${className}`}
     >
       {/* --- HEADER --- */}
       <div className="px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-base-200">
@@ -71,10 +71,10 @@ const DataTable = ({
             <div className="relative" ref={filterRef}>
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className={`btn btn-sm gap-2 font-medium ${
+                className={`btn btn-sm gap-2 font-medium transition-all ${
                   activeFilter !== "ALL"
-                    ? "btn-primary text-white"
-                    : "btn-outline border-base-300 text-base-content/70 hover:bg-base-100"
+                    ? "btn-primary"
+                    : "btn-outline border-base-300 text-base-content/70 hover:bg-base-200 hover:border-base-300"
                 }`}
               >
                 <Filter className="w-4 h-4" />
@@ -82,7 +82,7 @@ const DataTable = ({
               </button>
 
               {isFilterOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-base-100 rounded-lg shadow-xl border border-base-200 z-50 overflow-hidden">
+                <div className="absolute right-0 top-full mt-2 w-48 bg-base-100 rounded-lg shadow-elevated border border-base-200 z-50 overflow-hidden">
                   <div className="p-1">
                     {filters.map((filter) => (
                       <button
@@ -115,7 +115,7 @@ const DataTable = ({
             {[1, 2, 3, 4, 5].map((i) => (
               <div
                 key={i}
-                className="h-12 w-full bg-base-200/50 rounded-lg animate-pulse"
+                className="h-12 w-full bg-base-200 rounded-lg animate-pulse skeleton-shimmer"
               />
             ))}
           </div>
@@ -134,9 +134,9 @@ const DataTable = ({
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-base-200/50 text-base-content/70">
-                  <tr className="border-b border-base-200 text-xs uppercase tracking-wider font-semibold">
+              <table className="w-full text-left border-collapse table-modern">
+                <thead className="bg-base-200/50 text-base-content/60 border-b border-base-200">
+                  <tr className="text-xs uppercase tracking-wider font-semibold">
                     {columns.map((column, index) => (
                       <th
                         key={column.key}
@@ -151,19 +151,21 @@ const DataTable = ({
                     ))}
                   </tr>
                 </thead>
-                <tbody className="text-sm">
+                <tbody className="text-sm divide-y divide-base-200">
                   {data.map((row, rowIndex) => (
                     <tr
                       key={row.id || rowIndex}
                       onClick={() => onRowClick?.(row)}
-                      className={`group border-b border-base-100 last:border-0 hover:bg-base-200/60 even:bg-base-100/40 transition-colors duration-150 ${
+                      className={`group transition-colors duration-150 ${
+                        rowIndex % 2 === 0 ? "bg-base-100" : "bg-base-200/30"
+                      } hover:bg-base-200/60 ${
                         onRowClick ? "cursor-pointer" : ""
                       }`}
                     >
                       {columns.map((column) => (
                         <td
                           key={column.key}
-                          className={`px-6 py-4 ${column.align || "text-left"}`}
+                          className={`px-6 py-4 text-base-content ${column.align || "text-left"}`}
                         >
                           {column.render
                             ? column.render(row, rowIndex)
@@ -178,21 +180,21 @@ const DataTable = ({
 
             {/* --- PAGINATION --- */}
             {pagination && pagination.totalPages > 1 && (
-              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-base-200">
+              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-base-200 bg-base-100">
                 <span className="text-xs text-base-content/50 font-medium">
                   Page {pagination.currentPage} of {pagination.totalPages}
                 </span>
 
                 <div className="join">
                   <button
-                    className="join-item btn btn-sm btn-outline border-base-300 text-base-content/70 hover:bg-base-200 hover:border-base-300 hover:text-primary"
+                    className="join-item btn btn-sm btn-outline border-base-300 text-base-content/70 hover:bg-base-200 hover:border-base-300 hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed"
                     disabled={pagination.currentPage === 1}
                     onClick={() => onPageChange?.(pagination.currentPage - 1)}
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
                   <button
-                    className="join-item btn btn-sm btn-outline border-base-300 text-base-content/70 hover:bg-base-200 hover:border-base-300 hover:text-primary"
+                    className="join-item btn btn-sm btn-outline border-base-300 text-base-content/70 hover:bg-base-200 hover:border-base-300 hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed"
                     disabled={pagination.currentPage === pagination.totalPages}
                     onClick={() => onPageChange?.(pagination.currentPage + 1)}
                   >
