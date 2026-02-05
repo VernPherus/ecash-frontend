@@ -348,20 +348,8 @@ const FundManagerPage = () => {
             </h3>
           </div>
 
-          {/* Render cards either from dashboard state (if available) or fundStats */}
-          {dashboard?.funds && dashboard.funds.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {dashboard.funds.map((fundStat) => (
-                <FundStatCard
-                  key={fundStat.fundId}
-                  fundId={fundStat.fundId}
-                  totalEntries={fundStat.totalEntries}
-                  totalMonthly={fundStat.totalMonthly}
-                  totalCashUtil={fundStat.totalCashUtil}
-                />
-              ))}
-            </div>
-          ) : fundStats.length > 0 ? (
+          {/* Render cards either from dashboard state fundStats */}
+          {fundStats.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {fundStats.map((fundStat) => (
                 <FundStatCard

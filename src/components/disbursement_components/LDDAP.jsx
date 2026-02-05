@@ -10,7 +10,7 @@ import {
   Trash2,
   Hash,
   FileText,
-  RefreshCw, 
+  RefreshCw,
 } from "lucide-react";
 import useDisbursementStore from "../../store/useDisbursementStore";
 import useFundStore from "../../store/useFundStore";
@@ -24,7 +24,7 @@ const defaultFormData = () => ({
   dvNum: "",
   orsNum: "",
   uacsCode: "",
-  acicNum: "", 
+  acicNum: "",
   respCode: "",
   particulars: "",
   ageLimit: "",
@@ -46,9 +46,9 @@ const Lddap = ({ onClose, initialData }) => {
   const [onlineAmount, setOnlineAmount] = useState("");
   const [isApproved, setIsApproved] = useState(true);
   const [errors, setErrors] = useState({});
-  const [isGenerating, setIsGenerating] = useState(false); // Loading state for code gen
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  // * NEW: Code Generation Handler
+  // Code Generation Handler
   const handleGenerateLDDAPCode = async () => {
     setIsGenerating(true);
     const code = await getLddapCode();
@@ -56,13 +56,13 @@ const Lddap = ({ onClose, initialData }) => {
 
     if (code) {
       setFormData((prev) => ({ ...prev, lddapNum: code }));
-      // Clear error if it existed
       if (errors.lddapNum) setErrors((prev) => ({ ...prev, lddapNum: null }));
     }
   };
 
   useEffect(() => {
-    fetchFunds();
+    // Fetch funds (Note: defaults to page 1 limit 10, you might want to increase limit for dropdowns)
+    fetchFunds(1, 100);
     fetchPayees();
   }, [fetchFunds, fetchPayees]);
 
@@ -124,7 +124,6 @@ const Lddap = ({ onClose, initialData }) => {
     if (errors[e.target.name]) setErrors({ ...errors, [e.target.name]: null });
   };
 
-  // --- Item & Deduction Handlers (Manual Mode) ---
   const handleItemChange = (idx, field, val) => {
     const newItems = [...items];
     newItems[idx][field] = val;
@@ -145,7 +144,6 @@ const Lddap = ({ onClose, initialData }) => {
   const removeDeduction = (index) =>
     setDeductions(deductions.filter((_, i) => i !== index));
 
-  // --- Validation ---
   const validate = () => {
     const newErrors = {};
     if (!formData.payeeId) newErrors.payeeId = "Required";
@@ -175,7 +173,6 @@ const Lddap = ({ onClose, initialData }) => {
     let totalDeductions = 0;
 
     if (method === "ONLINE") {
-      // Online: Create a single generic item
       grossAmount = Number(onlineAmount);
       finalItems = [
         {
@@ -185,7 +182,6 @@ const Lddap = ({ onClose, initialData }) => {
         },
       ];
     } else {
-      // Manual: Use the form lists
       finalItems = items.map((i) => ({ ...i, amount: Number(i.amount) }));
       finalDeductions = deductions
         .filter(
@@ -236,7 +232,7 @@ const Lddap = ({ onClose, initialData }) => {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto pr-2 p-6 custom-scrollbar">
-        {/* 1. Mode Switcher (locked when editing) */}
+        {/* Mode Switcher */}
         <div className="flex justify-center mb-6">
           <div
             className={`bg-base-200 p-1 rounded-lg inline-flex shadow-inner ${isEdit ? "opacity-70 pointer-events-none" : ""}`}
@@ -259,7 +255,7 @@ const Lddap = ({ onClose, initialData }) => {
         </div>
 
         <div className="space-y-6 animate-fade-in">
-          {/* 2. Common Fields */}
+          {/* Common Fields */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="form-control">
               <label className="label pt-0">
@@ -284,6 +280,8 @@ const Lddap = ({ onClose, initialData }) => {
                 </select>
               </div>
             </div>
+
+            {/* Fund Source Dropdown - REVISED */}
             <div className="form-control">
               <label className="label pt-0">
                 <span className="label-text font-medium">
@@ -299,14 +297,17 @@ const Lddap = ({ onClose, initialData }) => {
                   onChange={handleChange}
                 >
                   <option value="">Select Fund...</option>
-                  {funds.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.code} - {f.name}
-                    </option>
-                  ))}
+                  {funds
+                    .filter((f) => f.isActive)
+                    .map((f) => (
+                      <option key={f.id} value={f.id}>
+                        {f.code} - {f.name}
+                      </option>
+                    ))}
                 </select>
               </div>
             </div>
+
             <div className="form-control">
               <label className="label pt-0">
                 <span className="label-text font-medium text-xs uppercase">
@@ -326,7 +327,7 @@ const Lddap = ({ onClose, initialData }) => {
             </div>
           </div>
 
-          {/* References Grid (Moved up for Online visibility too if needed, but keeping structure) */}
+          {/* References Grid */}
           <div className="space-y-4 pt-2">
             <h4 className="text-sm font-bold uppercase text-base-content/70 border-b border-base-200 pb-2">
               References
@@ -352,11 +353,10 @@ const Lddap = ({ onClose, initialData }) => {
                       onChange={handleChange}
                     />
                   </div>
-                  {/* GENERATE BUTTON */}
                   <button
                     type="button"
                     onClick={handleGenerateLDDAPCode}
-                    disabled={isGenerating || isEdit} // Disable on edit or loading
+                    disabled={isGenerating || isEdit}
                     className="btn btn-square btn-outline border-base-300"
                     title="Generate Code"
                   >
@@ -491,7 +491,7 @@ const Lddap = ({ onClose, initialData }) => {
             </div>
           </div>
 
-          {/* --- ONLINE MODE SPECIFIC --- */}
+          {/* ONLINE MODE SPECIFIC */}
           {method === "ONLINE" && (
             <div className="bg-base-200/50 p-6 rounded-xl border border-base-200 text-center space-y-4">
               <h4 className="font-bold text-sm text-base-content/70 uppercase">
@@ -527,10 +527,9 @@ const Lddap = ({ onClose, initialData }) => {
             </div>
           )}
 
-          {/* --- MANUAL MODE SPECIFIC --- */}
+          {/* MANUAL MODE SPECIFIC */}
           {method === "MANUAL" && (
             <div className="space-y-4">
-              {/* Items & Deductions */}
               <div className="space-y-4">
                 {/* Items */}
                 <div className="flex justify-between items-center border-b border-base-200 pb-2">
@@ -640,7 +639,7 @@ const Lddap = ({ onClose, initialData }) => {
             </div>
           )}
 
-          {/* Approved checkbox (common) */}
+          {/* Approved checkbox */}
           <div className="form-control p-3 bg-base-200/50 rounded-lg border border-base-200">
             <label className="label cursor-pointer justify-start gap-3 py-0">
               <input

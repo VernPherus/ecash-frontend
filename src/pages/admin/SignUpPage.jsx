@@ -1,16 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  User,
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  Shield,
-  Check,
-} from "lucide-react";
+import { User, Mail, Lock, Eye, EyeOff, Shield, Check } from "lucide-react";
 import useAuthStore from "../../store/useAuthStore";
-import Header from "../../components/Header";
+import FloatingNotification from "../../components/FloatingNotification";
 
 const SignUpPage = () => {
   const navigate = useNavigate();
@@ -73,7 +65,7 @@ const SignUpPage = () => {
   return (
     <div className="min-h-screen bg-base-200">
       {/* Header */}
-      <Header />
+      <FloatingNotification />
       {/* Main Content */}
       <div className="p-8 max-w-2xl mx-auto">
         <form onSubmit={handleSubmit} className="card-static p-8 space-y-6">

@@ -220,11 +220,13 @@ const Check = ({ onClose, initialData }) => {
                 onChange={handleChange}
               >
                 <option value="">Select Fund...</option>
-                {funds.map((opt) => (
-                  <option key={opt.id} value={opt.id}>
-                    {opt.code} - {opt.name}
-                  </option>
-                ))}
+                {funds
+                  .filter((f) => f.isActive)
+                  .map((opt) => (
+                    <option key={opt.id} value={opt.id}>
+                      {opt.code} - {opt.name}
+                    </option>
+                  ))}
               </select>
             </div>
           </div>
