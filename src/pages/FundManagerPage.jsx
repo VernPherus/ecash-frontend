@@ -137,19 +137,6 @@ const FundManagerPage = () => {
     }
   };
 
-  const handleDeactivateFund = async (id, code) => {
-    if (
-      !window.confirm(
-        `Are you sure you want to deactivate fund "${code}"? This will prevent new entries from being created under this fund.`,
-      )
-    ) {
-      return;
-    }
-    setIsDeleting(true);
-    const result = await deactivateFund(id);
-    setIsDeleting(false);
-  };
-
   // --- Column Definitions ---
   const fundColumns = useMemo(
     () => [
@@ -380,7 +367,9 @@ const FundManagerPage = () => {
           columns={activeTab === "FUNDS" ? fundColumns : ledgerColumns}
           headerActions={headerActions}
           onRowClick={
-            activeTab === "FUNDS" ? (row) => openFundModal(row) : undefined
+            activeTab === "FUNDS"
+              ? (row) => navigate(`/funds/${row.id}`)
+              : undefined
           }
           emptyState={{
             icon: activeTab === "FUNDS" ? Layers : FileText,

@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/preserve-manual-memoization */
 import { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Users,
   Plus,
@@ -19,6 +20,7 @@ import DataTable from "../components/DataTable";
 import FloatingNotification from "../components/FloatingNotification";
 
 const PayeeManagerPage = () => {
+  const navigate = useNavigate();
   const {
     fetchPayees,
     isLoading,
@@ -45,11 +47,6 @@ const PayeeManagerPage = () => {
   const handleEdit = (payee) => {
     setSelectedPayee(payee);
     setShowForm(true);
-  };
-
-  const handleView = (payee) => {
-    setSelectedPayee(payee);
-    setShowDetails(true);
   };
 
   const handleCloseForm = () => {
@@ -175,22 +172,12 @@ const PayeeManagerPage = () => {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                handleView(row);
+                navigate(`/payees/${row.id}`);
               }}
-              className="btn btn-xs btn-outline border-base-300 text-base-content/60 hover:text-info hover:border-info"
+              className="btn btn-xs btn-outline border-base-300 text-base-content/60 hover:text-primary hover:border-primary gap-1 font-normal"
               title="View Details"
             >
-              <Eye className="w-3 h-3" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleEdit(row);
-              }}
-              className="btn btn-xs btn-outline border-base-300 text-base-content/60 hover:text-primary hover:border-primary"
-              title="Edit"
-            >
-              <Edit2 className="w-3 h-3" />
+              <Eye className="w-3 h-3" /> View
             </button>
           </div>
         ),
@@ -220,7 +207,7 @@ const PayeeManagerPage = () => {
   return (
     <div className="min-h-screen bg-base-200/50 pb-20 font-sans">
       {/* --- NOTIFICATION --- */}
-      <FloatingNotification/>
+      <FloatingNotification />
 
       {/* --- MAIN CONTENT --- */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
@@ -247,7 +234,7 @@ const PayeeManagerPage = () => {
           activeFilter={filterType}
           onFilterChange={setFilterType}
           headerActions={headerActions}
-          onRowClick={(row) => handleView(row)}
+          onRowClick={(row) => navigate(`/payees/${row.id}`)}
           emptyState={{
             icon: Users,
             title:

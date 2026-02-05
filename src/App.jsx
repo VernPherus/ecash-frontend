@@ -123,15 +123,14 @@ const App = () => {
 
             {/* Management */}
             <Route path="/funds" element={<FundManagerPage />} />
+            <Route path="/funds/:id" element={<FundViewPage />} />
             <Route path="/payees" element={<PayeeManagerPage />} />
+            <Route path="/payees/:id" element={<PayeeViewPage />} />
             <Route path="/disbursement/new" element={<DisbursementPage />} />
             <Route
               path="/disbursement/edit/:id"
               element={<DisbursementPage />}
             />
-            <Route path="/funds/:id" element={<FundViewPage />} />
-            <Route path="/payees/:id" element={<PayeeViewPage />} />
-
             <Route
               path="/disbursement/:id"
               element={<DisbursementViewPage />}
