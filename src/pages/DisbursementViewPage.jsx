@@ -66,13 +66,17 @@ const DisbursementViewPage = () => {
     isLoading,
     getDisbursementStatus,
   } = useDisbursementStore();
-  const { authUser } = useAuthStore;
+  const { authUser } = useAuthStore();
 
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
 
   // --- Modal & Edit State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  // --- Role-based access control
+  const canEdit = authUser?.role === "STAFF" || authUser?.role === "ADMIN";
+  const canDelete = authUser?.role === "STAFF" || authUser?.role === "ADMIN";
 
   useEffect(() => {
     if (id) {
@@ -92,6 +96,11 @@ const DisbursementViewPage = () => {
 
   // Added Delete Handler
   const handleDelete = async () => {
+    if (!canDelete) {
+      alert("You don't have permission to delete this record.");
+      return;
+    }
+
     if (
       window.confirm(
         "Are you sure you want to delete this disbursement? This action cannot be undone.",
@@ -102,6 +111,14 @@ const DisbursementViewPage = () => {
         navigate("/"); // Redirect to dashboard after delete
       }
     }
+  };
+
+  const handleEdit = () => {
+    if (!canEdit) {
+      alert("You don't have permission to edit this record.");
+      return;
+    }
+    setIsEditModalOpen(true);
   };
 
   // --- Loading State ---
@@ -226,21 +243,25 @@ const DisbursementViewPage = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              {/* Buttons are now always visible regardless of status */}
-              <button
-                onClick={handleDelete}
-                className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-error hover:bg-error/10 transition-colors"
-                title="Delete Record"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setIsEditModalOpen(true)}
-                className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-primary hover:bg-base-200"
-                title="Edit Record"
-              >
-                <Edit2 className="w-4 h-4" />
-              </button>
+              {/* Only show buttons if user has permission */}
+              {canDelete && (
+                <button
+                  onClick={handleDelete}
+                  className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-error hover:bg-error/10 transition-colors"
+                  title="Delete Record"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+              {canEdit && (
+                <button
+                  onClick={handleEdit}
+                  className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-primary hover:bg-base-200"
+                  title="Edit Record"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
         </div>
