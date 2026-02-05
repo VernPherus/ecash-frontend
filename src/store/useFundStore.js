@@ -85,9 +85,7 @@ const useFundStore = create((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       // Route is /showfund, implies query param since no :id in route path
-      const response = await axiosInstance.get("/fund/showfund", {
-        params: { id },
-      });
+      const response = await axiosInstance.get(`/fund/showfund/${id}`);
 
       set({
         selectedFund: response.data,

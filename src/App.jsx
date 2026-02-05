@@ -33,6 +33,8 @@ import SignUpPage from "./pages/admin/SignUpPage";
 import DisbursementPage from "./pages/DisbursementPage";
 import Check from "./components/disbursement_components/Check";
 import Lddap from "./components/disbursement_components/LDDAP";
+import FundViewPage from "./pages/FundViewPage";
+import PayeeViewPage from "./pages/PayeeViewPage";
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
@@ -92,8 +94,7 @@ const App = () => {
 
   return (
     <div>
-
-      <Toaster position="top-center"/>
+      <Toaster position="top-center" />
       <BrowserRouter>
         {/* Toast Notifications */}
 
@@ -128,6 +129,9 @@ const App = () => {
               path="/disbursement/edit/:id"
               element={<DisbursementPage />}
             />
+            <Route path="/funds/:id" element={<FundViewPage />} />
+            <Route path="/payees/:id" element={<PayeeViewPage />} />
+
             <Route
               path="/disbursement/:id"
               element={<DisbursementViewPage />}

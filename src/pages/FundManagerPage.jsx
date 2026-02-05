@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/preserve-manual-memoization */
 import { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Wallet,
   Search,
@@ -15,6 +16,7 @@ import {
   Trash2,
   Power,
   Plus,
+  Eye,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -27,6 +29,8 @@ import { formatCurrency, formatDate } from "../lib/formatters";
 import { totalAllocation } from "../lib/formulas";
 
 const FundManagerPage = () => {
+  const navigate = useNavigate();
+
   // --- Store ---
   const {
     funds,
@@ -212,27 +216,13 @@ const FundManagerPage = () => {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                openFundModal(row);
+                navigate(`/funds/${row.id}`);
               }}
-              className="btn btn-xs btn-ghost text-base-content/60 hover:text-primary hover:bg-primary/10"
-              title="Edit Fund"
+              className="btn btn-xs btn-outline border-base-300 text-base-content/60 hover:text-primary hover:border-primary gap-1 font-normal"
+              title="View Details"
             >
-              <Edit2 className="w-3 h-3" />
+              <Eye className="w-3 h-3" /> View
             </button>
-
-            {row.isActive !== false && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeactivateFund(row.id, row.code);
-                }}
-                className="btn btn-xs btn-ghost text-base-content/40 hover:text-error hover:bg-error/10"
-                title="Deactivate Fund"
-                disabled={isDeleting}
-              >
-                <Power className="w-3 h-3" />
-              </button>
-            )}
           </div>
         ),
       },
