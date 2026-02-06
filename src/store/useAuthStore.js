@@ -116,6 +116,38 @@ const useAuthStore = create(
         }
       },
 
+      /**
+       * * EDIT USER (ADMIN)
+       * Updates user details including sensitive data (email/password)
+       * @param {number|string} userId
+       * @param {object} updates - { firstName, lastName, username, email, password }
+       */
+      updateUser: async (userId, updates) => {
+        set({ isLoading: true });
+        try {
+          // Filter out empty password if not provided to avoid validation errors
+          const cleanUpdates = { ...updates };
+          if (!cleanUpdates.password) delete cleanUpdates.password;
+
+          const response = await axiosInstance.put(
+            `/auth/editUser/${userId}`,
+            cleanUpdates,
+          );
+
+          toast.success(
+            response.data.message || "User details updated successfully",
+          );
+          return { success: true, data: response.data.user };
+        } catch (error) {
+          const message =
+            error.response?.data?.message || "Failed to update user details";
+          toast.error(message);
+          return { success: false, error: message };
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
       //* Grant admin
       grantAdmin: async (userId) => {
         set({ isLoading: true });
