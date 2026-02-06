@@ -67,12 +67,10 @@ const usePayeeStore = create((set, get) => ({
       const response = await axiosInstance.post("/payee/newPayee", payeeData);
       const newPayee = response.data.savedPayee;
 
-      set((state) => ({
-        payees: [...state.payees, newPayee],
-        isLoading: false,
-      }));
-
+      set({ isLoading: false });
       toast.success("Payee created successfully!");
+      await get().fetchPayees();
+
       return { success: true, payee: newPayee };
     } catch (error) {
       const message = error.response?.data?.message || "Failed to create payee";
@@ -91,14 +89,15 @@ const usePayeeStore = create((set, get) => ({
       );
       const updatedPayee = response.data.updatedPayee;
 
-      set((state) => ({
-        payees: state.payees.map((p) => (p.id === id ? updatedPayee : p)),
-        selectedPayee:
-          state.selectedPayee?.id === id ? updatedPayee : state.selectedPayee,
-        isLoading: false,
-      }));
+      set({ isLoading: false });
+
+      if (get().selectedPayee?.id === id) {
+        set({ selectedPayee: updatedPayee }); 
+      }
 
       toast.success("Payee updated successfully!");
+      await get().fetchPayees(); 
+
       return { success: true, payee: updatedPayee };
     } catch (error) {
       const message = error.response?.data?.message || "Failed to update payee";

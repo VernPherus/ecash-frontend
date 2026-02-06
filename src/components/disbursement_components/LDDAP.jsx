@@ -11,6 +11,7 @@ import {
   Hash,
   FileText,
   RefreshCw,
+  Mail, // Import Mail icon
 } from "lucide-react";
 import useDisbursementStore from "../../store/useDisbursementStore";
 import useFundStore from "../../store/useFundStore";
@@ -28,6 +29,7 @@ const defaultFormData = () => ({
   respCode: "",
   particulars: "",
   ageLimit: "",
+  sendMail: false, // Initialize sendMail
 });
 
 const Lddap = ({ onClose, initialData }) => {
@@ -61,7 +63,6 @@ const Lddap = ({ onClose, initialData }) => {
   };
 
   useEffect(() => {
-    // Fetch funds (Note: defaults to page 1 limit 10, you might want to increase limit for dropdowns)
     fetchFunds(1, 100);
     fetchPayees();
   }, [fetchFunds, fetchPayees]);
@@ -89,6 +90,7 @@ const Lddap = ({ onClose, initialData }) => {
       particulars: initialData.particulars ?? "",
       ageLimit:
         initialData.ageLimit != null ? String(initialData.ageLimit) : "",
+      sendMail: false, // Default to false on edit to prevent accidental resend
     });
     if (isOnline) {
       setOnlineAmount(String(initialData.grossAmount ?? ""));
@@ -120,7 +122,9 @@ const Lddap = ({ onClose, initialData }) => {
   }, [initialData]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const value =
+      e.target.type === "checkbox" ? e.target.checked : e.target.value;
+    setFormData({ ...formData, [e.target.name]: value });
     if (errors[e.target.name]) setErrors({ ...errors, [e.target.name]: null });
   };
 
@@ -218,6 +222,7 @@ const Lddap = ({ onClose, initialData }) => {
       dvNum: formData.dvNum ?? "",
       uacsCode: formData.uacsCode ?? "",
       respCode: formData.respCode ?? "",
+      sendMail: formData.sendMail, // Pass the checkbox value
     };
 
     if (isEdit) {
@@ -281,7 +286,7 @@ const Lddap = ({ onClose, initialData }) => {
               </div>
             </div>
 
-            {/* Fund Source Dropdown - REVISED */}
+            {/* Fund Source Dropdown */}
             <div className="form-control">
               <label className="label pt-0">
                 <span className="label-text font-medium">
@@ -639,19 +644,38 @@ const Lddap = ({ onClose, initialData }) => {
             </div>
           )}
 
-          {/* Approved checkbox */}
-          <div className="form-control p-3 bg-base-200/50 rounded-lg border border-base-200">
-            <label className="label cursor-pointer justify-start gap-3 py-0">
-              <input
-                type="checkbox"
-                className="checkbox checkbox-sm checkbox-success"
-                checked={isApproved}
-                onChange={(e) => setIsApproved(e.target.checked)}
-              />
-              <span className="label-text font-medium flex items-center gap-2">
-                Mark as Paid / Approved Immediately
-              </span>
-            </label>
+          {/* Settings Section (Approved & Email) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Approved checkbox */}
+            <div className="form-control p-3 bg-base-200/50 rounded-lg border border-base-200">
+              <label className="label cursor-pointer justify-start gap-3 py-0">
+                <input
+                  type="checkbox"
+                  className="checkbox checkbox-sm checkbox-success"
+                  checked={isApproved}
+                  onChange={(e) => setIsApproved(e.target.checked)}
+                />
+                <span className="label-text font-medium">
+                  Mark as Paid / Approved
+                </span>
+              </label>
+            </div>
+
+            {/* Send Mail checkbox */}
+            <div className="form-control p-3 bg-base-200/50 rounded-lg border border-base-200">
+              <label className="label cursor-pointer justify-start gap-3 py-0">
+                <input
+                  type="checkbox"
+                  name="sendMail"
+                  className="checkbox checkbox-sm checkbox-primary"
+                  checked={formData.sendMail}
+                  onChange={handleChange}
+                />
+                <span className="label-text font-medium flex items-center gap-2">
+                  <Mail className="w-4 h-4" /> Send Email Notification
+                </span>
+              </label>
+            </div>
           </div>
         </div>
       </div>
