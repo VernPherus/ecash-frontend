@@ -8,7 +8,8 @@ import {
   Trash2,
   Hash,
   CheckCircle2,
-  FileText, // Added for Particulars
+  FileText,
+  Mail, // Added Mail icon
 } from "lucide-react";
 import useDisbursementStore from "../../store/useDisbursementStore";
 import useFundStore from "../../store/useFundStore";
@@ -26,6 +27,7 @@ const defaultFormData = () => ({
   respCode: "",
   particulars: "",
   ageLimit: "",
+  sendMail: false, // Initialize sendMail
 });
 
 const Check = ({ onClose, initialData }) => {
@@ -66,6 +68,7 @@ const Check = ({ onClose, initialData }) => {
       particulars: initialData.particulars ?? "",
       ageLimit:
         initialData.ageLimit != null ? String(initialData.ageLimit) : "",
+      sendMail: false, // Default to false on edit
     });
     setItems(
       initialData.items?.length
@@ -91,7 +94,10 @@ const Check = ({ onClose, initialData }) => {
 
   // --- Handlers ---
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    // Check if input is a checkbox to handle value correctly
+    const value =
+      e.target.type === "checkbox" ? e.target.checked : e.target.value;
+    setFormData({ ...formData, [e.target.name]: value });
     if (errors[e.target.name]) setErrors({ ...errors, [e.target.name]: null });
   };
 
@@ -159,6 +165,7 @@ const Check = ({ onClose, initialData }) => {
       dvNum: formData.dvNum ?? "",
       uacsCode: formData.uacsCode ?? "",
       respCode: formData.respCode ?? "",
+      sendMail: formData.sendMail, // Pass checkbox value
     };
 
     if (isEdit) {
@@ -545,22 +552,41 @@ const Check = ({ onClose, initialData }) => {
           </div>
         </div>
 
-        {/* --- APPROVAL CHECKBOX --- */}
-        <div className="form-control p-3 bg-base-200/50 rounded-lg border border-base-200">
-          <label className="label cursor-pointer justify-start gap-3 py-0">
-            <input
-              type="checkbox"
-              className="checkbox checkbox-sm checkbox-success"
-              checked={isApproved}
-              onChange={(e) => setIsApproved(e.target.checked)}
-            />
-            <span className="label-text font-medium flex items-center gap-2">
-              <CheckCircle2
-                className={`w-4 h-4 ${isApproved ? "text-success" : "text-base-content/40"}`}
+        {/* --- SETTINGS SECTION (Approval & Email) --- */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Approved Checkbox */}
+          <div className="form-control p-3 bg-base-200/50 rounded-lg border border-base-200">
+            <label className="label cursor-pointer justify-start gap-3 py-0">
+              <input
+                type="checkbox"
+                className="checkbox checkbox-sm checkbox-success"
+                checked={isApproved}
+                onChange={(e) => setIsApproved(e.target.checked)}
               />
-              Mark as Paid / Approved Immediately
-            </span>
-          </label>
+              <span className="label-text font-medium flex items-center gap-2">
+                <CheckCircle2
+                  className={`w-4 h-4 ${isApproved ? "text-success" : "text-base-content/40"}`}
+                />
+                Mark as Paid / Approved
+              </span>
+            </label>
+          </div>
+
+          {/* Send Mail Checkbox */}
+          <div className="form-control p-3 bg-base-200/50 rounded-lg border border-base-200">
+            <label className="label cursor-pointer justify-start gap-3 py-0">
+              <input
+                type="checkbox"
+                name="sendMail"
+                className="checkbox checkbox-sm checkbox-primary"
+                checked={formData.sendMail}
+                onChange={handleChange}
+              />
+              <span className="label-text font-medium flex items-center gap-2">
+                <Mail className="w-4 h-4" /> Send Email Notification
+              </span>
+            </label>
+          </div>
         </div>
       </div>
 
