@@ -662,20 +662,24 @@ const Lddap = ({ onClose, initialData }) => {
             </div>
 
             {/* Send Mail checkbox */}
-            <div className="form-control p-3 bg-base-200/50 rounded-lg border border-base-200">
-              <label className="label cursor-pointer justify-start gap-3 py-0">
-                <input
-                  type="checkbox"
-                  name="sendMail"
-                  className="checkbox checkbox-sm checkbox-primary"
-                  checked={formData.sendMail}
-                  onChange={handleChange}
-                />
-                <span className="label-text font-medium flex items-center gap-2">
-                  <Mail className="w-4 h-4" /> Send Email Notification
-                </span>
-              </label>
-            </div>
+            {!isEdit ? (
+              <div className="form-control p-3 bg-base-200/50 rounded-lg border border-base-200">
+                <label className="label cursor-pointer justify-start gap-3 py-0">
+                  <input
+                    type="checkbox"
+                    name="sendMail"
+                    className="checkbox checkbox-sm checkbox-primary"
+                    checked={formData.sendMail}
+                    onChange={handleChange}
+                  />
+                  <span className="label-text font-medium flex items-center gap-2">
+                    <Mail className="w-4 h-4" /> Send Email Notification
+                  </span>
+                </label>
+              </div>
+            ) : (
+              <div></div>
+            )}
           </div>
         </div>
       </div>
