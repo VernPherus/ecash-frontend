@@ -19,7 +19,7 @@ import {
 import toast from "react-hot-toast";
 
 import useFundStore from "../store/useFundStore";
-import useAuthStore from "../store/useAuthStore"; // 1. Import Auth Store
+import useAuthStore from "../store/useAuthStore";
 import FundSourceForm from "../components/FundSourceForm";
 import DataTable from "../components/DataTable";
 import FloatingNotification from "../components/FloatingNotification";
@@ -67,6 +67,7 @@ const FundManagerPage = () => {
 
   // 3. Permission Check
   const canDelete = authUser?.role === "ADMIN" || authUser?.role === "STAFF";
+  const canCreate = authUser?.role === "ADMIN" || authUser?.role === "STAFF";
 
   // --- Initial Fetch ---
   useEffect(() => {
@@ -320,7 +321,7 @@ const FundManagerPage = () => {
     [isDeleting, canDelete], // Add canDelete to dependency array
   );
 
-  const headerActions = (
+  const headerActions = canCreate ? (
     <button
       onClick={() =>
         activeTab === "FUNDS" ? openFundModal() : setIsEntryModalOpen(true)
@@ -332,7 +333,7 @@ const FundManagerPage = () => {
         {activeTab === "FUNDS" ? "New Fund" : "New Entry"}
       </span>
     </button>
-  );
+  ) : null;
 
   return (
     <div className="min-h-screen bg-base-200/50 pb-20 font-sans">

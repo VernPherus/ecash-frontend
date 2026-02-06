@@ -15,12 +15,14 @@ import {
 } from "lucide-react";
 
 import usePayeeStore from "../store/usePayeeStore";
+import useAuthStore from "../store/useAuthStore";
 import PayeeForm from "../components/PayeeForm";
 import DataTable from "../components/DataTable";
 import FloatingNotification from "../components/FloatingNotification";
 
 const PayeeManagerPage = () => {
   const navigate = useNavigate();
+  const { authUser } = useAuthStore();
   const {
     payees,
     fetchPayees,
@@ -36,7 +38,8 @@ const PayeeManagerPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
-  // Fix 1: Clear selectedPayee on mount to ensure no stale data persists when returning to the page
+  const canCreate = authUser?.role === "ADMIN" || authUser?.role === "STAFF";
+
   useEffect(() => {
     fetchPayees();
     setSelectedPayee(null);
@@ -227,7 +230,7 @@ const PayeeManagerPage = () => {
   }));
 
   // Explicitly clear selectedPayee when opening the "Add Payee" form
-  const headerActions = (
+  const headerActions = canCreate ? (
     <button
       onClick={() => {
         setSelectedPayee(null);
@@ -238,7 +241,7 @@ const PayeeManagerPage = () => {
       <Plus className="w-4 h-4" />
       <span className="hidden sm:inline">Add Payee</span>
     </button>
-  );
+  ) : null;
 
   return (
     <div className="min-h-screen bg-base-200/50 pb-20 font-sans">

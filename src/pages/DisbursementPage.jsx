@@ -12,6 +12,7 @@ import {
   Plus,
 } from "lucide-react";
 import useDisbursementStore from "../store/useDisbursementStore";
+import useAuthStore from "../store/useAuthStore";
 import { formatCurrency, formatDate } from "../lib/formatters";
 import DisbursementForm from "../components/DisbursementForm";
 import DataTable from "../components/DataTable"; //
@@ -19,6 +20,7 @@ import FloatingNotification from "../components/FloatingNotification";
 
 const DisbursementPage = () => {
   const navigate = useNavigate();
+  const { authUser } = useAuthStore();
 
   // --- Local State for Filters ---
   const [search, setSearch] = useState("");
@@ -38,6 +40,8 @@ const DisbursementPage = () => {
     pagination,
     getDisbursementStatus,
   } = useDisbursementStore();
+
+  const canCreate = authUser?.role === "ADMIN" || authUser?.role === "STAFF";
 
   // --- Fetch Data on Filter Change ---
   useEffect(() => {
@@ -224,7 +228,7 @@ const DisbursementPage = () => {
     { value: "PENDING", label: "Pending" },
   ];
 
-  const headerActions = (
+  const headerActions = canCreate ? (
     <button
       onClick={handleCreate}
       className="btn btn-sm btn-primary gap-2 shadow-sm"
@@ -232,7 +236,7 @@ const DisbursementPage = () => {
       <Plus className="w-4 h-4" />
       <span className="hidden sm:inline">New Record</span>
     </button>
-  );
+  ) : null;
 
   return (
     <div className="min-h-screen bg-base-200/50 pb-20 font-sans">
