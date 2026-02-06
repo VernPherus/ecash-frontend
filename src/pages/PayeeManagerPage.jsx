@@ -22,6 +22,7 @@ import FloatingNotification from "../components/FloatingNotification";
 const PayeeManagerPage = () => {
   const navigate = useNavigate();
   const {
+    payees,
     fetchPayees,
     isLoading,
     setSelectedPayee,
@@ -30,19 +31,51 @@ const PayeeManagerPage = () => {
     setSearchQuery,
     filterType,
     setFilterType,
-    getFilteredPayees,
-    getPayeeTypes,
   } = usePayeeStore();
 
   const [showForm, setShowForm] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
+  // Fix 1: Clear selectedPayee on mount to ensure no stale data persists when returning to the page
   useEffect(() => {
     fetchPayees();
-  }, [fetchPayees]);
+    setSelectedPayee(null);
+  }, [fetchPayees, setSelectedPayee]);
 
-  const filteredPayees = getFilteredPayees();
-  const payeeTypes = getPayeeTypes();
+  // --- Filtering Logic ---
+  const filteredPayees = useMemo(() => {
+    if (!Array.isArray(payees)) return [];
+
+    const q = (searchQuery || "").toLowerCase();
+
+    return payees.filter((payee) => {
+      if (!payee || typeof payee !== "object") return false;
+
+      const name = payee.name ? String(payee.name).toLowerCase() : "";
+      const email = payee.email ? String(payee.email).toLowerCase() : "";
+      const tinNum = payee.tinNum ? String(payee.tinNum) : "";
+      const type = payee.type ? String(payee.type) : "";
+
+      const matchesSearch =
+        name.includes(q) || email.includes(q) || tinNum.includes(q);
+
+      const matchesType = filterType === "all" || type === filterType;
+
+      return matchesSearch && matchesType;
+    });
+  }, [payees, searchQuery, filterType]);
+
+  // --- Derived Data for Filters ---
+  const payeeTypes = useMemo(() => {
+    if (!Array.isArray(payees)) return ["all"];
+    const types = new Set(
+      payees
+        .filter((p) => p && typeof p === "object")
+        .map((p) => p.type)
+        .filter(Boolean),
+    );
+    return ["all", ...Array.from(types)];
+  }, [payees]);
 
   const handleEdit = (payee) => {
     setSelectedPayee(payee);
@@ -59,7 +92,6 @@ const PayeeManagerPage = () => {
     setShowDetails(false);
   };
 
-  // Updated colors to be dark-mode friendly (using opacity)
   const getTypeColor = (type) => {
     const t = type?.toLowerCase();
     switch (t) {
@@ -194,9 +226,13 @@ const PayeeManagerPage = () => {
         : type.charAt(0).toUpperCase() + type.slice(1),
   }));
 
+  // Explicitly clear selectedPayee when opening the "Add Payee" form
   const headerActions = (
     <button
-      onClick={() => setShowForm(true)}
+      onClick={() => {
+        setSelectedPayee(null);
+        setShowForm(true);
+      }}
       className="btn btn-sm btn-primary gap-2 shadow-sm"
     >
       <Plus className="w-4 h-4" />
@@ -206,12 +242,10 @@ const PayeeManagerPage = () => {
 
   return (
     <div className="min-h-screen bg-base-200/50 pb-20 font-sans">
-      {/* --- NOTIFICATION --- */}
       <FloatingNotification />
 
-      {/* --- MAIN CONTENT --- */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
-        {/* TOOLBAR (Search Only - Filter moved to Table) */}
+        {/* TOOLBAR */}
         <div className="bg-base-100 p-4 rounded-xl border border-base-300 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="relative w-full md:w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-base-content/40" />
@@ -257,7 +291,6 @@ const PayeeManagerPage = () => {
             onClick={handleCloseForm}
           />
           <div className="relative bg-base-100 rounded-xl shadow-2xl w-full max-w-lg h-[80vh] flex flex-col overflow-hidden animate-scaleIn border border-base-200">
-            {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-base-200 bg-base-50/50 shrink-0">
               <h3 className="text-lg font-bold text-base-content">
                 {selectedPayee ? "Edit Payee" : "Create New Payee"}
@@ -270,7 +303,6 @@ const PayeeManagerPage = () => {
               </button>
             </div>
 
-            {/* Modal Content - PayeeForm handles its own scrolling now */}
             <div className="flex-1 overflow-hidden p-6">
               <PayeeForm payee={selectedPayee} onClose={handleCloseForm} />
             </div>
@@ -286,7 +318,6 @@ const PayeeManagerPage = () => {
             onClick={handleCloseDetails}
           />
           <div className="relative bg-base-100 rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-scaleIn border border-base-200">
-            {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-base-200 bg-base-50/50">
               <h3 className="text-lg font-bold text-base-content">
                 Payee Details

@@ -14,6 +14,46 @@ import {
 import useAuthStore from "../../store/useAuthStore";
 import FloatingNotification from "../../components/FloatingNotification";
 
+// 1. Defined outside the main component
+const InputField = ({
+  label,
+  name,
+  type = "text",
+  icon: Icon,
+  placeholder,
+  error,
+  value,
+  onChange,
+}) => (
+  <div className="form-control w-full">
+    <label className="label pb-1">
+      <span className="label-text font-medium">
+        {label} <span className="text-error">*</span>
+      </span>
+    </label>
+    <div className="relative">
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <Icon className="h-5 w-5 text-base-content/40" />
+      </div>
+      <input
+        type={type}
+        name={name}
+        placeholder={placeholder}
+        className={`input input-bordered w-full pl-10 ${error ? "input-error" : ""}`}
+        value={value}
+        onChange={onChange}
+      />
+    </div>
+    {error && (
+      <label className="label py-1">
+        <span className="label-text-alt text-error flex items-center gap-1">
+          <AlertCircle size={12} /> {error}
+        </span>
+      </label>
+    )}
+  </div>
+);
+
 const SignUpPage = () => {
   const navigate = useNavigate();
   const { signup, isLoading } = useAuthStore();
@@ -33,7 +73,6 @@ const SignUpPage = () => {
 
   const validate = () => {
     const newErrors = {};
-    // Validation logic remains the same
     if (!formData.firstName.trim()) newErrors.firstName = "First name required";
     if (!formData.lastName.trim()) newErrors.lastName = "Last name required";
     if (!formData.username.trim()) newErrors.username = "Username required";
@@ -68,44 +107,6 @@ const SignUpPage = () => {
     if (result.success) navigate("/admin/users");
   };
 
-  // Helper component for consistent input rendering
-  const InputField = ({
-    label,
-    name,
-    type = "text",
-    icon: Icon,
-    placeholder,
-    error,
-  }) => (
-    <div className="form-control w-full">
-      <label className="label pb-1">
-        <span className="label-text font-medium">
-          {label} <span className="text-error">*</span>
-        </span>
-      </label>
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Icon className="h-5 w-5 text-base-content/40" />
-        </div>
-        <input
-          type={type}
-          name={name}
-          placeholder={placeholder}
-          className={`input input-bordered w-full pl-10 ${error ? "input-error" : ""}`}
-          value={formData[name]}
-          onChange={handleChange}
-        />
-      </div>
-      {error && (
-        <label className="label py-1">
-          <span className="label-text-alt text-error flex items-center gap-1">
-            <AlertCircle size={12} /> {error}
-          </span>
-        </label>
-      )}
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-base-200 flex items-center justify-center p-4">
       <FloatingNotification />
@@ -134,11 +135,14 @@ const SignUpPage = () => {
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* 2. Passed value and onChange explicitly */}
                   <InputField
                     label="First Name"
                     name="firstName"
                     icon={User}
                     placeholder="John"
+                    value={formData.firstName}
+                    onChange={handleChange}
                     error={errors.firstName}
                   />
                   <InputField
@@ -146,6 +150,8 @@ const SignUpPage = () => {
                     name="lastName"
                     icon={User}
                     placeholder="Doe"
+                    value={formData.lastName}
+                    onChange={handleChange}
                     error={errors.lastName}
                   />
                 </div>
@@ -155,6 +161,8 @@ const SignUpPage = () => {
                   name="username"
                   icon={User}
                   placeholder="johndoe"
+                  value={formData.username}
+                  onChange={handleChange}
                   error={errors.username}
                 />
 
@@ -164,6 +172,8 @@ const SignUpPage = () => {
                   type="email"
                   icon={Mail}
                   placeholder="john@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
                   error={errors.email}
                 />
               </div>

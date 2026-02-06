@@ -116,6 +116,49 @@ const useAuthStore = create(
         }
       },
 
+      //* Grant admin
+      grantAdmin: async (userId) => {
+        set({ isLoading: true });
+        try {
+          const response = await axiosInstance.put(
+            `/auth/grantAdmin/${userId}`,
+          );
+          toast.success(
+            response.data.message || "Granted user admin privileges",
+          );
+          return { success: true };
+        } catch (error) {
+          const message =
+            error.response?.data?.message || "Failed to grant admin to user";
+          toast.error(message);
+          return { success: false, error: message };
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      //* Deactivate User
+      deactivateUser: async (userId) => {
+        set({ isLoading: true });
+        try {
+          const response = await axiosInstance.put(
+            `/auth/deactivate/${userId}`,
+          );
+
+          toast.success(
+            response.data.message || "User deactivated successfully",
+          );
+          return { success: true };
+        } catch (error) {
+          const message =
+            error.response?.data?.message || "Failed to deactivate user";
+          toast.error(message);
+          return { success: false, error: message };
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
       //* Check auth
       checkAuth: async () => {
         set({ isCheckingAuth: true });
