@@ -15,15 +15,18 @@ import toast from "react-hot-toast";
 
 import FloatingNotification from "../../components/FloatingNotification";
 import DataTable from "../../components/DataTable";
+import EditUserModal from "../../components/EditUserModal"; // Import the modal
 import useAuthStore from "../../store/useAuthStore";
 
 const UserManagerPage = () => {
   const navigate = useNavigate();
-  const { deactivateUser } = useAuthStore();
+  // Destructure actions from store
+  const { deactivateUser, grantAdmin } = useAuthStore();
 
   // Data State
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [editingUser, setEditingUser] = useState(null); // State for modal
 
   // Filter State
   const [searchQuery, setSearchQuery] = useState("");
@@ -59,18 +62,12 @@ const UserManagerPage = () => {
     )
       return;
 
-    try {
-      await axiosInstance.put("/auth/grantAdmin/" + userId);
-      toast.success("User role updated");
-      fetchUsers();
-    } catch (error) {
-      toast.error("Failed to update user role");
+    // Use store action which handles loading/toast
+    const result = await grantAdmin(userId);
+    if (result.success) {
+      fetchUsers(); // Refresh table
     }
   };
-
-  // Correction: The original file had a different call signature.
-  // Based on your backend files provided: router.put("/grantAdmin/:id", ...)
-  // I will use: axiosInstance.put(`/auth/grantAdmin/${userId}`)
 
   const handleDeactivate = async (userId) => {
     if (
@@ -84,6 +81,10 @@ const UserManagerPage = () => {
     if (result.success) {
       fetchUsers();
     }
+  };
+
+  const handleEditClick = (user) => {
+    setEditingUser(user); // Opens the modal
   };
 
   const clearFilters = () => {
@@ -198,13 +199,19 @@ const UserManagerPage = () => {
         align: "text-center",
         render: (row) => (
           <div className="flex items-center justify-center gap-1">
+            {/* Edit Button */}
             <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEditClick(row);
+              }}
               className="btn btn-ghost btn-xs btn-square text-base-content/60 hover:text-primary tooltip tooltip-top"
               data-tip="Edit User"
             >
               <Edit2 className="w-4 h-4" />
             </button>
 
+            {/* Grant Admin Button */}
             {row.role !== "ADMIN" && (
               <button
                 onClick={(e) => {
@@ -218,6 +225,7 @@ const UserManagerPage = () => {
               </button>
             )}
 
+            {/* Deactivate Button */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -246,6 +254,18 @@ const UserManagerPage = () => {
     <div className="min-h-screen bg-base-200/50 pb-20 font-sans">
       <FloatingNotification />
 
+      {/* Edit Modal - Rendered when editingUser is set */}
+      {editingUser && (
+        <EditUserModal
+          user={editingUser}
+          onClose={() => setEditingUser(null)}
+          onSuccess={() => {
+            fetchUsers();
+            setEditingUser(null);
+          }}
+        />
+      )}
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
         {/* --- Toolbar --- */}
         <div className="bg-base-100 p-4 rounded-xl border border-base-300 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -261,7 +281,7 @@ const UserManagerPage = () => {
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
-                setCurrentPage(1); // Reset page on search
+                setCurrentPage(1);
               }}
             />
           </div>
