@@ -14,6 +14,7 @@ import { formatCurrency } from "../lib/formatters";
 
 const defaultFormData = (fund) => ({
   code: fund?.code ?? "",
+  seriesCode: fund?.seriesCode ?? "",
   name: fund?.name ?? "",
   initialBalance:
     fund?.initialBalance != null && String(fund.initialBalance).trim() !== ""
@@ -35,6 +36,7 @@ const FundSourceForm = ({ fund, onClose }) => {
     const newErrors = {};
     if (!formData.code.trim()) newErrors.code = "Fund code is required";
     if (!formData.name.trim()) newErrors.name = "Fund name is required";
+    if (!formData.seriesCode.trim()) newErrors.seriesCode = "Fund series code is required"
 
     // Balance is required
     if (formData.initialBalance === "" || formData.initialBalance === null) {
@@ -119,6 +121,12 @@ const FundSourceForm = ({ fund, onClose }) => {
                 </span>
               </div>
               <div className="flex justify-between text-sm">
+                <span className="text-base-content/60">Series Code:</span>
+                <span className="font-medium text-base-content font-mono">
+                  {formData.seriesCode}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
                 <span className="text-base-content/60">Name:</span>
                 <span className="font-medium text-base-content">
                   {formData.name}
@@ -176,7 +184,7 @@ const FundSourceForm = ({ fund, onClose }) => {
 
       <form onSubmit={handleSubmit} className="flex flex-col h-full">
         <div className="flex-1 space-y-5">
-          {/* 1. Code & Reset Frequency */}
+          {/* Code & Reset Frequency */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="form-control">
               <label className="label pt-0">
@@ -206,26 +214,47 @@ const FundSourceForm = ({ fund, onClose }) => {
             <div className="form-control">
               <label className="label pt-0">
                 <span className="label-text font-medium text-base-content/70">
-                  Reset Frequency <span className="text-error">*</span>
+                  Series Code <span className="text-error">*</span>
                 </span>
               </label>
               <div className="relative">
-                <RefreshCw className="w-4 h-4 absolute left-3 top-3 text-base-content/40" />
-                <select
-                  name="reset"
-                  className="select select-bordered w-full pl-10"
-                  value={formData.reset}
-                  onChange={handleChange}
-                >
-                  <option value="NONE">None</option>
-                  <option value="MONTHLY">Monthly</option>
-                  <option value="YEARLY">Yearly</option>
-                </select>
+                <input 
+                type="text" 
+                name="seriesCode" 
+                placeholder="e.g., 0000000" 
+                className={`input input-bordered w-full pl-10 ${errors.seriesCode ? "input-error" : ""}`}
+                value={formData.seriesCode}
+                onChange={handleChange}
+              />
+
               </div>
             </div>
           </div>
 
-          {/* 2. Fund Name */}
+          {/* Reset Frequency */}
+          <div className="form-control">
+            <label className="label pt-0">
+              <span className="label-text font-medium text-base-content/70">
+                Reset Frequency <span className="text-error">*</span>
+              </span>
+            </label>
+            <div className="relative">
+              <RefreshCw className="w-4 h-4 absolute left-3 top-3 text-base-content/40" />
+              <select
+                name="reset"
+                className="select select-bordered w-full pl-10"
+                value={formData.reset}
+                onChange={handleChange}
+              >
+                <option value="NONE">None</option>
+                <option value="MONTHLY">Monthly</option>
+                <option value="QUARTERLY">Quarterly</option>
+                <option value="YEARLY">Yearly</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Fund Name */}
           <div className="form-control">
             <label className="label pt-0">
               <span className="label-text font-medium text-base-content/70">
