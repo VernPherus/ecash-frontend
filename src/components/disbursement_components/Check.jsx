@@ -561,7 +561,11 @@ const Check = ({ onClose, initialData }) => {
                 type="checkbox"
                 className="checkbox checkbox-sm checkbox-success"
                 checked={isApproved}
-                onChange={(e) => setIsApproved(e.target.checked)}
+                onChange={(e) => {
+                  setIsApproved(e.target.checked); if (!e.target.checked) {
+                    setFormData((prev) => ({ ...prev, sendMail: false }))
+                  }
+                }}
               />
               <span className="label-text font-medium flex items-center gap-2">
                 <CheckCircle2
@@ -573,7 +577,8 @@ const Check = ({ onClose, initialData }) => {
           </div>
 
           {/* Send Mail Checkbox */}
-          <div className="form-control p-3 bg-base-200/50 rounded-lg border border-base-200">
+          {isApproved && (
+            <div className="form-control p-3 bg-base-200/50 rounded-lg border border-base-200">
             <label className="label cursor-pointer justify-start gap-3 py-0">
               <input
                 type="checkbox"
@@ -586,7 +591,8 @@ const Check = ({ onClose, initialData }) => {
                 <Mail className="w-4 h-4" /> Send Email Notification
               </span>
             </label>
-          </div>
+           </div>
+        )}
         </div>
       </div>
 

@@ -52,8 +52,23 @@ const Lddap = ({ onClose, initialData }) => {
 
   // Code Generation Handler
   const handleGenerateLDDAPCode = async () => {
+    const date = formData.dateReceived;
+
+    // Find the fund that matches the selected fundSourceId
+    const selectedFund = funds.find((f) => f.id === Number(formData.fundSourceId));
+
+    if (!selectedFund || !selectedFund.seriesCode) {
+      // Handle case where fund is not found or has no seriesCode
+      alert("Please select a valid fund source first");
+      return;
+    }
+
+    const seriesCode = selectedFund.seriesCode;
+
+    console.log("Sending to backend:", { date, seriesCode });
+
     setIsGenerating(true);
-    const code = await getLddapCode();
+    const code = await getLddapCode({ date, seriesCode });
     setIsGenerating(false);
 
     if (code) {
@@ -361,7 +376,7 @@ const Lddap = ({ onClose, initialData }) => {
                   <button
                     type="button"
                     onClick={handleGenerateLDDAPCode}
-                    disabled={isGenerating || isEdit}
+                    disabled={isGenerating || isEdit || !formData.fundSourceId}
                     className="btn btn-square btn-outline border-base-300"
                     title="Generate Code"
                   >
@@ -653,7 +668,9 @@ const Lddap = ({ onClose, initialData }) => {
                   type="checkbox"
                   className="checkbox checkbox-sm checkbox-success"
                   checked={isApproved}
-                  onChange={(e) => setIsApproved(e.target.checked)}
+                  onChange={(e) => {setIsApproved(e.target.checked); if (!e.target.checked) {
+                    setFormData((prev) =>({...prev, sendMail: false}))
+                  }}}
                 />
                 <span className="label-text font-medium">
                   Mark as Paid / Approved
@@ -662,20 +679,22 @@ const Lddap = ({ onClose, initialData }) => {
             </div>
 
             {/* Send Mail checkbox */}
-            <div className="form-control p-3 bg-base-200/50 rounded-lg border border-base-200">
-              <label className="label cursor-pointer justify-start gap-3 py-0">
-                <input
-                  type="checkbox"
-                  name="sendMail"
-                  className="checkbox checkbox-sm checkbox-primary"
-                  checked={formData.sendMail}
-                  onChange={handleChange}
-                />
-                <span className="label-text font-medium flex items-center gap-2">
-                  <Mail className="w-4 h-4" /> Send Email Notification
-                </span>
-              </label>
-            </div>
+            {isApproved && (
+              <div className="form-control p-3 bg-base-200/50 rounded-lg border border-base-200">
+                <label className="label cursor-pointer justify-start gap-3 py-0">
+                  <input
+                    type="checkbox"
+                    name="sendMail"
+                    className="checkbox checkbox-sm checkbox-primary"
+                    checked={formData.sendMail}
+                    onChange={handleChange}
+                  />
+                  <span className="label-text font-medium flex items-center gap-2">
+                    <Mail className="w-4 h-4" /> Send Email Notification
+                  </span>
+                </label>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -148,10 +148,13 @@ const useDisbursementStore = create((set, get) => ({
     }
   },
 
-  getLddapCode: async () => {
+  getLddapCode: async (params) => {
     try {
-      const response = await axiosInstance.get(`/disbursement/genlddapcode`);
-      return response.data.lddapCode
+      const response = await axiosInstance.post(
+        `/disbursement/genlddapcode`,
+        params,
+      );
+      return response.data.lddapCode;
     } catch (error) {
       const message = error.response?.data?.message || "Failed to fetch code";
       toast.error(message);
