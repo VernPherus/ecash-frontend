@@ -7,7 +7,7 @@ import { Wallet } from "lucide-react";
 // It is mapped over in DashboardPage.jsx
 const FundStatCard = ({
   fundId,
-  totalEntries,
+  totalNCA,
   totalDisbursements,
   totalMonthly,
   totalCashUtil,
@@ -49,48 +49,48 @@ const FundStatCard = ({
 
       {/* Primary Metrics - Equal Visual Weight */}
       <div className="flex-1 px-5 space-y-6">
-        {/* Monthly Total */}
+        {/* Total NCA */}
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-base-content/50 mb-1.5">
-            Monthly Total
+            NCA Received
           </p>
           <p className="text-2xl font-bold tracking-tight text-base-content">
-            {formatCurrency(totalMonthly)}
+            {formatCurrency(totalNCA)}
           </p>
         </div>
 
         {/* Entries Total */}
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-base-content/50 mb-1.5">
-            Entries Total
+            Total Disbursement
           </p>
           <p className="text-2xl font-bold tracking-tight text-base-content">
-            {formatCurrency(totalEntries) || 0}
+            {formatCurrency(totalDisbursements) || 0}
           </p>
         </div>
 
-        {/* Cash Utilization */}
+        {/* Total balance */}
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-base-content/50 mb-1.5">
-            Cash Utilization
+            Balance as of the Month
           </p>
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-bold tracking-tight text-base-content">
-              {totalCashUtil}
+              {formatCurrency(totalMonthly)}
             </span>
-            <span className="text-lg font-semibold text-primary">%</span>
           </div>
         </div>
       </div>
 
-      {/* Secondary Metric */}
+      {/* Secondary Metric (Cash utilization) */}
       <div className="mt-auto px-5 pb-5 pt-4 border-t border-base-200">
         <div className="flex items-center justify-between">
           <span className="text-[10px] font-semibold uppercase tracking-widest text-base-content/40">
-            Disbursed
+            Cash Utilization Rate
           </span>
           <span className="text-sm font-semibold text-base-content/70">
-            {formatCurrency(totalDisbursements)}
+            {totalCashUtil}
+            <span className="text-lg font-semibold text-primary">%</span>
           </span>
         </div>
       </div>

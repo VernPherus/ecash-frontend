@@ -356,8 +356,9 @@ const FundManagerPage = () => {
                 <FundStatCard
                   key={fundStat.fundId}
                   fundId={fundStat.fundId}
-                  totalEntries={fundStat.totalEntries}
+                  totalNCA={fundStat.totalEntries}
                   totalMonthly={fundStat.totalMonthly}
+                  totalDisbursements={fundStat.totalDisbursement}
                   totalCashUtil={fundStat.totalCashUtil}
                 />
               ))}

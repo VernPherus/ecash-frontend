@@ -479,7 +479,7 @@ const Lddap = ({ onClose, initialData }) => {
               <div className="form-control">
                 <label className="label pt-0">
                   <span className="label-text font-medium text-xs uppercase">
-                    Response Code <span className="text-error">*</span>
+                    Responsibility Code <span className="text-error">*</span>
                   </span>
                 </label>
                 <input
@@ -540,9 +540,6 @@ const Lddap = ({ onClose, initialData }) => {
                     {errors.onlineAmount}
                   </span>
                 )}
-              </div>
-              <div className="text-xs text-base-content/50">
-                This will generate a standard LDDAP Online record.
               </div>
             </div>
           )}

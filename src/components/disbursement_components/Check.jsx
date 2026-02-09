@@ -464,7 +464,7 @@ const Check = ({ onClose, initialData }) => {
             </div>
           </div>
 
-          {/* Row 3: UACS, ACIC, Resp Code */}
+          {/* UACS, ACIC, Resp Code */}
           <div className="grid grid-cols-3 gap-4">
             <div className="form-control">
               <label className="label pt-0">
@@ -500,7 +500,7 @@ const Check = ({ onClose, initialData }) => {
             <div className="form-control">
               <label className="label pt-0">
                 <span className="label-text font-medium text-xs uppercase">
-                  Response Code
+                  Responsibility Code
                 </span>
               </label>
               <input
