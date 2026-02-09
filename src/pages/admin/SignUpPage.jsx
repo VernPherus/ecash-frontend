@@ -200,7 +200,7 @@ const SignUpPage = () => {
                       onChange={handleChange}
                     >
                       <option value="USER">User</option>
-                      <option value="STAFF">Staff (Approver)</option>
+                      <option value="STAFF">Staff</option>
                       <option value="ADMIN">Administrator</option>
                     </select>
                   </div>
