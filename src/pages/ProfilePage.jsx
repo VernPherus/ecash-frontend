@@ -1,41 +1,118 @@
-import { useState } from "react";
-import { User, Mail, Shield, Lock, Save, KeyRound } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  User,
+  Mail,
+  Shield,
+  Lock,
+  Send,
+  KeyRound,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import useAuthStore from "../store/useAuthStore";
 import toast from "react-hot-toast";
 
 const ProfilePage = () => {
-  const { authUser, updateUser, isLoading } = useAuthStore();
+  const { authUser, requestPasswordResetOtp, confirmPasswordReset, isLoading } =
+    useAuthStore();
 
-  const [passwords, setPasswords] = useState({
+  const [step, setStep] = useState(1); // 1: Request OTP, 2: Reset Password
+  const [otpTimer, setOtpTimer] = useState(0); // Timer in seconds
+  const [canResend, setCanResend] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const [formData, setFormData] = useState({
+    email: authUser?.email || "",
+    otp: "",
     newPassword: "",
     confirmPassword: "",
   });
 
-  const handlePasswordUpdate = async (e) => {
+  // Timer countdown effect
+  useEffect(() => {
+    let interval;
+    if (otpTimer > 0) {
+      interval = setInterval(() => {
+        setOtpTimer((prev) => {
+          if (prev <= 1) {
+            setCanResend(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [otpTimer]);
+
+  // Format timer display
+  const formatTimer = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const handleRequestOtp = async (e) => {
     e.preventDefault();
 
-    if (!passwords.newPassword || !passwords.confirmPassword) {
+    if (!canResend) {
+      toast.error("Please wait before requesting a new OTP.");
+      return;
+    }
+
+    const result = await requestPasswordResetOtp(formData.email);
+
+    if (result.success) {
+      setStep(2);
+      setOtpTimer(600); // 10 minutes = 600 seconds
+      setCanResend(false);
+      toast.success("OTP sent to your email!");
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+
+    if (!formData.otp) {
+      toast.error("Please enter the OTP code.");
+      return;
+    }
+
+    if (!formData.newPassword || !formData.confirmPassword) {
       toast.error("Please fill in all password fields.");
       return;
     }
 
-    if (passwords.newPassword !== passwords.confirmPassword) {
-      toast.error("New passwords do not match.");
+    if (formData.newPassword !== formData.confirmPassword) {
+      toast.error("Passwords do not match.");
       return;
     }
 
-    if (passwords.newPassword.length < 6) {
+    if (formData.newPassword.length < 6) {
       toast.error("Password must be at least 6 characters.");
       return;
     }
 
-    // Call the store action to update only the password
-    const result = await updateUser(authUser.id, {
-      password: passwords.newPassword,
+    const result = await confirmPasswordReset({
+      email: formData.email,
+      otp: formData.otp,
+      newPass: formData.newPassword,
+      confPass: formData.confirmPassword,
     });
 
     if (result.success) {
-      setPasswords({ newPassword: "", confirmPassword: "" });
+      // Reset form and step
+      setFormData({
+        email: authUser?.email || "",
+        otp: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      setStep(1);
+      setOtpTimer(0);
+      setCanResend(true);
+      toast.success("Password reset successfully!");
     }
   };
 
@@ -106,7 +183,7 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          {/* --- Password Update Form --- */}
+          {/* --- Password Reset Form --- */}
           <div className="md:col-span-2">
             <div className="bg-base-100 p-6 rounded-xl border border-base-300 shadow-sm">
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -114,69 +191,179 @@ const ProfilePage = () => {
                 Security Settings
               </h2>
 
-              <form onSubmit={handlePasswordUpdate} className="space-y-4">
-                <div className="alert alert-info bg-base-200 border-none text-base-content/70 text-sm">
-                  <KeyRound className="w-4 h-4" />
-                  <span>Update your password to keep your account secure.</span>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4">
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text font-medium">
-                        New Password
-                      </span>
-                    </label>
-                    <input
-                      type="password"
-                      placeholder="Enter new password"
-                      className="input input-bordered focus:input-primary transition-all"
-                      value={passwords.newPassword}
-                      onChange={(e) =>
-                        setPasswords({
-                          ...passwords,
-                          newPassword: e.target.value,
-                        })
-                      }
-                    />
+              {step === 1 ? (
+                // Step 1: Request OTP
+                <form onSubmit={handleRequestOtp} className="space-y-4">
+                  <div className="alert alert-info bg-base-200 border-none text-base-content/70 text-sm">
+                    <KeyRound className="w-4 h-4" />
+                    <span>
+                      Click below to receive a one-time password reset code via
+                      email.
+                    </span>
                   </div>
 
                   <div className="form-control">
                     <label className="label">
                       <span className="label-text font-medium">
-                        Confirm New Password
+                        Email Address
                       </span>
                     </label>
                     <input
-                      type="password"
-                      placeholder="Re-enter new password"
+                      type="email"
+                      placeholder="Your email"
                       className="input input-bordered focus:input-primary transition-all"
-                      value={passwords.confirmPassword}
-                      onChange={(e) =>
-                        setPasswords({
-                          ...passwords,
-                          confirmPassword: e.target.value,
-                        })
-                      }
+                      value={formData.email}
+                      disabled
                     />
                   </div>
-                </div>
 
-                <div className="pt-4 flex justify-end">
-                  <button
-                    type="submit"
-                    className="btn btn-primary gap-2"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <span className="loading loading-spinner loading-sm"></span>
-                    ) : (
-                      <Save className="w-4 h-4" />
-                    )}
-                    Update Password
-                  </button>
-                </div>
-              </form>
+                  <div className="pt-4 flex justify-end">
+                    <button
+                      type="submit"
+                      className="btn btn-primary gap-2"
+                      disabled={isLoading || !canResend}
+                    >
+                      {isLoading ? (
+                        <span className="loading loading-spinner loading-sm"></span>
+                      ) : (
+                        <Send className="w-4 h-4" />
+                      )}
+                      {canResend
+                        ? "Request OTP"
+                        : `Resend in ${formatTimer(otpTimer)}`}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                // Step 2: Reset Password with OTP
+                <form onSubmit={handleResetPassword} className="space-y-4">
+                  <div className="alert alert-success bg-base-200 border-none text-base-content/70 text-sm">
+                    <KeyRound className="w-4 h-4" />
+                    <span>
+                      OTP sent! Check your email and enter the code below.
+                      {otpTimer > 0 && (
+                        <span className="font-semibold ml-1">
+                          (Expires in {formatTimer(otpTimer)})
+                        </span>
+                      )}
+                    </span>
+                  </div>
+
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text font-medium">OTP Code</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter 6-digit code"
+                      className="input input-bordered focus:input-primary transition-all"
+                      value={formData.otp}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          otp: e.target.value,
+                        })
+                      }
+                      maxLength={6}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text font-medium">
+                          New Password
+                        </span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Enter new password"
+                          className="input input-bordered focus:input-primary transition-all w-full pr-10"
+                          value={formData.newPassword}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              newPassword: e.target.value,
+                            })
+                          }
+                        />
+                        <button
+                          type="button"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/50 hover:text-base-content transition-colors"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text font-medium">
+                          Confirm New Password
+                        </span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          placeholder="Re-enter new password"
+                          className="input input-bordered focus:input-primary transition-all w-full pr-10"
+                          value={formData.confirmPassword}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              confirmPassword: e.target.value,
+                            })
+                          }
+                        />
+                        <button
+                          type="button"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/50 hover:text-base-content transition-colors"
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 flex justify-between">
+                    <button
+                      type="button"
+                      className="btn btn-ghost gap-2"
+                      onClick={handleRequestOtp}
+                      disabled={isLoading || !canResend}
+                    >
+                      {canResend
+                        ? "Resend OTP"
+                        : `Wait ${formatTimer(otpTimer)}`}
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn btn-primary gap-2"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <span className="loading loading-spinner loading-sm"></span>
+                      ) : (
+                        <Lock className="w-4 h-4" />
+                      )}
+                      Reset Password
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           </div>
         </div>
