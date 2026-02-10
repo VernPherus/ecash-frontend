@@ -16,6 +16,7 @@ import {
   X,
   Download,
   FileBarChart,
+  ToolboxIcon,
 } from "lucide-react";
 
 import InfoCard, { InfoRow } from "../components/InfoCard";
@@ -50,7 +51,7 @@ const FundViewPage = () => {
   });
 
   // Access Control: Allow ADMIN and STAFF to modify
-  const canModify = authUser?.role === "ADMIN" || authUser?.role === "STAFF";
+  const isAuthorized = authUser?.role === "ADMIN" || authUser?.role === "STAFF";
 
   useEffect(() => {
     if (id) {
@@ -375,25 +376,6 @@ const FundViewPage = () => {
               </button>
 
               {/* Access Control: STAFF and ADMIN can Edit/Delete */}
-              {canModify && (
-                <>
-                  <div className="h-4 w-px bg-base-300 mx-1"></div>
-                  <button
-                    onClick={handleDelete}
-                    className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-error hover:bg-error/10 transition-colors"
-                    title="Deactivate Fund"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setIsEditModalOpen(true)}
-                    className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-primary hover:bg-base-200"
-                    title="Edit Fund"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                </>
-              )}
             </div>
           </div>
         </div>
@@ -549,6 +531,25 @@ const FundViewPage = () => {
                 </div>
               </div>
             </div>
+
+            {isAuthorized && (
+              <InfoCard icon={ToolboxIcon} title="Actions">
+                <button
+                  onClick={handleDelete}
+                  className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-error hover:bg-error/10 transition-colors"
+                  title="Deactivate Fund"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-primary hover:bg-base-200"
+                  title="Edit Fund"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+              </InfoCard>
+            )}
           </div>
         </div>
       </main>

@@ -16,6 +16,7 @@ import {
   Banknote,
   X,
   Trash2,
+  Toolbox,
 } from "lucide-react";
 
 import useAuthStore from "../store/useAuthStore";
@@ -75,8 +76,7 @@ const DisbursementViewPage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // --- Role-based access control
-  const canEdit = authUser?.role === "STAFF" || authUser?.role === "ADMIN";
-  const canDelete = authUser?.role === "STAFF" || authUser?.role === "ADMIN";
+  const isAuthorized = authUser?.role === "STAFF" || authUser?.role === "ADMIN";
 
   useEffect(() => {
     if (id) {
@@ -96,7 +96,7 @@ const DisbursementViewPage = () => {
 
   // Added Delete Handler
   const handleDelete = async () => {
-    if (!canDelete) {
+    if (!isAuthorized) {
       alert("You don't have permission to delete this record.");
       return;
     }
@@ -114,7 +114,7 @@ const DisbursementViewPage = () => {
   };
 
   const handleEdit = () => {
-    if (!canEdit) {
+    if (!isAuthorized) {
       alert("You don't have permission to edit this record.");
       return;
     }
@@ -240,28 +240,6 @@ const DisbursementViewPage = () => {
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {/* Only show buttons if user has permission */}
-              {canDelete && (
-                <button
-                  onClick={handleDelete}
-                  className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-error hover:bg-error/10 transition-colors"
-                  title="Delete Record"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
-              {canEdit && (
-                <button
-                  onClick={handleEdit}
-                  className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-primary hover:bg-base-200"
-                  title="Edit Record"
-                >
-                  <Edit2 className="w-4 h-4" />
-                </button>
-              )}
             </div>
           </div>
         </div>
@@ -516,6 +494,14 @@ const DisbursementViewPage = () => {
                         </span>
                       }
                     />
+                    <InfoRow
+                      label="ACIC Number"
+                      value={
+                        <span className="font-mono flex items-center">
+                          {ref.acicNum || "—"} <CopyButton text={ref.acicNum} />
+                        </span>
+                      }
+                    />
                   </div>
                 ))
               ) : (
@@ -526,7 +512,7 @@ const DisbursementViewPage = () => {
               )}
 
               {/* Bank Docs */}
-              {(disbursement.lddapNum || disbursement.acicNum) && (
+              {disbursement.lddapNum && (
                 <>
                   <div className="my-3 border-t border-dashed border-base-200" />
                   <InfoRow
@@ -535,15 +521,6 @@ const DisbursementViewPage = () => {
                       <span className="font-mono flex items-center">
                         {disbursement.lddapNum || "—"}{" "}
                         <CopyButton text={disbursement.lddapNum} />
-                      </span>
-                    }
-                  />
-                  <InfoRow
-                    label="ACIC Number"
-                    value={
-                      <span className="font-mono flex items-center">
-                        {disbursement.acicNum || "—"}{" "}
-                        <CopyButton text={disbursement.acicNum} />
                       </span>
                     }
                   />
@@ -593,6 +570,29 @@ const DisbursementViewPage = () => {
                 </div>
               </div>
             </InfoCard>
+
+            {/* Only show card if user has permission */}
+            {isAuthorized && (
+              <InfoCard icon={Toolbox} title="Actions">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleDelete}
+                    className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-error hover:bg-error/10 transition-colors"
+                    title="Delete Record"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    onClick={handleEdit}
+                    className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-primary hover:bg-base-200"
+                    title="Edit Record"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </InfoCard>
+            )}
           </div>
         </div>
       </main>

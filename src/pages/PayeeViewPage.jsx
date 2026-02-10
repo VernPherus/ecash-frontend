@@ -16,6 +16,7 @@ import {
   Hash,
   FileText,
   Clock,
+  ToolboxIcon,
 } from "lucide-react";
 
 import InfoCard, { InfoRow } from "../components/InfoCard";
@@ -33,7 +34,7 @@ const PayeeViewPage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // Check access for Edit/Delete buttons (ADMIN or STAFF)
-  const canModify = authUser?.role === "ADMIN" || authUser?.role === "STAFF";
+  const isAuthorized = authUser?.role === "ADMIN" || authUser?.role === "STAFF";
 
   useEffect(() => {
     if (id) {
@@ -171,26 +172,6 @@ const PayeeViewPage = () => {
             </div>
 
             {/* Access Control: STAFF or ADMIN can Edit/Delete */}
-            <div className="flex items-center gap-2">
-              {canModify && (
-                <>
-                  <button
-                    onClick={handleDelete}
-                    className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-error hover:bg-error/10 transition-colors"
-                    title="Deactivate Payee"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setIsEditModalOpen(true)}
-                    className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-primary hover:bg-base-200"
-                    title="Edit Payee"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                </>
-              )}
-            </div>
           </div>
         </div>
       </nav>
@@ -320,6 +301,27 @@ const PayeeViewPage = () => {
                 </div>
               </div>
             </div>
+
+            {isAuthorized && (
+              <InfoCard icon={ToolboxIcon} title="Actions">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleDelete}
+                    className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-error hover:bg-error/10 transition-colors"
+                    title="Deactivate Payee"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setIsEditModalOpen(true)}
+                    className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-primary hover:bg-base-200"
+                    title="Edit Payee"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </InfoCard>
+            )}
           </div>
         </div>
       </main>
