@@ -22,6 +22,8 @@ const defaultFormData = () => ({
   fundSourceId: "",
   dateReceived: new Date().toISOString().split("T")[0],
   lddapNum: "",
+  projectName: "",
+  ncaNum: "",
   dvNum: "",
   orsNum: "",
   uacsCode: "",
@@ -55,7 +57,9 @@ const Lddap = ({ onClose, initialData }) => {
     const date = formData.dateReceived;
 
     // Find the fund that matches the selected fundSourceId
-    const selectedFund = funds.find((f) => f.id === Number(formData.fundSourceId));
+    const selectedFund = funds.find(
+      (f) => f.id === Number(formData.fundSourceId),
+    );
 
     if (!selectedFund || !selectedFund.seriesCode) {
       // Handle case where fund is not found or has no seriesCode
@@ -97,6 +101,8 @@ const Lddap = ({ onClose, initialData }) => {
         ? new Date(initialData.dateReceived).toISOString().split("T")[0]
         : new Date().toISOString().split("T")[0],
       lddapNum: initialData.lddapNum ?? "",
+      projectName: initialData.projectName ?? "",
+      ncaNum: initialData.ncaNum ?? "",
       dvNum: ref?.dvNum ?? "",
       orsNum: ref?.orsNum ?? "",
       uacsCode: ref?.uacsCode ?? "",
@@ -224,6 +230,8 @@ const Lddap = ({ onClose, initialData }) => {
       fundSourceId: Number(formData.fundSourceId),
       method: "LDDAP",
       lddapMethod: method,
+      projectName: formData.projectName,
+      ncaNum: formData.ncaNum,
       ageLimit: ageLimitVal,
       grossAmount,
       totalDeductions,
@@ -277,6 +285,7 @@ const Lddap = ({ onClose, initialData }) => {
         <div className="space-y-6 animate-fade-in">
           {/* Common Fields */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Payee Dropdown */}
             <div className="form-control">
               <label className="label pt-0">
                 <span className="label-text font-medium">
@@ -328,6 +337,7 @@ const Lddap = ({ onClose, initialData }) => {
               </div>
             </div>
 
+            {/* Age Field */}
             <div className="form-control">
               <label className="label pt-0">
                 <span className="label-text font-medium text-xs uppercase">
@@ -343,6 +353,36 @@ const Lddap = ({ onClose, initialData }) => {
                 className="input input-bordered w-full font-mono"
                 value={formData.ageLimit}
                 onChange={handleChange}
+              />
+            </div>
+
+            <div className="form-control">
+              <label className="label pt-0">
+                <span className="label-text font-medium">
+                  Project <span className="text-error">*</span>
+                </span>
+              </label>
+              <input
+                type="text"
+                name="projectName"
+                className="input input-bordered w-full font-mono"
+                placeholder="Project Name"
+                value={formData.projectName}
+              />
+            </div>
+
+            <div className="form-control">
+              <label className="label pt-0">
+                <span className="label-text font-medium">
+                  NCA Number <span className="text-error">*</span>
+                </span>
+              </label>
+              <input
+                type="text"
+                name="ncaNum"
+                className="input input-bordered w-full font-mono"
+                placeholder="NCA #"
+                value={formData.ncaNum}
               />
             </div>
           </div>
@@ -391,7 +431,7 @@ const Lddap = ({ onClose, initialData }) => {
               <div className="form-control">
                 <label className="label pt-0">
                   <span className="label-text font-medium text-xs uppercase">
-                    Date
+                    Date Received
                   </span>
                 </label>
                 <div className="relative">
@@ -496,7 +536,7 @@ const Lddap = ({ onClose, initialData }) => {
             {/* Particulars */}
             <div className="form-control">
               <label className="label pt-0">
-                <span className="label-text font-medium">Particulars</span>
+                <span className="label-text font-medium">Particulars <i>(This will be displayed in notification email)</i></span>
               </label>
               <div className="relative">
                 <FileText className="absolute left-3 top-3 w-4 h-4 text-base-content/40" />
@@ -511,41 +551,9 @@ const Lddap = ({ onClose, initialData }) => {
             </div>
           </div>
 
-          {/* ONLINE MODE SPECIFIC */}
-          {method === "ONLINE" && (
-            <div className="bg-base-200/50 p-6 rounded-xl border border-base-200 text-center space-y-4">
-              <h4 className="font-bold text-sm text-base-content/70 uppercase">
-                Quick Transfer Details
-              </h4>
-              <div className="form-control max-w-xs mx-auto">
-                <label className="label justify-center">
-                  <span className="label-text font-medium">
-                    Total Amount <span className="text-error">*</span>
-                  </span>
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/40 font-bold">
-                    ₱
-                  </span>
-                  <input
-                    type="number"
-                    className={`input input-bordered w-full pl-10 text-lg font-bold text-center ${errors.onlineAmount ? "input-error" : ""}`}
-                    placeholder="0.00"
-                    value={onlineAmount}
-                    onChange={(e) => setOnlineAmount(e.target.value)}
-                  />
-                </div>
-                {errors.onlineAmount && (
-                  <span className="text-error text-xs mt-1">
-                    {errors.onlineAmount}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* MANUAL MODE SPECIFIC */}
-          {method === "MANUAL" && (
+
             <div className="space-y-4">
               <div className="space-y-4">
                 {/* Items */}
@@ -654,7 +662,7 @@ const Lddap = ({ onClose, initialData }) => {
                 ))}
               </div>
             </div>
-          )}
+          
 
           {/* Settings Section (Approved & Email) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -665,9 +673,12 @@ const Lddap = ({ onClose, initialData }) => {
                   type="checkbox"
                   className="checkbox checkbox-sm checkbox-success"
                   checked={isApproved}
-                  onChange={(e) => {setIsApproved(e.target.checked); if (!e.target.checked) {
-                    setFormData((prev) =>({...prev, sendMail: false}))
-                  }}}
+                  onChange={(e) => {
+                    setIsApproved(e.target.checked);
+                    if (!e.target.checked) {
+                      setFormData((prev) => ({ ...prev, sendMail: false }));
+                    }
+                  }}
                 />
                 <span className="label-text font-medium">
                   Mark as Paid / Approved

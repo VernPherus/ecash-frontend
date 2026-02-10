@@ -20,6 +20,8 @@ const defaultFormData = () => ({
   fundSourceId: "",
   dateReceived: new Date().toISOString().split("T")[0],
   checkNum: "",
+  projectName: "",
+  ncaNum: "",
   dvNum: "",
   orsNum: "",
   uacsCode: "",
@@ -60,6 +62,8 @@ const Check = ({ onClose, initialData }) => {
         ? new Date(initialData.dateReceived).toISOString().split("T")[0]
         : new Date().toISOString().split("T")[0],
       checkNum: initialData.checkNum ?? "",
+      projectName: initialData.projectName ?? "",
+      ncaNum: initialData.ncaNum ?? "",
       dvNum: ref?.dvNum ?? "",
       orsNum: ref?.orsNum ?? "",
       uacsCode: ref?.uacsCode ?? "",
@@ -141,6 +145,8 @@ const Check = ({ onClose, initialData }) => {
       fundSourceId: Number(formData.fundSourceId),
       method: "CHECK",
       lddapMethod: null,
+      projectName: formData.projectName,
+      ncaNum: formData.ncaNum,
       ageLimit: ageLimitVal,
       grossAmount,
       totalDeductions,
@@ -184,7 +190,7 @@ const Check = ({ onClose, initialData }) => {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-6">
-        {/* 1. Primary Selectors */}
+        {/* Primary Selectors */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Payee */}
           <div className="form-control">
@@ -237,9 +243,207 @@ const Check = ({ onClose, initialData }) => {
               </select>
             </div>
           </div>
+
+          <div className="form-control">
+            <label className="label pt-0">
+              <span className="label-text font-medium">
+                Project <span className="text-error">*</span>
+              </span>
+            </label>
+            <input
+              type="text"
+              name="projectName"
+              className="input input-bordered w-full font-mono"
+              placeholder="Project Name"
+              value={formData.projectName}
+            />
+          </div>
+
+          <div className="form-control">
+            <label className="label pt-0">
+              <span className="label-text font-medium">
+                NCA Number <span className="text-error">*</span>
+              </span>
+            </label>
+            <input
+              type="text"
+              name="ncaNum"
+              className="input input-bordered w-full font-mono"
+              placeholder="NCA #"
+              value={formData.ncaNum}
+            />
+          </div>
         </div>
 
-        {/* 2. Items & Deductions */}
+        {/* References Grid */}
+        <div className="space-y-4 pt-2">
+          <h4 className="text-sm font-bold uppercase text-base-content/70 border-b border-base-200 pb-2">
+            References
+          </h4>
+
+          {/* Row 1: Check No. & Date */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="form-control">
+              <label className="label pt-0">
+                <span className="label-text font-medium text-xs uppercase">
+                  Check Number <span className="text-error">*</span>
+                </span>
+              </label>
+              <div className="relative">
+                <Hash className="absolute left-3 top-2.5 w-3.5 h-3.5 text-base-content/40" />
+                <input
+                  type="text"
+                  name="checkNum"
+                  placeholder="Check #..."
+                  className={`input input-bordered input-sm w-full pl-9 ${errors.checkNum ? "input-error" : ""}`}
+                  value={formData.checkNum}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+
+            <div className="form-control">
+              <label className="label pt-0">
+                <span className="label-text font-medium text-xs uppercase">
+                  Date Received
+                </span>
+              </label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-2.5 w-3.5 h-3.5 text-base-content/40" />
+                <input
+                  type="date"
+                  name="dateReceived"
+                  className="input input-bordered input-sm w-full pl-9"
+                  value={formData.dateReceived}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Row 2: DV & ORS */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="form-control">
+              <label className="label pt-0">
+                <span className="label-text font-medium text-xs uppercase">
+                  DV Number
+                </span>
+              </label>
+              <input
+                type="text"
+                name="dvNum"
+                className="input input-bordered input-sm w-full font-mono"
+                placeholder="DV-XXXX"
+                value={formData.dvNum}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="form-control">
+              <label className="label pt-0">
+                <span className="label-text font-medium text-xs uppercase">
+                  ORS Number
+                </span>
+              </label>
+              <input
+                type="text"
+                name="orsNum"
+                className="input input-bordered input-sm w-full font-mono"
+                placeholder="ORS-XXXX"
+                value={formData.orsNum}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          {/* UACS, ACIC, Resp Code */}
+          <div className="grid grid-cols-3 gap-4">
+            <div className="form-control">
+              <label className="label pt-0">
+                <span className="label-text font-medium text-xs uppercase">
+                  UACS Code
+                </span>
+              </label>
+              <input
+                type="text"
+                name="uacsCode"
+                className="input input-bordered input-sm w-full font-mono"
+                value={formData.uacsCode}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="form-control">
+              <label className="label pt-0">
+                <span className="label-text font-medium text-xs uppercase">
+                  ACIC Number
+                </span>
+              </label>
+              <input
+                type="text"
+                name="acicNum"
+                className="input input-bordered input-sm w-full font-mono"
+                placeholder="ACIC-XXXX"
+                value={formData.acicNum}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="form-control">
+              <label className="label pt-0">
+                <span className="label-text font-medium text-xs uppercase">
+                  Responsibility Code
+                </span>
+              </label>
+              <input
+                type="text"
+                name="respCode"
+                className="input input-bordered input-sm w-full font-mono"
+                value={formData.respCode}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          {/* Age Limit */}
+          <div className="form-control">
+            <label className="label pt-0">
+              <span className="label-text font-medium text-xs uppercase">
+                Age limit (days)
+              </span>
+            </label>
+            <input
+              type="number"
+              name="ageLimit"
+              min={1}
+              placeholder="5"
+              title="Days until overdue; default 5 if empty"
+              className="input input-bordered input-sm w-full font-mono"
+              value={formData.ageLimit}
+              onChange={handleChange}
+            />
+          </div>
+
+          {/* Particulars */}
+          <div className="form-control">
+            <label className="label pt-0">
+              <span className="label-text font-medium">
+                Particulars <i>(This will be displayed in notification email)</i>
+              </span>
+            </label>
+            <div className="relative">
+              <FileText className="absolute left-3 top-3 w-4 h-4 text-base-content/40" />
+              <textarea
+                name="particulars"
+                placeholder="Details..."
+                className="textarea textarea-bordered w-full pl-10 h-20 resize-none"
+                value={formData.particulars}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Items & Deductions */}
         <div className="space-y-4">
           {/* Items */}
           <div className="flex justify-between items-center border-b border-base-200 pb-1">
@@ -384,174 +588,6 @@ const Check = ({ onClose, initialData }) => {
           ))}
         </div>
 
-        {/* 3. References Grid */}
-        <div className="space-y-4 pt-2">
-          <h4 className="text-sm font-bold uppercase text-base-content/70 border-b border-base-200 pb-2">
-            References
-          </h4>
-
-          {/* Row 1: Check No. & Date */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="form-control">
-              <label className="label pt-0">
-                <span className="label-text font-medium text-xs uppercase">
-                  Check Number <span className="text-error">*</span>
-                </span>
-              </label>
-              <div className="relative">
-                <Hash className="absolute left-3 top-2.5 w-3.5 h-3.5 text-base-content/40" />
-                <input
-                  type="text"
-                  name="checkNum"
-                  placeholder="Check #..."
-                  className={`input input-bordered input-sm w-full pl-9 ${errors.checkNum ? "input-error" : ""}`}
-                  value={formData.checkNum}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
-            <div className="form-control">
-              <label className="label pt-0">
-                <span className="label-text font-medium text-xs uppercase">
-                  Date
-                </span>
-              </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-2.5 w-3.5 h-3.5 text-base-content/40" />
-                <input
-                  type="date"
-                  name="dateReceived"
-                  className="input input-bordered input-sm w-full pl-9"
-                  value={formData.dateReceived}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Row 2: DV & ORS */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="form-control">
-              <label className="label pt-0">
-                <span className="label-text font-medium text-xs uppercase">
-                  DV Number
-                </span>
-              </label>
-              <input
-                type="text"
-                name="dvNum"
-                className="input input-bordered input-sm w-full font-mono"
-                placeholder="DV-XXXX"
-                value={formData.dvNum}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="form-control">
-              <label className="label pt-0">
-                <span className="label-text font-medium text-xs uppercase">
-                  ORS Number
-                </span>
-              </label>
-              <input
-                type="text"
-                name="orsNum"
-                className="input input-bordered input-sm w-full font-mono"
-                placeholder="ORS-XXXX"
-                value={formData.orsNum}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          {/* UACS, ACIC, Resp Code */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="form-control">
-              <label className="label pt-0">
-                <span className="label-text font-medium text-xs uppercase">
-                  UACS Code
-                </span>
-              </label>
-              <input
-                type="text"
-                name="uacsCode"
-                className="input input-bordered input-sm w-full font-mono"
-                value={formData.uacsCode}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="form-control">
-              <label className="label pt-0">
-                <span className="label-text font-medium text-xs uppercase">
-                  ACIC Number
-                </span>
-              </label>
-              <input
-                type="text"
-                name="acicNum"
-                className="input input-bordered input-sm w-full font-mono"
-                placeholder="ACIC-XXXX"
-                value={formData.acicNum}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="form-control">
-              <label className="label pt-0">
-                <span className="label-text font-medium text-xs uppercase">
-                  Responsibility Code
-                </span>
-              </label>
-              <input
-                type="text"
-                name="respCode"
-                className="input input-bordered input-sm w-full font-mono"
-                value={formData.respCode}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          {/* Age Limit */}
-          <div className="form-control">
-            <label className="label pt-0">
-              <span className="label-text font-medium text-xs uppercase">
-                Age limit (days)
-              </span>
-            </label>
-            <input
-              type="number"
-              name="ageLimit"
-              min={1}
-              placeholder="5"
-              title="Days until overdue; default 5 if empty"
-              className="input input-bordered input-sm w-full font-mono"
-              value={formData.ageLimit}
-              onChange={handleChange}
-            />
-          </div>
-
-          {/* Particulars */}
-          <div className="form-control">
-            <label className="label pt-0">
-              <span className="label-text font-medium text-xs uppercase">
-                Particulars
-              </span>
-            </label>
-            <div className="relative">
-              <FileText className="absolute left-3 top-3 w-4 h-4 text-base-content/40" />
-              <textarea
-                name="particulars"
-                placeholder="Details..."
-                className="textarea textarea-bordered h-20 text-sm resize-none pl-10"
-                value={formData.particulars}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-        </div>
-
         {/* --- SETTINGS SECTION (Approval & Email) --- */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Approved Checkbox */}
@@ -562,8 +598,9 @@ const Check = ({ onClose, initialData }) => {
                 className="checkbox checkbox-sm checkbox-success"
                 checked={isApproved}
                 onChange={(e) => {
-                  setIsApproved(e.target.checked); if (!e.target.checked) {
-                    setFormData((prev) => ({ ...prev, sendMail: false }))
+                  setIsApproved(e.target.checked);
+                  if (!e.target.checked) {
+                    setFormData((prev) => ({ ...prev, sendMail: false }));
                   }
                 }}
               />
@@ -579,20 +616,20 @@ const Check = ({ onClose, initialData }) => {
           {/* Send Mail Checkbox */}
           {isApproved && (
             <div className="form-control p-3 bg-base-200/50 rounded-lg border border-base-200">
-            <label className="label cursor-pointer justify-start gap-3 py-0">
-              <input
-                type="checkbox"
-                name="sendMail"
-                className="checkbox checkbox-sm checkbox-primary"
-                checked={formData.sendMail}
-                onChange={handleChange}
-              />
-              <span className="label-text font-medium flex items-center gap-2">
-                <Mail className="w-4 h-4" /> Send Email Notification
-              </span>
-            </label>
-           </div>
-        )}
+              <label className="label cursor-pointer justify-start gap-3 py-0">
+                <input
+                  type="checkbox"
+                  name="sendMail"
+                  className="checkbox checkbox-sm checkbox-primary"
+                  checked={formData.sendMail}
+                  onChange={handleChange}
+                />
+                <span className="label-text font-medium flex items-center gap-2">
+                  <Mail className="w-4 h-4" /> Send Email Notification
+                </span>
+              </label>
+            </div>
+          )}
         </div>
       </div>
 
