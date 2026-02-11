@@ -10,6 +10,7 @@ import {
   X,
   Eye,
   Plus,
+  XCircle
 } from "lucide-react";
 import useDisbursementStore from "../store/useDisbursementStore";
 import useAuthStore from "../store/useAuthStore";
@@ -99,12 +100,6 @@ const DisbursementPage = () => {
     setIsModalOpen(true);
   };
 
-  // Open Modal for Edit
-  const handleEdit = (item) => {
-    setEditingDisbursement(item);
-    setIsModalOpen(true);
-  };
-
   // Close Modal
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -165,6 +160,17 @@ const DisbursementPage = () => {
         ),
       },
       {
+        key: "projectName",
+        header: "Project",
+        headerAlign: "text-center",
+        alight: "text-center",
+        render: (row) => (
+          <div className="font-semibold text-base-content group-hover:text-primary transition-colors text-center">
+            {row.projectName || "---"}
+          </div>
+        ),
+      },
+      {
         key: "amount",
         header: "Amount",
         headerAlign: "text-right",
@@ -181,14 +187,19 @@ const DisbursementPage = () => {
         headerAlign: "text-center",
         align: "text-center",
         render: (row) => {
-          const { label, className } = getDisbursementStatus(row);
+          // Destructure 'status' specifically for easier logic checks
+          const { label, className, status } = getDisbursementStatus(row);
+
           return (
             <div className="flex justify-center">
               <span
                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${className}`}
               >
-                {label.includes("Approved") || label.includes("Paid") ? (
+                {/* Logic: Approved -> Check, Cancelled -> X, Else -> Clock */}
+                {status === "approved" ? (
                   <CheckCircle2 className="w-3 h-3" />
+                ) : status === "cancelled" ? (
+                  <XCircle className="w-3 h-3" />
                 ) : (
                   <Clock className="w-3 h-3" />
                 )}

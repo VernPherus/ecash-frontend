@@ -17,6 +17,7 @@ import {
   X,
   Trash2,
   Toolbox,
+  Ban,
 } from "lucide-react";
 
 import useAuthStore from "../store/useAuthStore";
@@ -66,6 +67,7 @@ const DisbursementViewPage = () => {
     deleteDisbursement,
     isLoading,
     getDisbursementStatus,
+    cancelDisbursement,
   } = useDisbursementStore();
   const { authUser } = useAuthStore();
 
@@ -107,6 +109,24 @@ const DisbursementViewPage = () => {
       )
     ) {
       const result = await deleteDisbursement(Number(id));
+      if (result.success) {
+        navigate("/"); // Redirect to dashboard after delete
+      }
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!isAuthorized) {
+      alert("You don't have permission to cancel this record.");
+      return;
+    }
+
+    if (
+      window.confirm(
+        "Are you sure you want to cancel this disbursement? This action cannot be undone.",
+      )
+    ) {
+      const result = await cancelDisbursement(Number(id));
       if (result.success) {
         navigate("/"); // Redirect to dashboard after delete
       }
@@ -589,6 +609,14 @@ const DisbursementViewPage = () => {
                     title="Edit Record"
                   >
                     <Edit2 className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    onClick={handleCancel}
+                    className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-primary hover:bg-base-200"
+                    title="Cancel Record"
+                  >
+                    <Ban className="w-4 h-4" />
                   </button>
                 </div>
               </InfoCard>

@@ -10,6 +10,7 @@ import {
   AlertCircle,
   Eye,
   FileText,
+  XCircle,
 } from "lucide-react";
 import DataTable from "../components/DataTable";
 import DashboardTimeStats from "../components/DashboardTimeStats";
@@ -102,6 +103,17 @@ const DashboardPage = () => {
       ),
     },
     {
+      key: "projectName",
+      header: "Project",
+      headerAlign: "text-center",
+      alight: "text-center",
+      render: (row) => (
+        <div className="font-semibold text-base-content group-hover:text-primary transition-colors text-center">
+          {row.projectName || "---"}
+        </div>
+      ),
+    },
+    {
       key: "amount",
       header: "Amount",
       headerAlign: "text-right",
@@ -128,6 +140,8 @@ const DashboardPage = () => {
                 <CheckCircle2 className="w-3 h-3" />
               ) : status === "overdue" ? (
                 <AlertCircle className="w-3 h-3" />
+              ) : status === "cancelled" ? (
+                <XCircle className="w-3 h-3" />
               ) : (
                 <Clock className="w-3 h-3" />
               )}
@@ -163,6 +177,7 @@ const DashboardPage = () => {
     { value: "ALL", label: "All" },
     { value: "PAID", label: "Paid" },
     { value: "PENDING", label: "Pending" },
+    { value: "CANCELLED", label: "Cancelled" },
   ];
 
   const tableHeaderActions = (

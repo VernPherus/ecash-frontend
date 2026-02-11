@@ -19,9 +19,10 @@ const useDisbursementStore = create((set, get) => ({
 
   // Calculate status and age for UI badges
   getDisbursementStatus: (disbursement) => {
-    // Check if Paid/Approved (Backend uses lowercase 'approved' in approveRec, check logic)
+    // 1. Normalize status to lowercase for consistent comparison
     const status = disbursement.status?.toLowerCase();
 
+    // 2. Check Paid/Approved
     if (status === "paid" || status === "approved") {
       return {
         status: "approved",
@@ -29,6 +30,20 @@ const useDisbursementStore = create((set, get) => ({
         className: "badge-success text-white border-success bg-success",
       };
     }
+
+    // 3. Check Cancelled
+    // FIX: Compare against lowercase "cancelled" because of step 1
+    if (status === "cancelled") {
+      return {
+        status: "cancelled",
+        label: "Cancelled",
+        // detailed styling to match your other badges (grey/neutral look)
+        className:
+          "badge-ghost text-base-content opacity-50 border-base-300 bg-base-200",
+      };
+    }
+
+    // --- LOGIC FOR PENDING STATE ---
 
     // Calculate Age (Days since received)
     const daysSinceReceived = disbursement.dateReceived
@@ -41,6 +56,7 @@ const useDisbursementStore = create((set, get) => ({
     // Check Overdue (Default limit 5 days if not set)
     const limit = disbursement.ageLimit || 5;
 
+    // Return Overdue styling (Visual alert, still technically "Pending")
     if (daysSinceReceived > limit) {
       return {
         status: "overdue",
@@ -50,7 +66,7 @@ const useDisbursementStore = create((set, get) => ({
       };
     }
 
-    // Pending / In Progress
+    // Return Standard Pending styling
     return {
       status: "pending",
       label: `${daysSinceReceived} Days`,
@@ -255,14 +271,42 @@ const useDisbursementStore = create((set, get) => ({
   },
 
   /**
+   * * CANCEL Disbursement: Updates disbursement status to CANCELLED state
+   * @param {*} id
+   * @returns
+   */
+  cancelDisbursement: async (id) => {
+    set({ isLoading: true });
+    try {
+      await axiosInstance.put(`/disbursement/cancel/${id}`);
+
+      set((state) => ({
+        disbursements: state.disbursements.filter((d) => d.id !== Number(id)),
+        selectedDisbursement:
+          state.selectedDisbursement?.id === Number(id)
+            ? null
+            : state.selectedDisbursement,
+        isLoading: false,
+      }));
+
+      toast.success("Disbursement has been cancelled.");
+      return { success: true };
+    } catch (error) {
+      const message =
+        error.response?.data?.message || "Failed to cancel disbursement";
+      set({ isLoading: false });
+      toast.error(message);
+      return { success: false, error: message };
+    }
+  },
+
+  /**
    * Delete Record (Soft Delete)
    * PUT /api/disbursement/delete/:id
    */
   deleteDisbursement: async (id) => {
     set({ isLoading: true });
     try {
-      // Note: Backend endpoint is typically 'removeRec' but routed via /delete/:id or similar.
-      // Assuming route is /disbursement/delete/:id based on previous context
       await axiosInstance.put(`/disbursement/delete/${id}`);
 
       set((state) => ({
