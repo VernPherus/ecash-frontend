@@ -35,7 +35,6 @@ const FundManagerPage = () => {
   const {
     displayFundStats,
     fundStats,
-    dashboard, // Ensure dashboard is destructured if used (based on previous turns)
     funds,
     entries,
     fetchFunds,
@@ -47,7 +46,7 @@ const FundManagerPage = () => {
     selectedFund,
     isLoading: isStoreLoading,
   } = useFundStore();
-  const { time, getTime } = useSystemStore();
+  const { getTime } = useSystemStore();
   const { authUser } = useAuthStore(); // 2. Get current user
 
   // --- UI State ---
@@ -330,7 +329,7 @@ const FundManagerPage = () => {
     >
       <Plus className="w-4 h-4" />
       <span className="hidden sm:inline">
-        {activeTab === "FUNDS" ? "New Fund" : "New Entry"}
+        {activeTab === "FUNDS" ? "New Fund" : "New NCA"}
       </span>
     </button>
   ) : null;
@@ -469,7 +468,7 @@ const FundManagerPage = () => {
           <div className="relative bg-base-100 rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-scaleIn border border-base-200">
             <div className="flex items-center justify-between px-6 py-4 border-b border-base-200 bg-base-50/50">
               <h3 className="font-bold text-lg text-base-content">
-                New Ledger Entry
+                New NCA Entry
               </h3>
               <button
                 onClick={() => setIsEntryModalOpen(false)}
