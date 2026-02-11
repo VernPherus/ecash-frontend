@@ -641,13 +641,31 @@ const Check = ({ onClose, initialData }) => {
                     Responsibility Code
                   </span>
                 </label>
-                <input
+                <select
                   type="text"
                   name="respCode"
-                  className="input input-bordered input-sm w-full font-mono"
+                  className="select select-bordered select-sm w-full pl-10"
+                  placeholder="RESP-CODE-XXXX"
                   value={formData.respCode}
                   onChange={handleChange}
-                />
+                >
+                  <option value="19-001-00-00000">
+                    OSEC - 19-001-00-00000
+                  </option>
+                  <option value="19-001-03-00001">ORD - 19-001-03-00001</option>
+                  <option value="19-001-03-00001-01">
+                    TOS - 19-001-03-00001-01
+                  </option>
+                  <option value="19-001-03-00001-02">
+                    FAS - 19-001-03-00001-02
+                  </option>
+                  <option value="19-001-03-0001-03">
+                    QMS - 19-001-03-0001-03
+                  </option>
+                  <option value="19-001-03-00001-99">
+                    COA - 19-001-03-00001-99
+                  </option>
+                </select>
               </div>
             </div>
 
@@ -845,7 +863,7 @@ const Check = ({ onClose, initialData }) => {
             </div>
 
             {/* Send Mail Checkbox */}
-            {isApproved && (
+            {(isApproved && !isEdit) && (
               <div className="form-control p-3 bg-base-200/50 rounded-lg border border-base-200">
                 <label className="label cursor-pointer justify-start gap-3 py-0">
                   <input
