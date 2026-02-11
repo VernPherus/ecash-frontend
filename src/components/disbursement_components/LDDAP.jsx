@@ -444,7 +444,7 @@ const Lddap = ({ onClose, initialData }) => {
 
           <div className="space-y-6 animate-fade-in">
             {/* Common Fields */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Payee Dropdown */}
               <div className="form-control">
                 <label className="label pt-0">
@@ -496,7 +496,9 @@ const Lddap = ({ onClose, initialData }) => {
                   </select>
                 </div>
               </div>
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Project Name */}
               <div className="form-control">
                 <label className="label pt-0">

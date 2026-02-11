@@ -21,6 +21,7 @@ const defaultFormData = () => ({
   payeeId: "",
   fundSourceId: "",
   dateReceived: new Date().toISOString().split("T")[0],
+  approvedAt: new Date().toISOString().split("T")[0],
   checkNum: "",
   projectName: "",
   ncaNum: "",
@@ -63,6 +64,9 @@ const Check = ({ onClose, initialData }) => {
       fundSourceId: String(initialData.fundSourceId ?? ""),
       dateReceived: initialData.dateReceived
         ? new Date(initialData.dateReceived).toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0],
+      approvedAt: initialData.approvedAt
+        ? new Date(initialData.approvedAt).toISOString().split("T")[0]
         : new Date().toISOString().split("T")[0],
       checkNum: initialData.checkNum ?? "",
       projectName: initialData.projectName ?? "",
@@ -175,7 +179,6 @@ const Check = ({ onClose, initialData }) => {
       grossAmount,
       totalDeductions,
       netAmount: grossAmount - totalDeductions,
-      approvedAt: isApproved ? new Date().toISOString() : null,
       status: isApproved ? "PAID" : "PENDING",
       items: finalItems,
       deductions: finalDeductions,
@@ -282,6 +285,12 @@ const Check = ({ onClose, initialData }) => {
                 <span className="font-medium text-base-content">
                   {formData.dateReceived}
                 </span>
+              </div>{" "}
+              <div className="flex justify-between text-sm">
+                <span className="text-base-content/60">Date Processed:</span>
+                <span className="font-medium text-base-content">
+                  {formData.approvedAt}
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-base-content/60">Project:</span>
@@ -295,7 +304,6 @@ const Check = ({ onClose, initialData }) => {
                   {formData.ncaNum || "N/A"}
                 </span>
               </div>
-
               {/* Financial Summary */}
               <div className="pt-3 mt-3 border-t border-base-300 space-y-2">
                 <div className="flex justify-between text-sm">
@@ -321,7 +329,6 @@ const Check = ({ onClose, initialData }) => {
                   </span>
                 </div>
               </div>
-
               {/* Status badges */}
               <div className="pt-3 mt-3 border-t border-base-300 flex gap-2 flex-wrap">
                 <span
@@ -452,6 +459,69 @@ const Check = ({ onClose, initialData }) => {
             </div>
           </div>
 
+          {/* Date */}
+          <div className="space-y-4 pt-2">
+            <h4 className="text-sm font-bold uppercase text-base-content/70 border-b border-base-200 pb-2">
+              Date
+            </h4>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="form-control">
+                <label className="label pt-0">
+                  <span className="label-text font-medium text-xs uppercase">
+                    Date Received
+                  </span>
+                </label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-2.5 w-3.5 h-3.5 text-base-content/40" />
+                  <input
+                    type="date"
+                    name="dateReceived"
+                    className="input input-bordered input-sm w-full pl-9"
+                    value={formData.dateReceived}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              <div className="form-control">
+                <label className="label pt-0">
+                  <span className="label-text font-medium text-xs uppercase">
+                    Date Processed
+                  </span>
+                </label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-2.5 w-3.5 h-3.5 text-base-content/40" />
+                  <input
+                    type="date"
+                    name="approvedAt"
+                    className="input input-bordered input-sm w-full pl-9"
+                    value={formData.approvedAt}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              {/* Age Limit */}
+              <div className="form-control">
+                <label className="label pt-0">
+                  <span className="label-text font-medium text-xs uppercase">
+                    Age limit (days)
+                  </span>
+                </label>
+                <input
+                  type="number"
+                  name="ageLimit"
+                  min={1}
+                  placeholder="5"
+                  title="Days until overdue; default 5 if empty"
+                  className="input input-bordered input-sm w-full font-mono"
+                  value={formData.ageLimit}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+          </div>
+
           {/* References Grid */}
           <div className="space-y-4 pt-2">
             <h4 className="text-sm font-bold uppercase text-base-content/70 border-b border-base-200 pb-2">
@@ -579,25 +649,6 @@ const Check = ({ onClose, initialData }) => {
                   onChange={handleChange}
                 />
               </div>
-            </div>
-
-            {/* Age Limit */}
-            <div className="form-control">
-              <label className="label pt-0">
-                <span className="label-text font-medium text-xs uppercase">
-                  Age limit (days)
-                </span>
-              </label>
-              <input
-                type="number"
-                name="ageLimit"
-                min={1}
-                placeholder="5"
-                title="Days until overdue; default 5 if empty"
-                className="input input-bordered input-sm w-full font-mono"
-                value={formData.ageLimit}
-                onChange={handleChange}
-              />
             </div>
 
             {/* Particulars */}
