@@ -339,7 +339,7 @@ const FundManagerPage = () => {
       {/* --- HEADER --- */}
       <FloatingNotification />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
-        {/* --- STATS OVERVIEW --- */}
+        {/* Fund Liquidity Section */}
         <section>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-lg text-base-content flex items-center gap-2">
@@ -348,18 +348,24 @@ const FundManagerPage = () => {
             </h3>
           </div>
 
-          {/* Render cards either from dashboard state fundStats */}
           {fundStats.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="flex overflow-x-auto pb-4 gap-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-base-300">
               {fundStats.map((fundStat) => (
-                <FundStatCard
+                <div
                   key={fundStat.fundId}
-                  fundId={fundStat.fundId}
-                  totalNCA={fundStat.totalEntries}
-                  totalMonthly={fundStat.totalMonthly}
-                  totalDisbursements={fundStat.totalDisbursement}
-                  totalCashUtil={fundStat.totalCashUtil}
-                />
+                  className="min-w-[400px] md:min-w-[450px] flex-shrink-0"
+                >
+                  <FundStatCard
+                    fundId={fundStat.fundId}
+                    totalNCA={fundStat.totalEntries}
+                    totalMonthly={fundStat.totalMonthly}
+                    totalDisbursements={fundStat.totalDisbursement}
+                    totalCashUtil={fundStat.totalCashUtil}
+                    // Added new props
+                    processedDVNum={fundStat.processedDVNum}
+                    cancelledDVNum={fundStat.cancelledDVNum}
+                  />
+                </div>
               ))}
             </div>
           ) : (

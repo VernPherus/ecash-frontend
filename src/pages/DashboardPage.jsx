@@ -210,16 +210,24 @@ const DashboardPage = () => {
           </div>
 
           {fundStats.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            // Converted to sideways scrollable container
+            <div className="flex overflow-x-auto pb-4 gap-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-base-300">
               {fundStats.map((fundStat) => (
-                <FundStatCard
+                <div
                   key={fundStat.fundId}
-                  fundId={fundStat.fundId}
-                  totalNCA={fundStat.totalEntries}
-                  totalMonthly={fundStat.totalMonthly}
-                  totalDisbursements={fundStat.totalDisbursement}
-                  totalCashUtil={fundStat.totalCashUtil}
-                />
+                  className="min-w-[400px] md:min-w-[450px] flex-shrink-0"
+                >
+                  <FundStatCard
+                    fundId={fundStat.fundId}
+                    totalNCA={fundStat.totalEntries}
+                    totalMonthly={fundStat.totalMonthly}
+                    totalDisbursements={fundStat.totalDisbursement}
+                    totalCashUtil={fundStat.totalCashUtil}
+                    // Added new props
+                    processedDVNum={fundStat.processedDVNum}
+                    cancelledDVNum={fundStat.cancelledDVNum}
+                  />
+                </div>
               ))}
             </div>
           ) : (
