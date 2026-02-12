@@ -902,7 +902,7 @@ const Lddap = ({ onClose, initialData }) => {
               </div>
 
               {/* Send Mail checkbox */}
-              {(isApproved && !isEdit) && (
+              {isApproved && !isEdit && (
                 <div className="form-control p-3 bg-base-200/50 rounded-lg border border-base-200">
                   <label className="label cursor-pointer justify-start gap-3 py-0">
                     <input

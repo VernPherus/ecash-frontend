@@ -9,10 +9,15 @@ const useLedgerStore = create((set, get) => ({
   ledgers: [],
 
   // --- Actions ---
-  getLedgers: async () => {
+  getLedgers: async (fundId, year) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axiosInstance.get("/ledger/get");
+      const response = await axiosInstance.get(`/ledger/get`, {
+        params: {
+          fundId,
+          year,
+        },
+      });
       const data = response.data;
 
       set({

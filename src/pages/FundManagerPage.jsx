@@ -15,6 +15,7 @@ import {
   Eye,
   Wallet,
   LayoutGrid,
+  Calendar,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -39,7 +40,7 @@ const FundManagerPage = () => {
     entries,
     fetchFunds,
     fetchEntries,
-    fetchDashboardStats, // Ensure fetchDashboardStats is available
+    fetchDashboardStats,
     createEntry,
     deleteEntry,
     setSelectedFund,
@@ -60,6 +61,7 @@ const FundManagerPage = () => {
     sourceId: "",
     name: "",
     amount: "",
+    entryDate: "",
   });
   const [isSubmittingEntry, setIsSubmittingEntry] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -72,7 +74,7 @@ const FundManagerPage = () => {
   useEffect(() => {
     fetchFunds();
     fetchEntries();
-    if (fetchDashboardStats) fetchDashboardStats(); // Fetch stats if function exists
+    if (fetchDashboardStats) fetchDashboardStats();
   }, [fetchFunds, fetchEntries, fetchDashboardStats]);
 
   // --- For fund Stats ---
@@ -131,7 +133,12 @@ const FundManagerPage = () => {
 
   const handleEntrySubmit = async (e) => {
     e.preventDefault();
-    if (!entryForm.sourceId || !entryForm.amount || !entryForm.name) {
+    if (
+      !entryForm.sourceId ||
+      !entryForm.amount ||
+      !entryForm.name ||
+      !entryForm.entryDate
+    ) {
       toast.error("Please fill in all fields");
       return;
     }
@@ -141,12 +148,13 @@ const FundManagerPage = () => {
       sourceId: Number(entryForm.sourceId),
       name: entryForm.name,
       amount: Number(entryForm.amount),
+      enteredAt: entryForm.entryDate,
     });
     setIsSubmittingEntry(false);
 
     if (result.success) {
       setIsEntryModalOpen(false);
-      setEntryForm({ sourceId: "", name: "", amount: "" });
+      setEntryForm({ sourceId: "", name: "", amount: "", entryDate: "" });
       fetchFunds();
     }
   };
@@ -466,7 +474,7 @@ const FundManagerPage = () => {
 
       {/* --- MODAL: ENTRY FORM --- */}
       {isEntryModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
             onClick={() => setIsEntryModalOpen(false)}
@@ -551,6 +559,26 @@ const FundManagerPage = () => {
                     }
                     required
                   />
+                </div>
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-medium text-base-content/70">
+                    Date entered to fund:
+                  </span>
+                </label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-3 w-4 h-4 text-base-content/40" />
+                  <input
+                    type="date"
+                    name="dateReceived"
+                    className="input input-bordered w-full pl-10"
+                    value={entryForm.entryDate}
+                    onChange={(e) =>
+                      setEntryForm({ ...entryForm, entryDate: e.target.value })
+                    }
+                  />{" "}
                 </div>
               </div>
 
