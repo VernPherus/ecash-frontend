@@ -509,7 +509,7 @@ const FundViewPage = () => {
                       <th className="px-5 py-4 text-emerald-600">Entries</th>
                       <th className="px-5 py-4 text-error">Disbursed</th>
                       <th className="px-5 py-4">Final Amount</th>
-                      <th className="px-5 py-4 text-center">Status</th>
+
                     </tr>
                   </thead>
                   <tbody className="text-sm">
@@ -548,17 +548,7 @@ const FundViewPage = () => {
                             <td className="px-5 py-3 font-mono font-bold text-base-content">
                               {formatCurrency(ledger.endingBalance)}
                             </td>
-                            <td className="px-5 py-3 text-center">
-                              <span
-                                className={`px-2 py-1 rounded-full text-[10px] font-bold border ${
-                                  ledger.status === "OPEN"
-                                    ? "bg-emerald-100 text-emerald-700 border-emerald-200"
-                                    : "bg-base-200 text-base-content/50 border-base-300"
-                                }`}
-                              >
-                                {ledger.status}
-                              </span>
-                            </td>
+
                           </tr>
                         ))
                     ) : (

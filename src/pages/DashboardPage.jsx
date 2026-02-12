@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 //* Component imports
 import {
@@ -11,6 +11,7 @@ import {
   Eye,
   FileText,
   XCircle,
+  Calendar, // Added Icon
 } from "lucide-react";
 import DataTable from "../components/DataTable";
 import DashboardTimeStats from "../components/DashboardTimeStats";
@@ -24,6 +25,21 @@ import useDisbursementStore from "../store/useDisbursementStore";
 
 //* Utils
 import { formatCurrency, formatDate } from "../lib/formatters";
+
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -39,18 +55,20 @@ const DashboardPage = () => {
 
   const [filterStatus, setFilterStatus] = useState("ALL");
 
+  // State for selected month (Defaults to current month)
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+
+  // Initialize Data
   useEffect(() => {
     const initializeDashboard = async () => {
       try {
         await getTime();
         fetchFunds();
 
+        // Initial fetch based on system time if available, otherwise keeps default state
         const { time: updatedTime } = useSystemStore.getState();
-
         if (updatedTime?.month) {
-          await displayFundStats({
-            month: Number(updatedTime.month),
-          });
+          setSelectedMonth(Number(updatedTime.month));
         }
       } catch (error) {
         console.error("Failed to initialize dashboard:", error);
@@ -58,8 +76,18 @@ const DashboardPage = () => {
     };
 
     initializeDashboard();
-  }, [getTime, displayFundStats, fetchFunds]);
+  }, [getTime, fetchFunds]);
 
+  // Fetch Stats whenever selectedMonth changes
+  useEffect(() => {
+    if (selectedMonth) {
+      displayFundStats({
+        month: Number(selectedMonth),
+      });
+    }
+  }, [selectedMonth, displayFundStats]);
+
+  // Fetch Disbursements
   useEffect(() => {
     fetchDisbursements(1, 10, "", filterStatus === "ALL" ? "" : filterStatus);
   }, [fetchDisbursements, filterStatus]);
@@ -72,6 +100,11 @@ const DashboardPage = () => {
       filterStatus === "ALL" ? "" : filterStatus,
     );
   };
+
+  // Get the string name of the currently selected month
+  const currentMonthName = useMemo(() => {
+    return MONTH_NAMES[selectedMonth - 1] || "Month";
+  }, [selectedMonth]);
 
   // Column definitions
   const disbursementColumns = [
@@ -202,11 +235,27 @@ const DashboardPage = () => {
 
         {/* Fund Liquidity Section */}
         <section>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
             <h3 className="font-bold text-lg text-base-content flex items-center gap-2">
               <Wallet className="w-5 h-5 text-primary" />
               Fund Liquidity Overview
             </h3>
+
+            {/* Month Selector */}
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-base-content/50" />
+              <select
+                className="select select-bordered select-sm w-full sm:w-auto font-medium text-base-content"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(Number(e.target.value))}
+              >
+                {MONTH_NAMES.map((name, index) => (
+                  <option key={index + 1} value={index + 1}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {fundStats.length > 0 ? (
@@ -219,13 +268,15 @@ const DashboardPage = () => {
                 >
                   <FundStatCard
                     fundId={fundStat.fundId}
+                    // Pass the Month Name
+                    month={currentMonthName}
                     totalNCA={fundStat.totalEntries}
                     totalMonthly={fundStat.totalMonthly}
                     totalDisbursements={fundStat.totalDisbursement}
                     totalCashUtil={fundStat.totalCashUtil}
-                    // Added new props
                     processedDVNum={fundStat.processedDVNum}
-                    cancelledDVNum={fundStat.cancelledDVNum}
+                    cancelledLDDAPNum={fundStat.cancelledLDDAP}
+                    cancelledCheckNum={fundStat.cancellledCheck}
                   />
                 </div>
               ))}
