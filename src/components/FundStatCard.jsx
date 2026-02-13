@@ -38,7 +38,6 @@ const FundStatCard = ({
   const fundCode = fund?.code || `ID-${fundId}`;
 
   return (
-    // ROOT CARD: Uses 'card-static' to handle bg/border switching for Dark/Light mode automatically
     <div className="card-static group flex h-full flex-col overflow-hidden transition-all duration-300 hover:shadow-medium">
       {/* Header Section */}
       <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-base-200">
@@ -47,7 +46,6 @@ const FundStatCard = ({
             <Wallet className="w-5 h-5" />
           </div>
           <div>
-            {/* TEXT FIX: Use text-base-content to adapt to dark mode */}
             <h3 className="font-bold text-lg text-base-content leading-tight">
               {fundName}
             </h3>
@@ -61,7 +59,6 @@ const FundStatCard = ({
       {/* Main Content Section */}
       <div className="p-6 flex flex-col gap-4 flex-1">
         {/* NCA Received - PRIMARY */}
-        {/* POP FIX: Added shadow-sm and increased bg opacity to /10 */}
         <div className="relative overflow-hidden rounded-xl bg-primary/10 border border-primary/20 shadow-sm transition-colors">
           <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary"></div>
           <div className="p-4 pl-6">
@@ -73,7 +70,6 @@ const FundStatCard = ({
                 Total NCA Received
               </p>
             </div>
-            {/* TEXT FIX: Uses text-base-content */}
             <p className="text-3xl font-bold tracking-tight text-base-content font-mono">
               {formatCurrency(totalNCA)}
             </p>
@@ -81,7 +77,6 @@ const FundStatCard = ({
         </div>
 
         {/* Total Disbursement - WARNING */}
-        {/* POP FIX: Added shadow-sm and increased bg opacity to /15 */}
         <div className="relative overflow-hidden rounded-xl bg-warning/15 border border-warning/30 shadow-sm transition-colors">
           <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-warning"></div>
           <div className="p-4 pl-6">
@@ -100,7 +95,6 @@ const FundStatCard = ({
         </div>
 
         {/* Balance - INFO */}
-        {/* POP FIX: Added shadow-sm and increased bg opacity to /15 */}
         <div className="relative overflow-hidden rounded-xl bg-info/15 border-2 border-info/30 shadow-sm transition-colors">
           <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-info"></div>
           <div className="p-5 pl-6">
@@ -119,7 +113,6 @@ const FundStatCard = ({
         </div>
 
         {/* Cash Utilization */}
-        {/* DESIGN: Uses base-200 for background to fit any theme */}
         <div className="relative flex items-center justify-between p-3 rounded-lg bg-base-200 border border-base-300 overflow-hidden shadow-sm">
           <div
             className="absolute left-0 top-0 bottom-0 bg-secondary/10 z-0"
@@ -145,8 +138,8 @@ const FundStatCard = ({
 
         {/* Secondary Metrics - Footer Items */}
         <div className="grid grid-cols-3 gap-3">
-          {/* Processed Count */}
-          <div className="py-3 px-2 flex flex-col items-center justify-center text-center rounded-xl bg-base-200/50 border border-base-200 hover:bg-base-200 hover:border-warning/30 hover:shadow-sm transition-all duration-300">
+          {/* Processed Count - PERMANENTLY COLORED */}
+          <div className="py-3 px-2 flex flex-col items-center justify-center text-center rounded-xl bg-warning/10 border border-warning/30 shadow-sm transition-all duration-300">
             <CheckCircle2 className="w-4 h-4 text-success mb-1.5" />
             <span className="text-lg font-bold text-base-content font-mono leading-none">
               {processedDVNum || 0}
@@ -156,8 +149,8 @@ const FundStatCard = ({
             </span>
           </div>
 
-          {/* Cancelled LDDAP Count */}
-          <div className="py-3 px-2 flex flex-col items-center justify-center text-center rounded-xl bg-base-200/50 border border-base-200 hover:bg-base-200 hover:border-warning/30 hover:shadow-sm transition-all duration-300">
+          {/* Cancelled LDDAP Count - PERMANENTLY COLORED */}
+          <div className="py-3 px-2 flex flex-col items-center justify-center text-center rounded-xl bg-warning/10 border border-warning/30 shadow-sm transition-all duration-300">
             <Ban className="w-4 h-4 text-error mb-1.5" />
             <span className="text-lg font-bold text-base-content font-mono leading-none">
               {cancelledLDDAPNum || 0}
@@ -167,8 +160,8 @@ const FundStatCard = ({
             </span>
           </div>
 
-          {/* Cancelled Check Count */}
-          <div className="py-3 px-2 flex flex-col items-center justify-center text-center rounded-xl bg-base-200/50 border border-base-200 hover:bg-base-200 hover:border-warning/30 hover:shadow-sm transition-all duration-300">
+          {/* Cancelled Check Count - PERMANENTLY COLORED */}
+          <div className="py-3 px-2 flex flex-col items-center justify-center text-center rounded-xl bg-warning/10 border border-warning/30 shadow-sm transition-all duration-300">
             <Ban className="w-4 h-4 text-warning mb-1.5" />
             <span className="text-lg font-bold text-base-content font-mono leading-none">
               {cancelledCheckNum || 0}
