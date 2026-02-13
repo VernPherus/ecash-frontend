@@ -259,16 +259,14 @@ const DashboardPage = () => {
           </div>
 
           {fundStats.length > 0 ? (
-            // Converted to sideways scrollable container
             <div className="flex overflow-x-auto pb-4 gap-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-base-300">
               {fundStats.map((fundStat) => (
                 <div
                   key={fundStat.fundId}
-                  className="min-w-[400px] md:min-w-[450px] flex-shrink-0"
+                  className="flex-1 min-w-[400px] md:min-w-[450px]"
                 >
                   <FundStatCard
                     fundId={fundStat.fundId}
-                    // Pass the Month Name
                     month={currentMonthName}
                     totalNCA={fundStat.totalEntries}
                     totalMonthly={fundStat.totalMonthly}

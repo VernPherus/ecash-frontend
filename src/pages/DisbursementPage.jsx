@@ -235,8 +235,9 @@ const DisbursementPage = () => {
 
   const filterOptions = [
     { value: "ALL", label: "All Status" },
-    { value: "PAID", label: "Paid / Approved" },
+    { value: "PAID", label: "Paid" },
     { value: "PENDING", label: "Pending" },
+    {value: "CANCELLED", label: "Cancelled"}
   ];
 
   const headerActions = canCreate ? (

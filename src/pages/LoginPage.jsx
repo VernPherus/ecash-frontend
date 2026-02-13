@@ -4,6 +4,7 @@ import LoginLeftPanel from "../components/LoginLeftPanel";
 import ForgetPasswordForm from "../components/ForgetPasswordForm";
 import useAuthStore from "../store/useAuthStore";
 
+
 const LoginPage = () => {
   const [formData, setFormData] = useState({
     email: "",

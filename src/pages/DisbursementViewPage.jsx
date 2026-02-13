@@ -492,24 +492,28 @@ const DisbursementViewPage = () => {
                     <InfoRow
                       label="DV Number"
                       value={
-                        <span className="font-mono flex items-center">
-                          {ref.dvNum || "—"} <CopyButton text={ref.dvNum} />
+                        <span className="font-mono flex items-center gap-2 min-w-0">
+                          <span className="truncate">{ref.dvNum || "—"}</span>
+                          <CopyButton text={ref.dvNum} />
                         </span>
                       }
                     />
                     <InfoRow
                       label="ORS Number"
                       value={
-                        <span className="font-mono flex items-center">
-                          {ref.orsNum || "—"} <CopyButton text={ref.orsNum} />
+                        <span className="font-mono flex items-center gap-2 min-w-0">
+                          <span className="truncate">{ref.orsNum || "—"}</span>
+                          <CopyButton text={ref.orsNum} />
                         </span>
                       }
                     />
                     <InfoRow
                       label="UACS Code"
                       value={
-                        <span className="font-mono flex items-center">
-                          {ref.uacsCode || "—"}{" "}
+                        <span className="font-mono flex items-center gap-2 min-w-0">
+                          <span className="truncate">
+                            {ref.uacsCode || "—"}
+                          </span>
                           <CopyButton text={ref.uacsCode} />
                         </span>
                       }
@@ -517,8 +521,9 @@ const DisbursementViewPage = () => {
                     <InfoRow
                       label="ACIC Number"
                       value={
-                        <span className="font-mono flex items-center">
-                          {ref.acicNum || "—"} <CopyButton text={ref.acicNum} />
+                        <span className="font-mono flex items-center gap-2 min-w-0">
+                          <span className="truncate">{ref.acicNum || "—"}</span>
+                          <CopyButton text={ref.acicNum} />
                         </span>
                       }
                     />

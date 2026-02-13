@@ -407,7 +407,7 @@ const FundManagerPage = () => {
               {fundStats.map((fundStat) => (
                 <div
                   key={fundStat.fundId}
-                  className="min-w-[400px] md:min-w-[450px] flex-shrink-0"
+                  className="flex-1 min-w-[400px] md:min-w-[450px]"
                 >
                   <FundStatCard
                     fundId={fundStat.fundId}

@@ -69,12 +69,10 @@ const FundStatCard = ({
               <div className="p-1 rounded bg-primary/20 text-primary">
                 <ArrowDownRight className="w-4 h-4" />
               </div>
-              {/* Label made larger */}
-              <p className="text-sm font-bold uppercase tracking-wide text-primary/80">
+              <p className="text-sm font-bold uppercase tracking-wide ">
                 Total NCA Received
               </p>
             </div>
-            {/* Value made larger */}
             <p className="text-3xl font-bold tracking-tight text-base-content font-mono">
               {formatCurrency(totalNCA)}
             </p>
@@ -89,20 +87,17 @@ const FundStatCard = ({
               <div className="p-1 rounded bg-warning/20 text-warning-content/80 lg:text-warning">
                 <ArrowUpRight className="w-4 h-4" />
               </div>
-              {/* Label made larger */}
-              <p className="text-sm font-bold uppercase tracking-wide text-warning/80">
+              <p className="text-sm font-bold uppercase tracking-wide">
                 Total Disbursement
               </p>
             </div>
-            {/* Value made larger */}
             <p className="text-3xl font-bold tracking-tight text-base-content font-mono">
               {formatCurrency(totalDisbursements)}
             </p>
           </div>
         </div>
 
-        {/* Balance - INFO (Prominent) */}
-        {/* Added thicker border and slightly darker background for prominence */}
+        {/* Balance - INFO */}
         <div className="relative overflow-hidden rounded-xl bg-info/10 border-2 border-info/20 shadow-sm transition-colors">
           <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-info"></div>
           <div className="p-5 pl-6">
@@ -110,21 +105,18 @@ const FundStatCard = ({
               <div className="p-1.5 rounded bg-info/20 text-info">
                 <Activity className="w-4 h-4" />
               </div>
-              {/* Label made larger */}
-              <p className="text-sm font-extrabold uppercase tracking-wide text-info">
+              <p className="text-sm font-extrabold uppercase tracking-wide">
                 Cash Balance as of {month || "the Month"}
               </p>
             </div>
-            {/* Value made significantly larger (4xl) */}
             <p className="text-4xl font-black tracking-tight text-base-content font-mono">
               {formatCurrency(totalMonthly)}
             </p>
           </div>
         </div>
 
-        {/* Cash Utilization - Styled as a sleek bar below Balance */}
+        {/* Cash Utilization */}
         <div className="relative flex items-center justify-between p-3 rounded-lg bg-base-200/50 border border-base-200 overflow-hidden">
-          {/* subtle background progress bar effect */}
           <div
             className="absolute left-0 top-0 bottom-0 bg-secondary/5 z-0"
             style={{ width: `${Math.min(totalCashUtil, 100)}%` }}
@@ -134,7 +126,7 @@ const FundStatCard = ({
             <div className="p-1.5 rounded-full bg-base-100 shadow-sm text-secondary">
               <PieChart className="w-4 h-4" />
             </div>
-            <span className="text-sm font-bold text-base-content/70 uppercase">
+            <span className="text-sm font-bold text-base-content uppercase">
               Cash Utilization
             </span>
           </div>
@@ -145,15 +137,16 @@ const FundStatCard = ({
         </div>
       </div>
 
-      {/* Secondary Metrics - Grid Layout (3 Columns) */}
-      <div className="grid grid-cols-3 divide-x divide-base-200 border-t border-base-200 bg-base-50/80">
+      {/* Secondary Metrics - Footer */}
+      {/* MODIFICATION: Used warning colors for bg and borders to match Disbursement theme, removed harsh borders */}
+      <div className="grid grid-cols-3 divide-x divide-warning/10 border-t border-warning/10 bg-warning/5">
         {/* Processed Count */}
-        <div className="py-4 px-2 flex flex-col items-center justify-center text-center hover:bg-base-100 transition-colors">
+        <div className="py-4 px-2 flex flex-col items-center justify-center text-center hover:bg-warning/10 transition-colors cursor-default">
           <CheckCircle2 className="w-5 h-5 text-success mb-2" />
           <span className="text-xl font-bold text-base-content font-mono">
             {processedDVNum || 0}
           </span>
-          <span className="text-[10px] font-bold text-base-content/40 uppercase mt-1 leading-tight">
+          <span className="text-[10px] font-bold text-base-content/70 uppercase mt-1 leading-tight">
             Processed
             <br />
             DVs
@@ -161,25 +154,25 @@ const FundStatCard = ({
         </div>
 
         {/* Cancelled LDDAP Count */}
-        <div className="py-4 px-2 flex flex-col items-center justify-center text-center hover:bg-base-100 transition-colors">
+        <div className="py-4 px-2 flex flex-col items-center justify-center text-center hover:bg-warning/10 transition-colors cursor-default">
           <Ban className="w-5 h-5 text-error mb-2" />
           <span className="text-xl font-bold text-base-content font-mono">
             {cancelledLDDAPNum || 0}
           </span>
-          <span className="text-[10px] font-bold text-base-content/40 uppercase mt-1 leading-tight">
+          <span className="text-[10px] font-bold text-base-content/70 uppercase mt-1 leading-tight">
             Cancelled
             <br />
             LDDAP
           </span>
         </div>
 
-        {/* Cancelled Check Count (New Field) */}
-        <div className="py-4 px-2 flex flex-col items-center justify-center text-center hover:bg-base-100 transition-colors">
+        {/* Cancelled Check Count */}
+        <div className="py-4 px-2 flex flex-col items-center justify-center text-center hover:bg-warning/10 transition-colors cursor-default">
           <Ban className="w-5 h-5 text-warning mb-2" />
           <span className="text-xl font-bold text-base-content font-mono">
             {cancelledCheckNum || 0}
           </span>
-          <span className="text-[10px] font-bold text-base-content/40 uppercase mt-1 leading-tight">
+          <span className="text-[10px] font-bold text-base-content/70 uppercase mt-1 leading-tight">
             Cancelled
             <br />
             Check
