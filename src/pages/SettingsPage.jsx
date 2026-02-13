@@ -1,5 +1,6 @@
 import { Settings as SettingsIcon, Sun, Moon, Eye, Info } from "lucide-react";
 import FloatingNotification from "../components/FloatingNotification";
+import dostSeal from "../assets/dost_seal.svg";
 
 import useThemeStore from "../store/useThemeStore";
 
@@ -86,27 +87,69 @@ const SettingsPage = () => {
         <div className="card-static p-6">
           <h3 className="text-lg font-bold text-base-content mb-4 flex items-center gap-2">
             <Info className="w-5 h-5 text-primary" />
-            About
+            About System
           </h3>
 
-          <div className="bg-base-200 rounded-xl p-4 space-y-2">
-            <div className="flex justify-between">
-              <span className="text-base-content/60">Version</span>
-              <span className="font-mono">0.9.0</span>
+          <div className="space-y-4">
+            {/* System Identity */}
+            <div className="p-4 rounded-xl bg-base-200/50 border border-base-200 flex items-start gap-4">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <img
+                  src={dostSeal}
+                  alt="DOST Seal"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div>
+                <h4 className="font-bold text-base-content">DOST 1 - eCash</h4>
+                <p className="text-xs text-base-content/60 font-mono mt-1">
+                  v2.4.0 (Stable Release)
+                </p>
+                <p className="text-sm text-base-content/70 mt-2 leading-relaxed">
+                  A comprehensive financial tracking and liquidity management
+                  system designed to streamline disbursement processes, monitor
+                  NCA utilization, and ensure real-time fund tracking for
+                  DOST 1 Cashier operations
+                </p>
+              </div>
             </div>
-            <div className="flex justify-between">
-              <span className="text-base-content/60">Build</span>
-              <span className="font-mono">2026.01.15</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-base-content/60">Environment</span>
-              <span className="font-mono">Development</span>
+
+            {/* Core Modules List */}
+            <div>
+              <h5 className="text-xs font-bold uppercase tracking-wider text-base-content/50 mb-3">
+                Core Modules
+              </h5>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  "Disbursement Tracking",
+                  "NCA & Fund Management",
+                  "Cash Utilization Analytics",
+                  "Automated Ledgering",
+                ].map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-2 text-xs font-medium text-base-content/70 p-2 rounded-lg bg-base-100 border border-base-200"
+                  >
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary/60" />
+                    {item}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
-          <p className="text-center text-sm text-base-content/40 mt-6">
-            eCash © {new Date().getFullYear()} — Financial Tracking Made Easier
-          </p>
+          <div className="divider my-4"></div>
+
+          {/* Footer / Credits */}
+          <div className="text-center">
+            <p className="text-xs text-base-content/40">
+              Developed by PCLU and UPANG Interns - 2026-2026
+            </p>
+            <p className="text-xs text-base-content/40 mt-1">
+              eCash © {new Date().getFullYear()} — Financial Tracking Made
+              Easier
+            </p>
+          </div>
         </div>
       </div>
     </div>
