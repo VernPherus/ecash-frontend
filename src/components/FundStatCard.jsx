@@ -24,14 +24,12 @@ const FundStatCard = ({
 }) => {
   const { funds, fetchFunds, isLoading } = useFundStore();
 
-  // Ensure funds are loaded to look up names
   useEffect(() => {
     if (funds.length === 0 && !isLoading) {
       fetchFunds();
     }
   }, [funds.length, fetchFunds, isLoading]);
 
-  // Lookup Fund Details
   const fund = useMemo(() => {
     return funds.find((f) => Number(f.id) === Number(fundId));
   }, [funds, fundId]);
@@ -40,15 +38,16 @@ const FundStatCard = ({
   const fundCode = fund?.code || `ID-${fundId}`;
 
   return (
-    // Card container
-    <div className="card-static group flex h-full flex-col overflow-hidden border border-base-200 bg-base-100 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+    // ROOT CARD: Uses 'card-static' to handle bg/border switching for Dark/Light mode automatically
+    <div className="card-static group flex h-full flex-col overflow-hidden transition-all duration-300 hover:shadow-medium">
       {/* Header Section */}
-      <div className="px-6 pt-6 pb-4 bg-base-100 flex items-center justify-between border-b border-base-100">
+      <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-base-200">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
             <Wallet className="w-5 h-5" />
           </div>
           <div>
+            {/* TEXT FIX: Use text-base-content to adapt to dark mode */}
             <h3 className="font-bold text-lg text-base-content leading-tight">
               {fundName}
             </h3>
@@ -59,20 +58,22 @@ const FundStatCard = ({
         </div>
       </div>
 
-      {/* Main Metrics Section */}
-      <div className="p-6 space-y-4 flex-1">
+      {/* Main Content Section */}
+      <div className="p-6 flex flex-col gap-4 flex-1">
         {/* NCA Received - PRIMARY */}
-        <div className="relative overflow-hidden rounded-xl bg-primary/5 border border-primary/10 transition-colors">
+        {/* POP FIX: Added shadow-sm and increased bg opacity to /10 */}
+        <div className="relative overflow-hidden rounded-xl bg-primary/10 border border-primary/20 shadow-sm transition-colors">
           <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary"></div>
           <div className="p-4 pl-6">
             <div className="flex items-center gap-2 mb-1">
-              <div className="p-1 rounded bg-primary/20 text-primary">
+              <div className="p-1 rounded bg-base-100/50 text-primary shadow-sm backdrop-blur-sm">
                 <ArrowDownRight className="w-4 h-4" />
               </div>
-              <p className="text-sm font-bold uppercase tracking-wide ">
+              <p className="text-sm font-bold uppercase tracking-wide text-base-content/70">
                 Total NCA Received
               </p>
             </div>
+            {/* TEXT FIX: Uses text-base-content */}
             <p className="text-3xl font-bold tracking-tight text-base-content font-mono">
               {formatCurrency(totalNCA)}
             </p>
@@ -80,14 +81,15 @@ const FundStatCard = ({
         </div>
 
         {/* Total Disbursement - WARNING */}
-        <div className="relative overflow-hidden rounded-xl bg-warning/5 border border-warning/10 transition-colors">
+        {/* POP FIX: Added shadow-sm and increased bg opacity to /15 */}
+        <div className="relative overflow-hidden rounded-xl bg-warning/15 border border-warning/30 shadow-sm transition-colors">
           <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-warning"></div>
           <div className="p-4 pl-6">
             <div className="flex items-center gap-2 mb-1">
-              <div className="p-1 rounded bg-warning/20 text-warning-content/80 lg:text-warning">
+              <div className="p-1 rounded bg-base-100/50 text-warning-content/80 lg:text-warning shadow-sm backdrop-blur-sm">
                 <ArrowUpRight className="w-4 h-4" />
               </div>
-              <p className="text-sm font-bold uppercase tracking-wide">
+              <p className="text-sm font-bold uppercase tracking-wide text-base-content/70">
                 Total Disbursement
               </p>
             </div>
@@ -98,14 +100,15 @@ const FundStatCard = ({
         </div>
 
         {/* Balance - INFO */}
-        <div className="relative overflow-hidden rounded-xl bg-info/10 border-2 border-info/20 shadow-sm transition-colors">
+        {/* POP FIX: Added shadow-sm and increased bg opacity to /15 */}
+        <div className="relative overflow-hidden rounded-xl bg-info/15 border-2 border-info/30 shadow-sm transition-colors">
           <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-info"></div>
           <div className="p-5 pl-6">
             <div className="flex items-center gap-2 mb-2">
-              <div className="p-1.5 rounded bg-info/20 text-info">
+              <div className="p-1.5 rounded bg-base-100/50 text-info shadow-sm backdrop-blur-sm">
                 <Activity className="w-4 h-4" />
               </div>
-              <p className="text-sm font-extrabold uppercase tracking-wide">
+              <p className="text-sm font-extrabold uppercase tracking-wide text-base-content/80">
                 Cash Balance as of {month || "the Month"}
               </p>
             </div>
@@ -116,9 +119,10 @@ const FundStatCard = ({
         </div>
 
         {/* Cash Utilization */}
-        <div className="relative flex items-center justify-between p-3 rounded-lg bg-base-200/50 border border-base-200 overflow-hidden">
+        {/* DESIGN: Uses base-200 for background to fit any theme */}
+        <div className="relative flex items-center justify-between p-3 rounded-lg bg-base-200 border border-base-300 overflow-hidden shadow-sm">
           <div
-            className="absolute left-0 top-0 bottom-0 bg-secondary/5 z-0"
+            className="absolute left-0 top-0 bottom-0 bg-secondary/10 z-0"
             style={{ width: `${Math.min(totalCashUtil, 100)}%` }}
           />
 
@@ -126,7 +130,7 @@ const FundStatCard = ({
             <div className="p-1.5 rounded-full bg-base-100 shadow-sm text-secondary">
               <PieChart className="w-4 h-4" />
             </div>
-            <span className="text-sm font-bold text-base-content uppercase">
+            <span className="text-sm font-bold text-base-content/80 uppercase">
               Cash Utilization
             </span>
           </div>
@@ -135,48 +139,44 @@ const FundStatCard = ({
             {totalCashUtil}%
           </span>
         </div>
-      </div>
 
-      {/* Secondary Metrics - Footer */}
-      {/* MODIFICATION: Used warning colors for bg and borders to match Disbursement theme, removed harsh borders */}
-      <div className="grid grid-cols-3 divide-x divide-warning/10 border-t border-warning/10 bg-warning/5">
-        {/* Processed Count */}
-        <div className="py-4 px-2 flex flex-col items-center justify-center text-center hover:bg-warning/10 transition-colors cursor-default">
-          <CheckCircle2 className="w-5 h-5 text-success mb-2" />
-          <span className="text-xl font-bold text-base-content font-mono">
-            {processedDVNum || 0}
-          </span>
-          <span className="text-[10px] font-bold text-base-content/70 uppercase mt-1 leading-tight">
-            Processed
-            <br />
-            DVs
-          </span>
-        </div>
+        {/* Divider */}
+        <div className="h-px bg-base-200 my-1"></div>
 
-        {/* Cancelled LDDAP Count */}
-        <div className="py-4 px-2 flex flex-col items-center justify-center text-center hover:bg-warning/10 transition-colors cursor-default">
-          <Ban className="w-5 h-5 text-error mb-2" />
-          <span className="text-xl font-bold text-base-content font-mono">
-            {cancelledLDDAPNum || 0}
-          </span>
-          <span className="text-[10px] font-bold text-base-content/70 uppercase mt-1 leading-tight">
-            Cancelled
-            <br />
-            LDDAP
-          </span>
-        </div>
+        {/* Secondary Metrics - Footer Items */}
+        <div className="grid grid-cols-3 gap-3">
+          {/* Processed Count */}
+          <div className="py-3 px-2 flex flex-col items-center justify-center text-center rounded-xl bg-base-200/50 border border-base-200 hover:bg-base-200 hover:border-warning/30 hover:shadow-sm transition-all duration-300">
+            <CheckCircle2 className="w-4 h-4 text-success mb-1.5" />
+            <span className="text-lg font-bold text-base-content font-mono leading-none">
+              {processedDVNum || 0}
+            </span>
+            <span className="text-[9px] font-bold text-base-content/60 uppercase mt-1 leading-tight">
+              Processed
+            </span>
+          </div>
 
-        {/* Cancelled Check Count */}
-        <div className="py-4 px-2 flex flex-col items-center justify-center text-center hover:bg-warning/10 transition-colors cursor-default">
-          <Ban className="w-5 h-5 text-warning mb-2" />
-          <span className="text-xl font-bold text-base-content font-mono">
-            {cancelledCheckNum || 0}
-          </span>
-          <span className="text-[10px] font-bold text-base-content/70 uppercase mt-1 leading-tight">
-            Cancelled
-            <br />
-            Check
-          </span>
+          {/* Cancelled LDDAP Count */}
+          <div className="py-3 px-2 flex flex-col items-center justify-center text-center rounded-xl bg-base-200/50 border border-base-200 hover:bg-base-200 hover:border-warning/30 hover:shadow-sm transition-all duration-300">
+            <Ban className="w-4 h-4 text-error mb-1.5" />
+            <span className="text-lg font-bold text-base-content font-mono leading-none">
+              {cancelledLDDAPNum || 0}
+            </span>
+            <span className="text-[9px] font-bold text-base-content/60 uppercase mt-1 leading-tight">
+              Cancelled LDDAP
+            </span>
+          </div>
+
+          {/* Cancelled Check Count */}
+          <div className="py-3 px-2 flex flex-col items-center justify-center text-center rounded-xl bg-base-200/50 border border-base-200 hover:bg-base-200 hover:border-warning/30 hover:shadow-sm transition-all duration-300">
+            <Ban className="w-4 h-4 text-warning mb-1.5" />
+            <span className="text-lg font-bold text-base-content font-mono leading-none">
+              {cancelledCheckNum || 0}
+            </span>
+            <span className="text-[9px] font-bold text-base-content/60 uppercase mt-1 leading-tight">
+              Cancelled Check
+            </span>
+          </div>
         </div>
       </div>
     </div>
