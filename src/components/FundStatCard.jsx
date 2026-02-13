@@ -138,35 +138,35 @@ const FundStatCard = ({
 
         {/* Secondary Metrics - Footer Items */}
         <div className="grid grid-cols-3 gap-3">
-          {/* Processed Count - PERMANENTLY COLORED */}
+          {/* Processed Count */}
           <div className="py-3 px-2 flex flex-col items-center justify-center text-center rounded-xl bg-warning/10 border border-warning/30 shadow-sm transition-all duration-300">
             <CheckCircle2 className="w-4 h-4 text-success mb-1.5" />
             <span className="text-lg font-bold text-base-content font-mono leading-none">
               {processedDVNum || 0}
             </span>
-            <span className="text-[9px] font-bold text-base-content/60 uppercase mt-1 leading-tight">
+            <span className="text-[9px] font-bold text-base-content uppercase mt-1 leading-tight">
               Processed
             </span>
           </div>
 
-          {/* Cancelled LDDAP Count - PERMANENTLY COLORED */}
+          {/* Cancelled LDDAP Count */}
           <div className="py-3 px-2 flex flex-col items-center justify-center text-center rounded-xl bg-warning/10 border border-warning/30 shadow-sm transition-all duration-300">
             <Ban className="w-4 h-4 text-error mb-1.5" />
             <span className="text-lg font-bold text-base-content font-mono leading-none">
               {cancelledLDDAPNum || 0}
             </span>
-            <span className="text-[9px] font-bold text-base-content/60 uppercase mt-1 leading-tight">
+            <span className="text-[9px] font-bold text-base-content uppercase mt-1 leading-tight">
               Cancelled LDDAP
             </span>
           </div>
 
-          {/* Cancelled Check Count - PERMANENTLY COLORED */}
+          {/* Cancelled Check Count */}
           <div className="py-3 px-2 flex flex-col items-center justify-center text-center rounded-xl bg-warning/10 border border-warning/30 shadow-sm transition-all duration-300">
             <Ban className="w-4 h-4 text-warning mb-1.5" />
             <span className="text-lg font-bold text-base-content font-mono leading-none">
               {cancelledCheckNum || 0}
             </span>
-            <span className="text-[9px] font-bold text-base-content/60 uppercase mt-1 leading-tight">
+            <span className="text-[9px] font-bold text-base-content uppercase mt-1 leading-tight">
               Cancelled Check
             </span>
           </div>
