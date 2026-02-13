@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 //* Component imports
 import {
@@ -10,6 +10,8 @@ import {
   AlertCircle,
   Eye,
   FileText,
+  XCircle,
+  Calendar, // Added Icon
 } from "lucide-react";
 import DataTable from "../components/DataTable";
 import DashboardTimeStats from "../components/DashboardTimeStats";
@@ -23,6 +25,21 @@ import useDisbursementStore from "../store/useDisbursementStore";
 
 //* Utils
 import { formatCurrency, formatDate } from "../lib/formatters";
+
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -38,18 +55,20 @@ const DashboardPage = () => {
 
   const [filterStatus, setFilterStatus] = useState("ALL");
 
+  // State for selected month (Defaults to current month)
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+
+  // Initialize Data
   useEffect(() => {
     const initializeDashboard = async () => {
       try {
         await getTime();
         fetchFunds();
 
+        // Initial fetch based on system time if available, otherwise keeps default state
         const { time: updatedTime } = useSystemStore.getState();
-
         if (updatedTime?.month) {
-          await displayFundStats({
-            month: Number(updatedTime.month),
-          });
+          setSelectedMonth(Number(updatedTime.month));
         }
       } catch (error) {
         console.error("Failed to initialize dashboard:", error);
@@ -57,8 +76,18 @@ const DashboardPage = () => {
     };
 
     initializeDashboard();
-  }, [getTime, displayFundStats, fetchFunds]);
+  }, [getTime, fetchFunds]);
 
+  // Fetch Stats whenever selectedMonth changes
+  useEffect(() => {
+    if (selectedMonth) {
+      displayFundStats({
+        month: Number(selectedMonth),
+      });
+    }
+  }, [selectedMonth, displayFundStats]);
+
+  // Fetch Disbursements
   useEffect(() => {
     fetchDisbursements(1, 10, "", filterStatus === "ALL" ? "" : filterStatus);
   }, [fetchDisbursements, filterStatus]);
@@ -71,6 +100,11 @@ const DashboardPage = () => {
       filterStatus === "ALL" ? "" : filterStatus,
     );
   };
+
+  // Get the string name of the currently selected month
+  const currentMonthName = useMemo(() => {
+    return MONTH_NAMES[selectedMonth - 1] || "Month";
+  }, [selectedMonth]);
 
   // Column definitions
   const disbursementColumns = [
@@ -102,6 +136,17 @@ const DashboardPage = () => {
       ),
     },
     {
+      key: "projectName",
+      header: "Project",
+      headerAlign: "text-center",
+      alight: "text-center",
+      render: (row) => (
+        <div className="font-semibold text-base-content group-hover:text-primary transition-colors text-center">
+          {row.projectName || "---"}
+        </div>
+      ),
+    },
+    {
       key: "amount",
       header: "Amount",
       headerAlign: "text-right",
@@ -128,6 +173,8 @@ const DashboardPage = () => {
                 <CheckCircle2 className="w-3 h-3" />
               ) : status === "overdue" ? (
                 <AlertCircle className="w-3 h-3" />
+              ) : status === "cancelled" ? (
+                <XCircle className="w-3 h-3" />
               ) : (
                 <Clock className="w-3 h-3" />
               )}
@@ -163,6 +210,7 @@ const DashboardPage = () => {
     { value: "ALL", label: "All" },
     { value: "PAID", label: "Paid" },
     { value: "PENDING", label: "Pending" },
+    { value: "CANCELLED", label: "Cancelled" },
   ];
 
   const tableHeaderActions = (
@@ -187,24 +235,48 @@ const DashboardPage = () => {
 
         {/* Fund Liquidity Section */}
         <section>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
             <h3 className="font-bold text-lg text-base-content flex items-center gap-2">
               <Wallet className="w-5 h-5 text-primary" />
               Fund Liquidity Overview
             </h3>
+
+            {/* Month Selector */}
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-base-content/50" />
+              <select
+                className="select select-bordered select-sm w-full sm:w-auto font-medium text-base-content"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(Number(e.target.value))}
+              >
+                {MONTH_NAMES.map((name, index) => (
+                  <option key={index + 1} value={index + 1}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {fundStats.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="flex overflow-x-auto pb-4 gap-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-base-300">
               {fundStats.map((fundStat) => (
-                <FundStatCard
+                <div
                   key={fundStat.fundId}
-                  fundId={fundStat.fundId}
-                  totalEntries={fundStat.totalEntries}
-                  totalMonthly={fundStat.totalMonthly}
-                  totalDisbursements={fundStat.totalDisbursement}
-                  totalCashUtil={fundStat.totalCashUtil}
-                />
+                  className="flex-1 min-w-[400px] md:min-w-[450px]"
+                >
+                  <FundStatCard
+                    fundId={fundStat.fundId}
+                    month={currentMonthName}
+                    totalNCA={fundStat.totalEntries}
+                    totalMonthly={fundStat.totalMonthly}
+                    totalDisbursements={fundStat.totalDisbursement}
+                    totalCashUtil={fundStat.totalCashUtil}
+                    processedDVNum={fundStat.processedDVNum}
+                    cancelledLDDAPNum={fundStat.cancelledLDDAP}
+                    cancelledCheckNum={fundStat.cancellledCheck}
+                  />
+                </div>
               ))}
             </div>
           ) : (

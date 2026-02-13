@@ -15,6 +15,7 @@ import {
   Eye,
   Wallet,
   LayoutGrid,
+  Calendar,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -28,6 +29,21 @@ import FundStatCard from "../components/FundStatCard";
 
 import { formatCurrency, formatDate } from "../lib/formatters";
 
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
 const FundManagerPage = () => {
   const navigate = useNavigate();
 
@@ -35,20 +51,19 @@ const FundManagerPage = () => {
   const {
     displayFundStats,
     fundStats,
-    dashboard, // Ensure dashboard is destructured if used (based on previous turns)
     funds,
     entries,
     fetchFunds,
     fetchEntries,
-    fetchDashboardStats, // Ensure fetchDashboardStats is available
+    fetchDashboardStats,
     createEntry,
     deleteEntry,
     setSelectedFund,
     selectedFund,
     isLoading: isStoreLoading,
   } = useFundStore();
-  const { time, getTime } = useSystemStore();
-  const { authUser } = useAuthStore(); // 2. Get current user
+  const { getTime } = useSystemStore();
+  const { authUser } = useAuthStore();
 
   // --- UI State ---
   const [activeTab, setActiveTab] = useState("FUNDS"); // 'FUNDS' | 'LEDGER'
@@ -56,16 +71,20 @@ const FundManagerPage = () => {
   const [isFundModalOpen, setIsFundModalOpen] = useState(false);
   const [isEntryModalOpen, setIsEntryModalOpen] = useState(false);
 
+  // --- Month Selection State ---
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+
   // --- Entry Form State ---
   const [entryForm, setEntryForm] = useState({
     sourceId: "",
     name: "",
     amount: "",
+    entryDate: "",
   });
   const [isSubmittingEntry, setIsSubmittingEntry] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // 3. Permission Check
+  // Permission Check
   const canDelete = authUser?.role === "ADMIN" || authUser?.role === "STAFF";
   const canCreate = authUser?.role === "ADMIN" || authUser?.role === "STAFF";
 
@@ -73,10 +92,10 @@ const FundManagerPage = () => {
   useEffect(() => {
     fetchFunds();
     fetchEntries();
-    if (fetchDashboardStats) fetchDashboardStats(); // Fetch stats if function exists
+    if (fetchDashboardStats) fetchDashboardStats();
   }, [fetchFunds, fetchEntries, fetchDashboardStats]);
 
-  // --- For fund Stats ---
+  // --- Initialize Time & Stats ---
   useEffect(() => {
     const initializeFundStats = async () => {
       try {
@@ -86,9 +105,8 @@ const FundManagerPage = () => {
         const { time: updatedTime } = useSystemStore.getState();
 
         if (updatedTime?.month) {
-          await displayFundStats({
-            month: Number(updatedTime.month),
-          });
+          // Set the state, which triggers the effect below
+          setSelectedMonth(Number(updatedTime.month));
         }
       } catch (error) {
         console.error("Failed to initialize dashboard:", error);
@@ -96,7 +114,21 @@ const FundManagerPage = () => {
     };
 
     initializeFundStats();
-  }, [getTime, displayFundStats, fetchFunds]);
+  }, [getTime, fetchFunds]);
+
+  // --- Fetch Stats on Month Change ---
+  useEffect(() => {
+    if (selectedMonth) {
+      displayFundStats({
+        month: Number(selectedMonth),
+      });
+    }
+  }, [selectedMonth, displayFundStats]);
+
+  // --- Helpers ---
+  const currentMonthName = useMemo(() => {
+    return MONTH_NAMES[selectedMonth - 1] || "Month";
+  }, [selectedMonth]);
 
   // --- Filter Logic ---
   const filteredData = useMemo(() => {
@@ -132,7 +164,12 @@ const FundManagerPage = () => {
 
   const handleEntrySubmit = async (e) => {
     e.preventDefault();
-    if (!entryForm.sourceId || !entryForm.amount || !entryForm.name) {
+    if (
+      !entryForm.sourceId ||
+      !entryForm.amount ||
+      !entryForm.name ||
+      !entryForm.entryDate
+    ) {
       toast.error("Please fill in all fields");
       return;
     }
@@ -142,18 +179,18 @@ const FundManagerPage = () => {
       sourceId: Number(entryForm.sourceId),
       name: entryForm.name,
       amount: Number(entryForm.amount),
+      enteredAt: entryForm.entryDate,
     });
     setIsSubmittingEntry(false);
 
     if (result.success) {
       setIsEntryModalOpen(false);
-      setEntryForm({ sourceId: "", name: "", amount: "" });
+      setEntryForm({ sourceId: "", name: "", amount: "", entryDate: "" });
       fetchFunds();
     }
   };
 
   const handleDeleteEntry = async (id) => {
-    // 4. Guard Clause
     if (!canDelete) {
       toast.error("You do not have permission to delete entries.");
       return;
@@ -300,7 +337,6 @@ const FundManagerPage = () => {
         headerAlign: "text-center",
         render: (row) => (
           <div className="flex justify-center">
-            {/* 5. Conditional Rendering based on Permission */}
             {canDelete && (
               <button
                 onClick={(e) => {
@@ -318,7 +354,7 @@ const FundManagerPage = () => {
         ),
       },
     ],
-    [isDeleting, canDelete], // Add canDelete to dependency array
+    [isDeleting, canDelete],
   );
 
   const headerActions = canCreate ? (
@@ -330,7 +366,7 @@ const FundManagerPage = () => {
     >
       <Plus className="w-4 h-4" />
       <span className="hidden sm:inline">
-        {activeTab === "FUNDS" ? "New Fund" : "New Entry"}
+        {activeTab === "FUNDS" ? "New Fund" : "New NCA"}
       </span>
     </button>
   ) : null;
@@ -340,26 +376,51 @@ const FundManagerPage = () => {
       {/* --- HEADER --- */}
       <FloatingNotification />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
-        {/* --- STATS OVERVIEW --- */}
+        {/* Fund Liquidity Section */}
         <section>
-          <div className="flex items-center justify-between mb-4">
+          {/* Header & Month Selector */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
             <h3 className="font-bold text-lg text-base-content flex items-center gap-2">
               <Wallet className="w-5 h-5 text-primary" />
               Fund Liquidity Overview
             </h3>
+
+            {/* Month Selector */}
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-base-content/50" />
+              <select
+                className="select select-bordered select-sm w-full sm:w-auto font-medium text-base-content"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(Number(e.target.value))}
+              >
+                {MONTH_NAMES.map((name, index) => (
+                  <option key={index + 1} value={index + 1}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          {/* Render cards either from dashboard state fundStats */}
           {fundStats.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="flex overflow-x-auto pb-4 gap-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-base-300">
               {fundStats.map((fundStat) => (
-                <FundStatCard
+                <div
                   key={fundStat.fundId}
-                  fundId={fundStat.fundId}
-                  totalEntries={fundStat.totalEntries}
-                  totalMonthly={fundStat.totalMonthly}
-                  totalCashUtil={fundStat.totalCashUtil}
-                />
+                  className="flex-1 min-w-[400px] md:min-w-[450px]"
+                >
+                  <FundStatCard
+                    fundId={fundStat.fundId}
+                    month={currentMonthName} // Pass month name
+                    totalNCA={fundStat.totalEntries}
+                    totalMonthly={fundStat.totalMonthly}
+                    totalDisbursements={fundStat.totalDisbursement}
+                    totalCashUtil={fundStat.totalCashUtil}
+                    processedDVNum={fundStat.processedDVNum}
+                    cancelledLDDAPNum={fundStat.cancelledLDDAP}
+                    cancelledCheckNum={fundStat.cancelledCheck}
+                  />
+                </div>
               ))}
             </div>
           ) : (
@@ -460,7 +521,7 @@ const FundManagerPage = () => {
 
       {/* --- MODAL: ENTRY FORM --- */}
       {isEntryModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
             onClick={() => setIsEntryModalOpen(false)}
@@ -468,7 +529,7 @@ const FundManagerPage = () => {
           <div className="relative bg-base-100 rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-scaleIn border border-base-200">
             <div className="flex items-center justify-between px-6 py-4 border-b border-base-200 bg-base-50/50">
               <h3 className="font-bold text-lg text-base-content">
-                New Ledger Entry
+                New NCA Entry
               </h3>
               <button
                 onClick={() => setIsEntryModalOpen(false)}
@@ -545,6 +606,26 @@ const FundManagerPage = () => {
                     }
                     required
                   />
+                </div>
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-medium text-base-content/70">
+                    Date entered to fund:
+                  </span>
+                </label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-3 w-4 h-4 text-base-content/40" />
+                  <input
+                    type="date"
+                    name="dateReceived"
+                    className="input input-bordered w-full pl-10"
+                    value={entryForm.entryDate}
+                    onChange={(e) =>
+                      setEntryForm({ ...entryForm, entryDate: e.target.value })
+                    }
+                  />{" "}
                 </div>
               </div>
 

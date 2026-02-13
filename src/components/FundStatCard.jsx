@@ -1,27 +1,35 @@
 import React, { useEffect, useMemo } from "react";
 import useFundStore from "../store/useFundStore";
 import { formatCurrency } from "../lib/formatters";
-import { Wallet } from "lucide-react";
+import {
+  Wallet,
+  CheckCircle2,
+  Ban,
+  PieChart,
+  ArrowDownRight,
+  ArrowUpRight,
+  Activity,
+} from "lucide-react";
 
-// Note: This component renders a SINGLE card for a specific fund.
-// It is mapped over in DashboardPage.jsx
 const FundStatCard = ({
   fundId,
-  totalEntries,
+  totalNCA,
   totalDisbursements,
   totalMonthly,
   totalCashUtil,
+  processedDVNum,
+  cancelledLDDAPNum,
+  cancelledCheckNum,
+  month,
 }) => {
   const { funds, fetchFunds, isLoading } = useFundStore();
 
-  // Ensure funds are loaded to look up names
   useEffect(() => {
     if (funds.length === 0 && !isLoading) {
       fetchFunds();
     }
   }, [funds.length, fetchFunds, isLoading]);
 
-  // Lookup Fund Details
   const fund = useMemo(() => {
     return funds.find((f) => Number(f.id) === Number(fundId));
   }, [funds, fundId]);
@@ -30,68 +38,145 @@ const FundStatCard = ({
   const fundCode = fund?.code || `ID-${fundId}`;
 
   return (
-    <div className="card-static group flex h-full flex-col overflow-hidden border border-base-200 bg-base-100 transition-all hover:border-primary/40 hover:shadow-md">
-      {/* Header */}
-      <div className="flex items-start justify-between px-5 pt-5 pb-4">
-        <div className="flex-1 space-y-1">
-          <span className="inline-block rounded px-1.5 py-0.5 text-[10px] font-bold tracking-wider uppercase bg-primary/10 text-primary">
-            {fundCode}
-          </span>
-          <h3
-            className="line-clamp-1 text-sm font-semibold text-base-content/90"
-            title={fundName}
-          >
-            {fundName}
-          </h3>
-        </div>
-        <Wallet className="w-5 h-5 text-base-content/20 group-hover:text-primary/40 transition-colors shrink-0" />
-      </div>
-
-      {/* Primary Metrics - Equal Visual Weight */}
-      <div className="flex-1 px-5 space-y-6">
-        {/* Monthly Total */}
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-base-content/50 mb-1.5">
-            Monthly Total
-          </p>
-          <p className="text-2xl font-bold tracking-tight text-base-content">
-            {formatCurrency(totalMonthly)}
-          </p>
-        </div>
-
-        {/* Entries Total */}
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-base-content/50 mb-1.5">
-            Entries Total
-          </p>
-          <p className="text-2xl font-bold tracking-tight text-base-content">
-            {formatCurrency(totalEntries) || 0}
-          </p>
-        </div>
-
-        {/* Cash Utilization */}
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-base-content/50 mb-1.5">
-            Cash Utilization
-          </p>
-          <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold tracking-tight text-base-content">
-              {totalCashUtil}
+    // ROOT CARD: Uses 'card-static' to handle bg/border switching for Dark/Light mode automatically
+    <div className="card-static group flex h-full flex-col overflow-hidden transition-all duration-300 hover:shadow-medium">
+      {/* Header Section */}
+      <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-base-200">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+            <Wallet className="w-5 h-5" />
+          </div>
+          <div>
+            {/* TEXT FIX: Use text-base-content to adapt to dark mode */}
+            <h3 className="font-bold text-lg text-base-content leading-tight">
+              {fundName}
+            </h3>
+            <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-base-200 text-base-content/60 mt-1">
+              {fundCode}
             </span>
-            <span className="text-lg font-semibold text-primary">%</span>
           </div>
         </div>
       </div>
 
-      {/* Secondary Metric */}
-      <div className="mt-auto px-5 pb-5 pt-4 border-t border-base-200">
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-base-content/40">
-            Disbursed
+      {/* Main Content Section */}
+      <div className="p-6 flex flex-col gap-4 flex-1">
+        {/* NCA Received - PRIMARY */}
+        {/* POP FIX: Added shadow-sm and increased bg opacity to /10 */}
+        <div className="relative overflow-hidden rounded-xl bg-primary/10 border border-primary/20 shadow-sm transition-colors">
+          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary"></div>
+          <div className="p-4 pl-6">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="p-1 rounded bg-base-100/50 text-primary shadow-sm backdrop-blur-sm">
+                <ArrowDownRight className="w-4 h-4" />
+              </div>
+              <p className="text-sm font-bold uppercase tracking-wide text-base-content/70">
+                Total NCA Received
+              </p>
+            </div>
+            {/* TEXT FIX: Uses text-base-content */}
+            <p className="text-3xl font-bold tracking-tight text-base-content font-mono">
+              {formatCurrency(totalNCA)}
+            </p>
+          </div>
+        </div>
+
+        {/* Total Disbursement - WARNING */}
+        {/* POP FIX: Added shadow-sm and increased bg opacity to /15 */}
+        <div className="relative overflow-hidden rounded-xl bg-warning/15 border border-warning/30 shadow-sm transition-colors">
+          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-warning"></div>
+          <div className="p-4 pl-6">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="p-1 rounded bg-base-100/50 text-warning-content/80 lg:text-warning shadow-sm backdrop-blur-sm">
+                <ArrowUpRight className="w-4 h-4" />
+              </div>
+              <p className="text-sm font-bold uppercase tracking-wide text-base-content/70">
+                Total Disbursement
+              </p>
+            </div>
+            <p className="text-3xl font-bold tracking-tight text-base-content font-mono">
+              {formatCurrency(totalDisbursements)}
+            </p>
+          </div>
+        </div>
+
+        {/* Balance - INFO */}
+        {/* POP FIX: Added shadow-sm and increased bg opacity to /15 */}
+        <div className="relative overflow-hidden rounded-xl bg-info/15 border-2 border-info/30 shadow-sm transition-colors">
+          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-info"></div>
+          <div className="p-5 pl-6">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="p-1.5 rounded bg-base-100/50 text-info shadow-sm backdrop-blur-sm">
+                <Activity className="w-4 h-4" />
+              </div>
+              <p className="text-sm font-extrabold uppercase tracking-wide text-base-content/80">
+                Cash Balance as of {month || "the Month"}
+              </p>
+            </div>
+            <p className="text-4xl font-black tracking-tight text-base-content font-mono">
+              {formatCurrency(totalMonthly)}
+            </p>
+          </div>
+        </div>
+
+        {/* Cash Utilization */}
+        {/* DESIGN: Uses base-200 for background to fit any theme */}
+        <div className="relative flex items-center justify-between p-3 rounded-lg bg-base-200 border border-base-300 overflow-hidden shadow-sm">
+          <div
+            className="absolute left-0 top-0 bottom-0 bg-secondary/10 z-0"
+            style={{ width: `${Math.min(totalCashUtil, 100)}%` }}
+          />
+
+          <div className="flex items-center gap-3 z-10">
+            <div className="p-1.5 rounded-full bg-base-100 shadow-sm text-secondary">
+              <PieChart className="w-4 h-4" />
+            </div>
+            <span className="text-sm font-bold text-base-content/80 uppercase">
+              Cash Utilization
+            </span>
+          </div>
+
+          <span className="text-lg font-black text-secondary z-10 font-mono">
+            {totalCashUtil}%
           </span>
-          <span className="text-sm font-semibold text-base-content/70">
-            {formatCurrency(totalDisbursements)}
-          </span>
+        </div>
+
+        {/* Divider */}
+        <div className="h-px bg-base-200 my-1"></div>
+
+        {/* Secondary Metrics - Footer Items */}
+        <div className="grid grid-cols-3 gap-3">
+          {/* Processed Count */}
+          <div className="py-3 px-2 flex flex-col items-center justify-center text-center rounded-xl bg-base-200/50 border border-base-200 hover:bg-base-200 hover:border-warning/30 hover:shadow-sm transition-all duration-300">
+            <CheckCircle2 className="w-4 h-4 text-success mb-1.5" />
+            <span className="text-lg font-bold text-base-content font-mono leading-none">
+              {processedDVNum || 0}
+            </span>
+            <span className="text-[9px] font-bold text-base-content/60 uppercase mt-1 leading-tight">
+              Processed
+            </span>
+          </div>
+
+          {/* Cancelled LDDAP Count */}
+          <div className="py-3 px-2 flex flex-col items-center justify-center text-center rounded-xl bg-base-200/50 border border-base-200 hover:bg-base-200 hover:border-warning/30 hover:shadow-sm transition-all duration-300">
+            <Ban className="w-4 h-4 text-error mb-1.5" />
+            <span className="text-lg font-bold text-base-content font-mono leading-none">
+              {cancelledLDDAPNum || 0}
+            </span>
+            <span className="text-[9px] font-bold text-base-content/60 uppercase mt-1 leading-tight">
+              Cancelled LDDAP
+            </span>
+          </div>
+
+          {/* Cancelled Check Count */}
+          <div className="py-3 px-2 flex flex-col items-center justify-center text-center rounded-xl bg-base-200/50 border border-base-200 hover:bg-base-200 hover:border-warning/30 hover:shadow-sm transition-all duration-300">
+            <Ban className="w-4 h-4 text-warning mb-1.5" />
+            <span className="text-lg font-bold text-base-content font-mono leading-none">
+              {cancelledCheckNum || 0}
+            </span>
+            <span className="text-[9px] font-bold text-base-content/60 uppercase mt-1 leading-tight">
+              Cancelled Check
+            </span>
+          </div>
         </div>
       </div>
     </div>

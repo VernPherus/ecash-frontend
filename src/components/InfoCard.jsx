@@ -38,7 +38,7 @@ export const InfoRow = ({ label, value, subValue, className = "" }) => {
       <span className="text-xs font-medium text-base-content/50 min-w-[120px] pt-1">
         {label}
       </span>
-      <div className="text-sm sm:text-right flex-1 break-words">
+      <div className="text-sm sm:text-right flex-1 break-words min-w-0">
         <div className="font-medium text-base-content leading-snug">
           {value || "—"}
         </div>

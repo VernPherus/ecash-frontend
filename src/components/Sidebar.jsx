@@ -17,6 +17,7 @@ import {
   TrendingUp,
   PlusCircleIcon,
 } from "lucide-react";
+import dostSeal from "../assets/dost_seal.svg";
 
 import useAuthStore from "../store/useAuthStore";
 import useThemeStore from "../store/useThemeStore";
@@ -100,12 +101,18 @@ const Sidebar = () => {
     >
       {/* Logo Header */}
       <div className="p-6 flex items-center gap-3 border-b border-slate-800">
-        <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center shadow-glow-primary shrink-0">
-          <TrendingUp className="text-white w-5 h-5" />
+        <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center shadow-glow-primary shrink-0 p-1">
+          <img
+            src={dostSeal}
+            alt="DOST Seal"
+            className="w-full h-full object-contain"
+          />
         </div>
         {!isCollapsed && (
           <div className="animate-fade-in-up">
-            <span className="text-xl font-bold tracking-tight">eCash</span>
+            <span className="text-xl font-bold tracking-tight">
+              DOST 1 - eCash
+            </span>
           </div>
         )}
       </div>

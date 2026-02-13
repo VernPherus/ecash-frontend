@@ -16,11 +16,14 @@ import {
   X,
   Download,
   FileBarChart,
+  ToolboxIcon,
+  Table as TableIcon,
 } from "lucide-react";
 
 import InfoCard, { InfoRow } from "../components/InfoCard";
 import useFundStore from "../store/useFundStore";
 import useAuthStore from "../store/useAuthStore";
+import useLedgerStore from "../store/useLedgerStore";
 import useReportStore from "../store/useReportStore";
 import FundSourceForm from "../components/FundSourceForm";
 import { formatCurrency, formatDate } from "../lib/formatters";
@@ -32,6 +35,8 @@ const FundViewPage = () => {
 
   const { selectedFund, fetchFundDetails, deactivateFund, isLoading } =
     useFundStore();
+
+  const { getLedgers, ledgers, isLoading: isLedgerLoading } = useLedgerStore();
 
   const {
     downloadDebitReport,
@@ -50,13 +55,15 @@ const FundViewPage = () => {
   });
 
   // Access Control: Allow ADMIN and STAFF to modify
-  const canModify = authUser?.role === "ADMIN" || authUser?.role === "STAFF";
+  const isAuthorized = authUser?.role === "ADMIN" || authUser?.role === "STAFF";
 
   useEffect(() => {
     if (id) {
       fetchFundDetails(id);
+      // Fetch ledgers for the current year by default
+      getLedgers(id, new Date().getFullYear());
     }
-  }, [id, fetchFundDetails]);
+  }, [id, fetchFundDetails, getLedgers]);
 
   const handleDelete = async () => {
     if (
@@ -373,27 +380,6 @@ const FundViewPage = () => {
                   Audit Report
                 </span>
               </button>
-
-              {/* Access Control: STAFF and ADMIN can Edit/Delete */}
-              {canModify && (
-                <>
-                  <div className="h-4 w-px bg-base-300 mx-1"></div>
-                  <button
-                    onClick={handleDelete}
-                    className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-error hover:bg-error/10 transition-colors"
-                    title="Deactivate Fund"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setIsEditModalOpen(true)}
-                    className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-primary hover:bg-base-200"
-                    title="Edit Fund"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                </>
-              )}
             </div>
           </div>
         </div>
@@ -504,6 +490,81 @@ const FundViewPage = () => {
                 />
               </div>
             </InfoCard>
+
+            {/* --- LEDGER TABLE SECTION (New) --- */}
+            <div className="bg-base-100 rounded-xl border border-base-300 shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between p-5 border-b border-base-200 bg-base-50/50">
+                <h3 className="text-xs font-bold text-base-content/40 uppercase tracking-wider flex items-center gap-2">
+                  <TableIcon className="w-4 h-4" />
+                  Ledger History ({new Date().getFullYear()})
+                </h3>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="table table-zebra w-full whitespace-nowrap">
+                  <thead>
+                    <tr className="text-xs uppercase text-base-content/50 bg-base-50/50">
+                      <th className="px-5 py-4">Period</th>
+                      <th className="px-5 py-4">Initial Amount</th>
+                      <th className="px-5 py-4 text-emerald-600">Entries</th>
+                      <th className="px-5 py-4 text-error">Disbursed</th>
+                      <th className="px-5 py-4">Final Amount</th>
+
+                    </tr>
+                  </thead>
+                  <tbody className="text-sm">
+                    {isLedgerLoading ? (
+                      <tr>
+                        <td colSpan="6" className="text-center py-8">
+                          <span className="loading loading-spinner loading-sm text-primary"></span>
+                        </td>
+                      </tr>
+                    ) : ledgers && ledgers.length > 0 ? (
+                      [...ledgers]
+                        .sort((a, b) => a.period - b.period)
+                        .map((ledger) => (
+                          <tr key={ledger.id} className="hover:bg-base-200/50">
+                            <td className="px-5 py-3">
+                              <div className="font-bold text-base-content">
+                                {new Date(0, ledger.period - 1).toLocaleString(
+                                  "default",
+                                  { month: "long" },
+                                )}
+                              </div>
+                              <div className="text-xs text-base-content/40">
+                                {formatDate(ledger.startDate, "short")} -{" "}
+                                {formatDate(ledger.endDate, "short")}
+                              </div>
+                            </td>
+                            <td className="px-5 py-3 font-mono text-base-content/70">
+                              {formatCurrency(ledger.startingBalance)}
+                            </td>
+                            <td className="px-5 py-3 font-mono text-emerald-600 font-medium">
+                              +{formatCurrency(ledger.totalEntry)}
+                            </td>
+                            <td className="px-5 py-3 font-mono text-error font-medium">
+                              -{formatCurrency(ledger.totalDisbursed)}
+                            </td>
+                            <td className="px-5 py-3 font-mono font-bold text-base-content">
+                              {formatCurrency(ledger.endingBalance)}
+                            </td>
+
+                          </tr>
+                        ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan="6"
+                          className="text-center py-8 text-base-content/40 italic"
+                        >
+                          No ledger records found for this year.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
 
           {/* --- RIGHT COLUMN --- */}
@@ -520,7 +581,6 @@ const FundViewPage = () => {
                   </span>
                 </div>
 
-                {/* Visual placeholder for recent entries if we wanted to add them later */}
                 <div className="mt-4 text-center p-4 border border-dashed border-base-300 rounded-lg">
                   <p className="text-xs text-base-content/40 italic">
                     Transaction history is available in the Reports section.
@@ -549,6 +609,25 @@ const FundViewPage = () => {
                 </div>
               </div>
             </div>
+
+            {isAuthorized && (
+              <InfoCard icon={ToolboxIcon} title="Actions">
+                <button
+                  onClick={handleDelete}
+                  className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-error hover:bg-error/10 transition-colors"
+                  title="Deactivate Fund"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-primary hover:bg-base-200"
+                  title="Edit Fund"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+              </InfoCard>
+            )}
           </div>
         </div>
       </main>
