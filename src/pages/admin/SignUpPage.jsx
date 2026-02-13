@@ -65,7 +65,7 @@ const SignUpPage = () => {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "USER",
+    userRole: "USER",
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -194,9 +194,10 @@ const SignUpPage = () => {
                       <Shield className="h-5 w-5 text-base-content/40" />
                     </div>
                     <select
-                      name="role"
+                    type="text"
+                      name="userRole"
                       className="select select-bordered w-full pl-10"
-                      value={formData.role}
+                      value={formData.userRole}
                       onChange={handleChange}
                     >
                       <option value="USER">User</option>

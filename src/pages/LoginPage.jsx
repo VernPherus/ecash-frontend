@@ -102,13 +102,6 @@ const LoginPage = () => {
 
                 {/* Remember Me & Forgot Password */}
                 <div className="flex items-center justify-between">
-                  <label className="label cursor-pointer gap-2">
-                    <input
-                      type="checkbox"
-                      className="checkbox checkbox-primary checkbox-sm"
-                    />
-                    <span className="label-text">Remember me</span>
-                  </label>
                   <button
                     type="button"
                     onClick={() => setIsForgotMode(true)}
