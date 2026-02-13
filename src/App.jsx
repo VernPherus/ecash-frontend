@@ -69,7 +69,7 @@ const AuthRoute = ({ children }) => {
 // Main Layout with Sidebar
 const MainLayout = () => {
   return (
-    <div className="flex h-screen bg-base-200 overflow-hidden">
+    <div className="flex h-screen bg-gray-300 dark:bg-base-300 overflow-hidden">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
         <Outlet />
