@@ -11,7 +11,9 @@ import {
   Eye,
   FileText,
   XCircle,
-  Calendar, // Added Icon
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import DataTable from "../components/DataTable";
 import DashboardTimeStats from "../components/DashboardTimeStats";
@@ -54,6 +56,7 @@ const DashboardPage = () => {
   } = useDisbursementStore();
 
   const [filterStatus, setFilterStatus] = useState("ALL");
+  const [currentFundIndex, setCurrentFundIndex] = useState(0);
 
   // State for selected month (Defaults to current month)
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
@@ -223,7 +226,15 @@ const DashboardPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-base-200/50 pb-20">
+    <div
+      className="min-h-screen pb-20"
+      style={{
+        backgroundColor: "oklch(var(--b2))",
+        backgroundImage:
+          "radial-gradient(circle, oklch(var(--b3)) 1px, transparent 1px)",
+        backgroundSize: "22px 22px",
+      }}
+    >
       <FloatingNotification />
 
       <div className="px-6 lg:px-8 py-8 max-w-7xl mx-auto space-y-8">
@@ -259,25 +270,74 @@ const DashboardPage = () => {
           </div>
 
           {fundStats.length > 0 ? (
-            <div className="flex overflow-x-auto pb-4 gap-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-base-300">
-              {fundStats.map((fundStat) => (
-                <div
-                  key={fundStat.fundId}
-                  className="flex-1 min-w-[400px] md:min-w-[450px]"
+            <div
+              className="flex flex-col gap-4 rounded-2xl p-4 border border-base-300/60"
+              style={{
+                background:
+                  "linear-gradient(135deg, oklch(var(--b1)) 0%, oklch(var(--b2)) 100%)",
+                boxShadow: "inset 0 1px 0 oklch(var(--b1) / 0.8)",
+              }}
+            >
+              {/* Carousel row */}
+              <div className="flex items-center gap-4">
+                {/* Prev button */}
+                <button
+                  onClick={() => setCurrentFundIndex((i) => Math.max(0, i - 1))}
+                  disabled={currentFundIndex === 0}
+                  className="self-center flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-base-100 border border-base-300 shadow-md hover:bg-primary hover:border-primary hover:text-white hover:shadow-primary/30 disabled:opacity-25 disabled:cursor-not-allowed transition-all duration-200 text-base-content/70"
+                  aria-label="Previous fund"
                 >
-                  <FundStatCard
-                    fundId={fundStat.fundId}
-                    month={currentMonthName}
-                    totalNCA={fundStat.totalEntries}
-                    totalMonthly={fundStat.totalMonthly}
-                    totalDisbursements={fundStat.totalDisbursement}
-                    totalCashUtil={fundStat.totalCashUtil}
-                    processedDVNum={fundStat.processedDVNum}
-                    cancelledLDDAPNum={fundStat.cancelledLDDAP}
-                    cancelledCheckNum={fundStat.cancellledCheck}
-                  />
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+
+                {/* Active card — full width */}
+                <div className="flex-1 min-w-0">
+                  {(() => {
+                    const fundStat = fundStats[currentFundIndex];
+                    return (
+                      <FundStatCard
+                        key={fundStat.fundId}
+                        fundId={fundStat.fundId}
+                        month={currentMonthName}
+                        totalNCA={fundStat.totalEntries}
+                        totalMonthly={fundStat.totalMonthly}
+                        totalDisbursements={fundStat.totalDisbursement}
+                        totalCashUtil={fundStat.totalCashUtil}
+                        processedDVNum={fundStat.processedDVNum}
+                        cancelledLDDAPNum={fundStat.cancelledLDDAP}
+                        cancelledCheckNum={fundStat.cancellledCheck}
+                      />
+                    );
+                  })()}
                 </div>
-              ))}
+
+                {/* Next button */}
+                <button
+                  onClick={() => setCurrentFundIndex((i) => Math.min(fundStats.length - 1, i + 1))}
+                  disabled={currentFundIndex === fundStats.length - 1}
+                  className="self-center flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-base-100 border border-base-300 shadow-md hover:bg-primary hover:border-primary hover:text-white hover:shadow-primary/30 disabled:opacity-25 disabled:cursor-not-allowed transition-all duration-200 text-base-content/70"
+                  aria-label="Next fund"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Dot indicators */}
+              {fundStats.length > 1 && (
+                <div className="flex justify-center gap-2 pt-1">
+                  {fundStats.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentFundIndex(i)}
+                      aria-label={`Go to fund ${i + 1}`}
+                      className={`h-2 rounded-full transition-all duration-200 ${i === currentFundIndex
+                        ? "w-6 bg-primary"
+                        : "w-2 bg-gray-400 dark:bg-base-300 hover:bg-gray-500 dark:hover:bg-base-content/30 border border-gray-300 dark:border-transparent"
+                        }`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-12 bg-base-100 rounded-xl border border-base-300 border-dashed">

@@ -16,6 +16,8 @@ import {
   Wallet,
   LayoutGrid,
   Calendar,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -70,6 +72,7 @@ const FundManagerPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isFundModalOpen, setIsFundModalOpen] = useState(false);
   const [isEntryModalOpen, setIsEntryModalOpen] = useState(false);
+  const [currentFundIndex, setCurrentFundIndex] = useState(0);
 
   // --- Month Selection State ---
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
@@ -220,11 +223,10 @@ const FundManagerPage = () => {
         header: "Fund Code",
         render: (row, idx) => (
           <span
-            className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-mono font-bold border ${
-              idx % 2 === 0
-                ? "bg-primary/10 text-primary border-primary/20"
-                : "bg-secondary/10 text-secondary border-secondary/20"
-            }`}
+            className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-mono font-bold border ${idx % 2 === 0
+              ? "bg-primary/10 text-primary border-primary/20"
+              : "bg-secondary/10 text-secondary border-secondary/20"
+              }`}
           >
             {row.code}
           </span>
@@ -403,25 +405,67 @@ const FundManagerPage = () => {
           </div>
 
           {fundStats.length > 0 ? (
-            <div className="flex overflow-x-auto pb-4 gap-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-base-300">
-              {fundStats.map((fundStat) => (
-                <div
-                  key={fundStat.fundId}
-                  className="flex-1 min-w-[400px] md:min-w-[450px]"
+            <div className="flex flex-col gap-3">
+              {/* Carousel row */}
+              <div className="flex items-center gap-3">
+                {/* Prev button — small circle */}
+                <button
+                  onClick={() => setCurrentFundIndex((i) => Math.max(0, i - 1))}
+                  disabled={currentFundIndex === 0}
+                  className="self-center flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-full border border-base-300 bg-base-100 hover:bg-base-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+                  aria-label="Previous fund"
                 >
-                  <FundStatCard
-                    fundId={fundStat.fundId}
-                    month={currentMonthName} // Pass month name
-                    totalNCA={fundStat.totalEntries}
-                    totalMonthly={fundStat.totalMonthly}
-                    totalDisbursements={fundStat.totalDisbursement}
-                    totalCashUtil={fundStat.totalCashUtil}
-                    processedDVNum={fundStat.processedDVNum}
-                    cancelledLDDAPNum={fundStat.cancelledLDDAP}
-                    cancelledCheckNum={fundStat.cancelledCheck}
-                  />
+                  <ChevronLeft className="w-4 h-4 text-base-content/70" />
+                </button>
+
+                {/* Active card — full width */}
+                <div className="flex-1 min-w-0">
+                  {(() => {
+                    const fundStat = fundStats[currentFundIndex];
+                    return (
+                      <FundStatCard
+                        key={fundStat.fundId}
+                        fundId={fundStat.fundId}
+                        month={currentMonthName}
+                        totalNCA={fundStat.totalEntries}
+                        totalMonthly={fundStat.totalMonthly}
+                        totalDisbursements={fundStat.totalDisbursement}
+                        totalCashUtil={fundStat.totalCashUtil}
+                        processedDVNum={fundStat.processedDVNum}
+                        cancelledLDDAPNum={fundStat.cancelledLDDAP}
+                        cancelledCheckNum={fundStat.cancelledCheck}
+                      />
+                    );
+                  })()}
                 </div>
-              ))}
+
+                {/* Next button — small circle */}
+                <button
+                  onClick={() => setCurrentFundIndex((i) => Math.min(fundStats.length - 1, i + 1))}
+                  disabled={currentFundIndex === fundStats.length - 1}
+                  className="self-center flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-full border border-base-300 bg-base-100 hover:bg-base-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+                  aria-label="Next fund"
+                >
+                  <ChevronRight className="w-4 h-4 text-base-content/70" />
+                </button>
+              </div>
+
+              {/* Dot indicators */}
+              {fundStats.length > 1 && (
+                <div className="flex justify-center gap-2 pt-1">
+                  {fundStats.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentFundIndex(i)}
+                      aria-label={`Go to fund ${i + 1}`}
+                      className={`h-2 rounded-full transition-all duration-200 ${i === currentFundIndex
+                          ? "w-6 bg-primary"
+                          : "w-2 bg-gray-400 dark:bg-base-300 hover:bg-gray-500 dark:hover:bg-base-content/30 border border-gray-300 dark:border-transparent"
+                        }`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-12 bg-base-100 rounded-xl border border-base-300 border-dashed">
@@ -438,21 +482,19 @@ const FundManagerPage = () => {
           <div className="bg-base-100 p-1 rounded-lg border border-base-300 flex gap-1">
             <button
               onClick={() => setActiveTab("FUNDS")}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${
-                activeTab === "FUNDS"
-                  ? "bg-base-200 text-base-content shadow-sm"
-                  : "text-base-content/50 hover:text-base-content hover:bg-base-200/50"
-              }`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${activeTab === "FUNDS"
+                ? "bg-base-200 text-base-content shadow-sm"
+                : "text-base-content/50 hover:text-base-content hover:bg-base-200/50"
+                }`}
             >
               <Layers className="w-4 h-4" /> Fund Sources
             </button>
             <button
               onClick={() => setActiveTab("LEDGER")}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${
-                activeTab === "LEDGER"
-                  ? "bg-base-200 text-base-content shadow-sm"
-                  : "text-base-content/50 hover:text-base-content hover:bg-base-200/50"
-              }`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${activeTab === "LEDGER"
+                ? "bg-base-200 text-base-content shadow-sm"
+                : "text-base-content/50 hover:text-base-content hover:bg-base-200/50"
+                }`}
             >
               <FileText className="w-4 h-4" /> Ledger Entries
             </button>
@@ -486,9 +528,8 @@ const FundManagerPage = () => {
           emptyState={{
             icon: activeTab === "FUNDS" ? Layers : FileText,
             title: "No records found",
-            description: `Try adding a new ${
-              activeTab === "FUNDS" ? "fund" : "entry"
-            }.`,
+            description: `Try adding a new ${activeTab === "FUNDS" ? "fund" : "entry"
+              }.`,
           }}
         />
       </main>
