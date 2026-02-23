@@ -8,9 +8,13 @@ import {
 } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
+// Socket
+import { socket } from "./lib/socket";
+
 // Store
 import useAuthStore from "./store/useAuthStore";
 import useThemeStore from "./store/useThemeStore";
+import useDisbursementStore from "./store/useDisbursementStore";
 
 // Layout Components
 import Sidebar from "./components/Sidebar";
@@ -82,11 +86,19 @@ const MainLayout = () => {
 const App = () => {
   const { checkAuth, isCheckingAuth } = useAuthStore();
   const { initializeTheme } = useThemeStore();
+  const { handleSocketUpdate } = useDisbursementStore();
 
   useEffect(() => {
     initializeTheme();
     checkAuth();
   }, [checkAuth, initializeTheme]);
+
+  useEffect(() => {
+    socket.on("disbursement_updates", handleSocketUpdate);
+    return () => {
+      socket.off("disbursement_updates", handleSocketUpdate);
+    };
+  }, [handleSocketUpdate]);
 
   if (isCheckingAuth) {
     return <LoadingScreen />;

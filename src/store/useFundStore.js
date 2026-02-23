@@ -256,7 +256,7 @@ const useFundStore = create((set, get) => ({
     set({ isLoading: true });
     try {
       const response = await axiosInstance.post("/fund/newEntry", entryData);
-      const newEntry = response.data.savedEntry;
+      const newEntry = response.data.data;
 
       if (entryData.fundId) {
         get().fetchFundDetails(entryData.fundId);
@@ -312,7 +312,7 @@ const useFundStore = create((set, get) => ({
     set({ isLoading: true });
     try {
       // Assuming ID is passed in body based on PUT method usage for delete
-      await axiosInstance.put("/fund/deleteEntry", { id });
+      await axiosInstance.put(`/fund/deleteEntry/${id}`);
 
       set((state) => ({
         entries: state.entries.filter((e) => e.id !== id),
@@ -348,9 +348,7 @@ const useFundStore = create((set, get) => ({
       });
     } else if (type === "DELETE") {
       set({
-        funds: currentFunds.map((fund) =>
-          fund.id === data.id ? { ...fund, ...data } : fund,
-        ),
+        funds: currentFunds.filter((fund) => fund.id !== data.id),
       });
     } else if (type === "RESET") {
       get().fetchFunds();

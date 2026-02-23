@@ -2,16 +2,14 @@ import axios from "axios";
 
 // Create axios instance with default config
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
-  withCredentials: true, // Required for cookies/JWT
+  baseURL: import.meta.env.MODE === "development" ? "http://localhost:5000/api" : "/api",
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
 // Request interceptor
-// Note: Authentication is handled via HTTP-only cookies (withCredentials: true)
-// No manual token management needed - cookies are sent automatically
 axiosInstance.interceptors.request.use(
   (config) => {
     return config;

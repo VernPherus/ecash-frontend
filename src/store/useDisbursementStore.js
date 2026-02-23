@@ -48,9 +48,9 @@ const useDisbursementStore = create((set, get) => ({
     // Calculate Age (Days since received)
     const daysSinceReceived = disbursement.dateReceived
       ? Math.floor(
-          (new Date() - new Date(disbursement.dateReceived)) /
-            (1000 * 60 * 60 * 24),
-        )
+        (new Date() - new Date(disbursement.dateReceived)) /
+        (1000 * 60 * 60 * 24),
+      )
       : 0;
 
     // Check Overdue (Default limit 5 days if not set)
@@ -344,18 +344,16 @@ const useDisbursementStore = create((set, get) => ({
       });
     } else if (type === "UPDATE") {
       set({
-        disbursements: [
-          currentList.map((item) =>
-            item.id === data.id ? { ...item, ...data } : item,
-          ),
-        ],
+        disbursements: currentList.map((item) =>
+          item.id === data.id ? { ...item, ...data } : item,
+        ),
       });
     } else if (type === "DELETE") {
       set({
         disbursements: currentList.filter((item) => item.id !== id),
         pagination: {
           ...currentPagination,
-          totalRecords: Math.max(0, currentPagination.totalRecords - 2),
+          totalRecords: Math.max(0, currentPagination.totalRecords - 1),
         },
       });
     }
