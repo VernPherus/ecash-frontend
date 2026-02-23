@@ -190,6 +190,7 @@ const FundManagerPage = () => {
       setIsEntryModalOpen(false);
       setEntryForm({ sourceId: "", name: "", amount: "", entryDate: "" });
       fetchFunds();
+      fetchEntries();
     }
   };
 
@@ -459,8 +460,8 @@ const FundManagerPage = () => {
                       onClick={() => setCurrentFundIndex(i)}
                       aria-label={`Go to fund ${i + 1}`}
                       className={`h-2 rounded-full transition-all duration-200 ${i === currentFundIndex
-                          ? "w-6 bg-primary"
-                          : "w-2 bg-gray-400 dark:bg-base-300 hover:bg-gray-500 dark:hover:bg-base-content/30 border border-gray-300 dark:border-transparent"
+                        ? "w-6 bg-primary"
+                        : "w-2 bg-gray-400 dark:bg-base-300 hover:bg-gray-500 dark:hover:bg-base-content/30 border border-gray-300 dark:border-transparent"
                         }`}
                     />
                   ))}

@@ -262,11 +262,7 @@ const useFundStore = create((set, get) => ({
         get().fetchFundDetails(entryData.fundId);
       }
 
-      set((state) => ({
-        entries: [newEntry, ...state.entries],
-        isLoading: false,
-      }));
-
+      set({ isLoading: false });
       toast.success("Entry recorded successfully!");
       return { success: true, entry: newEntry };
     } catch (error) {
