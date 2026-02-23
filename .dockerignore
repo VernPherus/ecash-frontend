@@ -1,0 +1,31 @@
+# Dependencies — installed fresh inside the image
+node_modules
+
+# Existing build output — built fresh inside the image
+dist
+
+# Environment secrets
+.env
+.env.*
+
+# Dev/analysis files
+eslint-errors.txt
+eslint-final.txt
+eslint-output.json
+eslint-report.txt
+eslint_warnings.json
+eslint.json
+*.bat
+
+# Logs
+*.log
+logs
+
+# Editor / OS artefacts
+.vscode
+.idea
+.DS_Store
+
+# Git
+.git
+.gitignore
